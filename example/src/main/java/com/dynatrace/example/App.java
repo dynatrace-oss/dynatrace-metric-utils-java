@@ -16,15 +16,50 @@ package com.dynatrace.example;
 
 import com.dynatrace.metric.util.Dimension;
 import com.dynatrace.metric.util.DimensionList;
-
-import java.util.Arrays;
-import java.util.Collections;
+import com.dynatrace.metric.util.Metric;
+import com.dynatrace.metric.util.MetricValues;
 
 public class App {
     public static void main(String[] args) {
-        Dimension d = Dimension.create("a", "b");
-        DimensionList dl = new DimensionList(Collections.singletonList(d));
+
+        // DimensionList.create will automatically call normalize for each of the dimensions.
+        // the first two can be created once, and then passed to the merge function for each
+        // new created metric. That way they dont have to be normalized every time.
+        // The main question here is if we want a kind of factory, that we can pass these two
+        // lists to, and which will create metric objects given just a set of labels (but
+        // on the back end does exactly what is shown here).
+        DimensionList defaultDims = DimensionList.create(
+                Dimension.create("default1", "value1"),
+                Dimension.create("default2", "value2")
+        );
+
+        DimensionList oneAgentData = DimensionList.create(
+                Dimension.create("one1", "value1"),
+                Dimension.create("one2", "value2")
+        );
+
+        DimensionList labels = DimensionList.create(
+                Dimension.create("label1", "value1"),
+                Dimension.create("label2", "value2")
+        );
+
+        // dimensions in lists further right will overwrite dimensions in items further left.
+        // this will have to be done for each metric, as each metric can have different labels.
+        DimensionList merged = DimensionList.merge(defaultDims, labels, oneAgentData);
+        // create the metric
+        Metric metric = Metric
+                .builder("name")
+                .setPrefix("prefix")
+                .setDimensions(merged)
+                .setCurrentTime()
+                .setIntCounterValue(32)
+                .build();
+
+        // and transform it to a string
+        System.out.println(metric.serialize());
         
-        System.out.println(dl.normalize());
+        for (Dimension dim:merged.getDimensions()){
+            System.out.println(dim);
+        }
     }
 }

@@ -11,7 +11,6 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dynatrace.metric.util;
 
 public class Dimension {
@@ -25,5 +24,10 @@ public class Dimension {
 
   public static Dimension create(String key, String value) {
     return new Dimension(key, value);
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%s=%s", Key, Value);
   }
 }

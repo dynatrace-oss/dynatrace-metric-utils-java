@@ -15,13 +15,14 @@ package com.dynatrace.metric.util;
 
 import com.google.common.base.Strings;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
 class Normalize {
   private static final Logger logger = Logger.getLogger(Normalize.class.getName());
 
-  static List<Dimension> dimensionList(List<Dimension> dimensions) {
+  static List<Dimension> dimensionList(Collection<Dimension> dimensions) {
     List<Dimension> normalized = new ArrayList<>();
     for (Dimension dimension : dimensions) {
       try {
@@ -45,5 +46,10 @@ class Normalize {
   static String dimensionValue(String value) {
     // todo
     return value;
+  }
+
+  static String metricKey(String key) {
+    // todo
+    return key;
   }
 }

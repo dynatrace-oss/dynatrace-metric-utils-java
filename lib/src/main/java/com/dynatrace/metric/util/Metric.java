@@ -13,16 +13,72 @@
  */
 package com.dynatrace.metric.util;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import java.time.LocalDateTime;
 
 public class Metric {
+
+  public static class Builder {
+    private String name;
+    private String prefix;
+    private MetricValue value;
+    private DimensionList dimensions;
+    private LocalDateTime time;
+
+    private Builder(String name) {
+      this.name = name;
+    }
+
+    public Builder setPrefix(String prefix) {
+      this.prefix = prefix;
+      return this;
+    }
+
+    public Builder setIntCounterValue(int value) {
+      this.value = new MetricValues.IntCounterValue(value);
+      return this;
+    }
+
+    public Builder setDimensions(DimensionList dimensions) {
+      this.dimensions = dimensions;
+      return this;
+    }
+
+    public Builder setTimestamp(LocalDateTime timestamp) {
+      this.time = timestamp;
+      return this;
+    }
+
+    public Builder setCurrentTime() {
+      return this.setTimestamp(LocalDateTime.now());
+    }
+
+    public Metric build() {
+      // todo run merge here.
+      return new Metric(prefix, name, value, dimensions, time);
+    }
+  }
+
   private String prefix;
   private String name;
-  //    private MetricValue value;
-  //    private NormalizedDimensionList dimensions;
-  //    private Timestamp time;
+  private MetricValue value;
+  private DimensionList dimensions;
+  private LocalDateTime time;
+
+  private Metric(
+      String prefix, String name, MetricValue value, DimensionList dimensions, LocalDateTime time) {
+    this.prefix = prefix;
+    this.name = name;
+    this.value = value;
+    this.dimensions = dimensions;
+    this.time = time;
+  }
+
+  public static Builder builder(String name) {
+    return new Builder(name);
+  }
 
   public String serialize() {
-    throw new NotImplementedException();
+    // todo
+    return String.format("%s.%s dims %s time", prefix, name, value.serialize());
   }
 }

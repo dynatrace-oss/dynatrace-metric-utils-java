@@ -13,30 +13,42 @@
  */
 package com.dynatrace.metric.util;
 
-import java.util.List;
+import com.google.common.base.Strings;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 
 public class DimensionList {
-  private List<Dimension> dimensions;
-  private Boolean normalized;
+  private static final Logger logger = Logger.getLogger(Dimension.class.getName());
 
-  public DimensionList(List<Dimension> dimensions) {
+  private Collection<Dimension> dimensions;
+
+  private DimensionList(Collection<Dimension> dimensions) {
     this.dimensions = dimensions;
-    this.normalized = false;
   }
 
-  public int normalize() {
-    if (!normalized) {
-      dimensions = Normalize.dimensionList(dimensions);
-      normalized = true;
+  public static DimensionList create(Dimension... dimensions) {
+    return new DimensionList(Normalize.dimensionList(Arrays.asList(dimensions)));
+  }
+
+  public static DimensionList merge(DimensionList... dimensionLists) {
+    Map<String, Dimension> dimensionMap = new HashMap<>();
+    for (DimensionList dl : dimensionLists) {
+      // overwrite dimension keys with items that are passed further right.
+      for (Dimension dimension : dl.dimensions) {
+        if (Strings.isNullOrEmpty(dimension.Key)) {
+          logger.warning("skipping empty key");
+          continue;
+        }
+        dimensionMap.put(dimension.Key, dimension);
+      }
     }
-    return dimensions.size();
+    return new DimensionList(dimensionMap.values());
   }
 
-  public List<Dimension> getDimensions() {
+  public Collection<Dimension> getDimensions() {
     return dimensions;
-  }
-
-  public Boolean isNormalized() {
-    return normalized;
   }
 }

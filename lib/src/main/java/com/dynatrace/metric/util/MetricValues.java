@@ -13,8 +13,30 @@
  */
 package com.dynatrace.metric.util;
 
-public class Library {
-  public boolean someLibraryMethod() {
-    return true;
+interface MetricValue {
+  public String serialize();
+}
+
+public class MetricValues {
+  public static class IntCounterValue implements MetricValue {
+    private final int value;
+    private final boolean absolute;
+
+    public IntCounterValue(int value) {
+      this(value, false);
+    }
+
+    public IntCounterValue(int value, boolean absolute) {
+      this.value = value;
+      this.absolute = absolute;
+    }
+
+    @Override
+    public String serialize() {
+      if (this.absolute) {
+        return String.format("count,delta=%d", this.value);
+      }
+      return String.format("count,%d", this.value);
+    }
   }
 }
