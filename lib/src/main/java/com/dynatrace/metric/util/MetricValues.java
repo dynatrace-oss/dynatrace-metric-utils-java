@@ -13,12 +13,12 @@
  */
 package com.dynatrace.metric.util;
 
-interface MetricValue {
-  public String serialize();
+interface IMetricValue {
+  String serialize();
 }
 
 public class MetricValues {
-  public static class IntCounterValue implements MetricValue {
+  public static class IntCounterValue implements IMetricValue {
     private final int value;
     private final boolean absolute;
 

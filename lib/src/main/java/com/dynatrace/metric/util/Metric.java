@@ -20,7 +20,7 @@ public class Metric {
   public static class Builder {
     private String name;
     private String prefix;
-    private MetricValue value;
+    private IMetricValue value;
     private DimensionList dimensions;
     private LocalDateTime time;
 
@@ -53,19 +53,22 @@ public class Metric {
     }
 
     public Metric build() {
-      // todo run merge here.
       return new Metric(prefix, name, value, dimensions, time);
     }
   }
 
-  private String prefix;
-  private String name;
-  private MetricValue value;
-  private DimensionList dimensions;
-  private LocalDateTime time;
+  private final String prefix;
+  private final String name;
+  private final IMetricValue value;
+  private final DimensionList dimensions;
+  private final LocalDateTime time;
 
   private Metric(
-      String prefix, String name, MetricValue value, DimensionList dimensions, LocalDateTime time) {
+      String prefix,
+      String name,
+      IMetricValue value,
+      DimensionList dimensions,
+      LocalDateTime time) {
     this.prefix = prefix;
     this.name = name;
     this.value = value;
