@@ -1,5 +1,7 @@
 .gradle
-/build/
+
+# Ignore Gradle build output directory
+build
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -15,3 +17,4 @@ gradle-app.setting
 
 # dont commit intellij settings
 .idea/
+
