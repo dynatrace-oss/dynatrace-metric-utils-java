@@ -3,12 +3,14 @@
  */
 package com.dynatrace.metric.util;
 
-import org.junit.Test;
 import static org.junit.Assert.*;
 
+import org.junit.Test;
+
 public class LibraryTest {
-    @Test public void testSomeLibraryMethod() {
-        Library classUnderTest = new Library();
-        assertTrue("someLibraryMethod should return 'true'", classUnderTest.someLibraryMethod());
-    }
+  @Test
+  public void testSomeLibraryMethod() {
+    Library classUnderTest = new Library();
+    assertTrue("someLibraryMethod should return 'true'", classUnderTest.someLibraryMethod());
+  }
 }
