@@ -13,6 +13,8 @@
  */
 package com.dynatrace.metric.util;
 
+import java.util.Objects;
+
 public class Dimension {
   public final String Key;
   public final String Value;
@@ -40,5 +42,18 @@ public class Dimension {
 
   String serialize() {
     return String.format("%s=%s", Key, Value);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Dimension dimension = (Dimension) o;
+    return Objects.equals(Key, dimension.Key) && Objects.equals(Value, dimension.Value);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(Key, Value);
   }
 }

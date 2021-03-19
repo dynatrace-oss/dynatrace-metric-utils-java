@@ -39,7 +39,7 @@ class MetricValuesTest {
 
     val = new MetricValues.IntCounterValue(100, false);
     assertEquals("count,100", val.serialize());
-    
+
     assertThrows(MetricException.class, () -> new MetricValues.IntCounterValue(-10, false));
 
     val = new MetricValues.IntCounterValue(0, true);
@@ -51,7 +51,7 @@ class MetricValuesTest {
     val = new MetricValues.IntCounterValue(-10, true);
     assertEquals("count,delta=-10", val.serialize());
   }
-  
+
   @Test
   public void testIntSummaryValue() throws MetricException {
     MetricValues.IntSummaryValue val;
@@ -116,11 +116,14 @@ class MetricValuesTest {
     assertEquals("gauge,min=0,max=0,sum=0,count=0", val.serialize());
 
     // negative count
-    assertThrows(MetricException.class, () -> new MetricValues.DoubleSummaryValue(0.2, 10.3, 20.4, -10));
+    assertThrows(
+        MetricException.class, () -> new MetricValues.DoubleSummaryValue(0.2, 10.3, 20.4, -10));
     // min > max
-    assertThrows(MetricException.class, () -> new MetricValues.DoubleSummaryValue(5.3, 3.3, 20.3, 10));
+    assertThrows(
+        MetricException.class, () -> new MetricValues.DoubleSummaryValue(5.3, 3.3, 20.3, 10));
     // max > sum
-    assertThrows(MetricException.class, () -> new MetricValues.DoubleSummaryValue(1.2, 100.4, 20.3, 10));
+    assertThrows(
+        MetricException.class, () -> new MetricValues.DoubleSummaryValue(1.2, 100.4, 20.3, 10));
   }
 
   @Test
@@ -135,5 +138,4 @@ class MetricValuesTest {
     val = new MetricValues.DoubleGaugeValue(-123.456);
     assertEquals("gauge,-123.456", val.serialize());
   }
-  
 }

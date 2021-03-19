@@ -14,18 +14,15 @@
 package com.dynatrace.metric.util;
 
 import com.google.common.base.Strings;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class DimensionList {
   private static final Logger logger = Logger.getLogger(Dimension.class.getName());
 
-  private Collection<Dimension> dimensions;
+  private final List<Dimension> dimensions;
 
-  private DimensionList(Collection<Dimension> dimensions) {
+  private DimensionList(List<Dimension> dimensions) {
     this.dimensions = dimensions;
   }
 
@@ -67,7 +64,7 @@ public class DimensionList {
         dimensionMap.put(dimension.Key, dimension);
       }
     }
-    return new DimensionList(dimensionMap.values());
+    return new DimensionList(new ArrayList<>(dimensionMap.values()));
   }
 
   public Collection<Dimension> getDimensions() {
