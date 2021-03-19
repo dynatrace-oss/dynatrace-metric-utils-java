@@ -39,6 +39,10 @@ public final class DimensionList {
     return new DimensionList(Normalize.dimensionList(Arrays.asList(dimensions)));
   }
 
+  public static DimensionList fromOneAgentMetadata() {
+    return new DimensionList(OneAgentMetadataEnricher.getDimensionsFromOneAgentMetadata());
+  }
+
   /**
    * Merge one or more {@link DimensionList} objects into one and remove duplicate keys. The order
    * of the passed lists matters, {@link Dimension Dimensions} of {@link DimensionList

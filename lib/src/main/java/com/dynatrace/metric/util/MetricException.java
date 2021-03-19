@@ -13,7 +13,7 @@
  */
 package com.dynatrace.metric.util;
 
-public  final class MetricException extends Exception {
+public final class MetricException extends Exception {
 
   public MetricException(String message) {
     super(message);

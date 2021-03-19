@@ -30,9 +30,7 @@ public class App {
         DimensionList.create(
             Dimension.create("default1", "value1"), Dimension.create("default2", "value2"));
 
-    DimensionList oneAgentData =
-        DimensionList.create(
-            Dimension.create("one1", "value1"), Dimension.create("one2", "value2"));
+    DimensionList oneAgentData = DimensionList.fromOneAgentMetadata();
 
     DimensionList labels =
         DimensionList.create(

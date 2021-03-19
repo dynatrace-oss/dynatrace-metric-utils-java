@@ -20,47 +20,37 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 final class OneAgentMetadataEnricher {
-  private final Logger logger;
+  private static final Logger logger = Logger.getLogger(OneAgentMetadataEnricher.class.getName());
   private static final String INDIRECTION_FILE_NAME =
       "dt_metadata_e617c525669e072eebe3d0f08212e8f2.properties";
 
-  public OneAgentMetadataEnricher(Logger logger) {
-    this.logger = logger;
-  }
-
-  Logger getLogger() {
-    return this.logger;
-  }
-
-  public Collection<Dimension> getDimensionsFromOneAgentMetadata() {
+  public static List<Dimension> getDimensionsFromOneAgentMetadata() {
     return parseOneAgentMetadata(getMetadataFileContentWithRedirection(INDIRECTION_FILE_NAME));
   }
 
   /**
    * This function takes a list of strings from the OneAgent metadata file and transforms it into a
-   * list of {@link AbstractMap.SimpleEntry SimpleEntry} objects. Parsing failures will not be added
-   * to the output list, therefore, it is possible that the output list is shorter than the input,
-   * or even empty.
+   * list of {@link Dimension} objects. Parsing failures will not be added to the output list,
+   * therefore, it is possible that the output list is shorter than the input, or even empty.
    *
-   * @param lines a {@link Collection<String>} containing key-value pairs (as one string) separated
-   *     by an equal sign.
-   * @return A {@link Collection} of {@link AbstractMap.SimpleEntry SimpleEntries} mapping {@link
-   *     String} to {@link String}. These represent the the lines passed in separated by the first
-   *     occurring equal sign on each line, respectively. If no line is parsable, returns an empty
-   *     list.
+   * @param lines a {@link List<String>} containing key-value pairs (as one string) separated by an
+   *     equal sign.
+   * @return A {@link List} of {@link Dimension dimensions} mapping {@link String} to {@link
+   *     String}. These represent the the lines passed in separated by the first occurring equal
+   *     sign on each line, respectively. If no line is parsable, returns an empty list.
    */
-  protected Collection<Dimension> parseOneAgentMetadata(Collection<String> lines) {
+  static List<Dimension> parseOneAgentMetadata(Collection<String> lines) {
     ArrayList<Dimension> entries = new ArrayList<>();
 
     // iterate all lines from OneAgent metadata file.
     for (String line : lines) {
-      getLogger().info(String.format("parsing OneAgent metadata: %s", line));
+      logger.info(String.format("parsing OneAgent metadata: %s", line));
       // if there are more than one '=' in the line, split only at the first one.
       String[] split = line.split("=", 2);
 
       // occurs if there is no '=' in the line
       if (split.length != 2) {
-        getLogger().warning(String.format("could not parse OneAgent metadata line ('%s')", line));
+        logger.warning(String.format("could not parse OneAgent metadata line ('%s')", line));
         continue;
       }
 
@@ -69,7 +59,7 @@ final class OneAgentMetadataEnricher {
 
       // make sure key and value are set to non-null, non-empty values
       if ((key == null || key.isEmpty()) || (value == null || value.isEmpty())) {
-        getLogger().warning(String.format("could not parse OneAgent metadata line ('%s')", line));
+        logger.warning(String.format("could not parse OneAgent metadata line ('%s')", line));
         continue;
       }
       entries.add(Dimension.create(key, value));
@@ -84,7 +74,7 @@ final class OneAgentMetadataEnricher {
    * @return The string containing the filename or null if the file is empty.
    * @throws IOException if an error occurs during reading of the file.
    */
-  String getMetadataFileName(Reader fileContents) throws IOException {
+  static String getMetadataFileName(Reader fileContents) throws IOException {
     if (fileContents == null) {
       throw new IOException("passed Reader cannot be null.");
     }
@@ -107,7 +97,7 @@ final class OneAgentMetadataEnricher {
    * @return A {@link List<String>} containing the {@link String#trim() trimmed} lines.
    * @throws IOException if an error occurs during reading of the file.
    */
-  List<String> getOneAgentMetadataFileContent(Reader fileContents) throws IOException {
+  static List<String> getOneAgentMetadataFileContent(Reader fileContents) throws IOException {
     if (fileContents == null) {
       throw new IOException("passed Reader cannot be null.");
     }
@@ -123,21 +113,19 @@ final class OneAgentMetadataEnricher {
    * @return A {@link List<String>} representing the contents of the OneAgent metadata file. Leading
    *     and trailing whitespaces are {@link String#trim() trimmed} for each of the lines.
    */
-  List<String> getMetadataFileContentWithRedirection(String indirectionFileName) {
+  static List<String> getMetadataFileContentWithRedirection(String indirectionFileName) {
     String oneAgentMetadataFileName = null;
 
     try (Reader indirectionFileReader = new FileReader(indirectionFileName)) {
       oneAgentMetadataFileName = getMetadataFileName(indirectionFileReader);
     } catch (FileNotFoundException e) {
-      getLogger()
-          .info(
-              "OneAgent indirection file not found. This is normal if OneAgent is not installed.");
+      logger.info(
+          "OneAgent indirection file not found. This is normal if OneAgent is not installed.");
     } catch (IOException e) {
-      getLogger()
-          .info(
-              String.format(
-                  "Error while trying to read contents of OneAgent indirection file: %s",
-                  e.getMessage()));
+      logger.info(
+          String.format(
+              "Error while trying to read contents of OneAgent indirection file: %s",
+              e.getMessage()));
     }
 
     if (Strings.isNullOrEmpty(oneAgentMetadataFileName)) {
@@ -148,13 +136,11 @@ final class OneAgentMetadataEnricher {
     try (Reader metadataFileReader = new FileReader(oneAgentMetadataFileName)) {
       properties = getOneAgentMetadataFileContent(metadataFileReader);
     } catch (FileNotFoundException e) {
-      getLogger().warning("OneAgent indirection file pointed to non existent properties file.");
+      logger.warning("OneAgent indirection file pointed to non existent properties file.");
     } catch (IOException e) {
-      getLogger()
-          .info(
-              String.format(
-                  "Error while trying to read contents of OneAgent metadata file: %s",
-                  e.getMessage()));
+      logger.info(
+          String.format(
+              "Error while trying to read contents of OneAgent metadata file: %s", e.getMessage()));
     }
     return properties;
   }

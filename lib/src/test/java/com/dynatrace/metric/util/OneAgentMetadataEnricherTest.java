@@ -21,19 +21,17 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.logging.Logger;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 public class OneAgentMetadataEnricherTest {
-  Logger logger = Logger.getLogger(getClass().getName());
-  OneAgentMetadataEnricher enricher = new OneAgentMetadataEnricher(logger);
-
   @Test
   public void validMetrics() {
     ArrayList<Dimension> entries =
         new ArrayList<>(
-            enricher.parseOneAgentMetadata(Arrays.asList("prop.a=value.a", "prop.b=value.b")));
+            OneAgentMetadataEnricher.parseOneAgentMetadata(
+                Arrays.asList("prop.a=value.a", "prop.b=value.b")));
 
     assertEquals("prop.a", entries.get(0).getKey());
     assertEquals("value.a", entries.get(0).getValue());
@@ -44,14 +42,20 @@ public class OneAgentMetadataEnricherTest {
   @Test
   public void invalidMetrics() {
     assertTrue(
-        enricher.parseOneAgentMetadata(Collections.singletonList("=0x5c14d9a68d569861")).isEmpty());
+        OneAgentMetadataEnricher.parseOneAgentMetadata(
+                Collections.singletonList("=0x5c14d9a68d569861"))
+            .isEmpty());
     assertTrue(
-        enricher.parseOneAgentMetadata(Collections.singletonList("key_no_value=")).isEmpty());
+        OneAgentMetadataEnricher.parseOneAgentMetadata(Collections.singletonList("key_no_value="))
+            .isEmpty());
     assertTrue(
-        enricher.parseOneAgentMetadata(Collections.singletonList("===============")).isEmpty());
-    assertTrue(enricher.parseOneAgentMetadata(Collections.singletonList("")).isEmpty());
-    assertTrue(enricher.parseOneAgentMetadata(Collections.singletonList("=")).isEmpty());
-    assertTrue(enricher.parseOneAgentMetadata(Collections.emptyList()).isEmpty());
+        OneAgentMetadataEnricher.parseOneAgentMetadata(Collections.singletonList("==============="))
+            .isEmpty());
+    assertTrue(
+        OneAgentMetadataEnricher.parseOneAgentMetadata(Collections.singletonList("")).isEmpty());
+    assertTrue(
+        OneAgentMetadataEnricher.parseOneAgentMetadata(Collections.singletonList("=")).isEmpty());
+    assertTrue(OneAgentMetadataEnricher.parseOneAgentMetadata(Collections.emptyList()).isEmpty());
   }
 
   @Test
@@ -60,19 +64,19 @@ public class OneAgentMetadataEnricherTest {
         "dt_metadata_e617c525669e072eebe3d0f08212e8f2_private_target_file_specifier.properties";
     // "mock" the contents of dt_metadata_e617c525669e072eebe3d0f08212e8f2.properties
     StringReader reader = new StringReader(expected);
-    String result = enricher.getMetadataFileName(reader);
+    String result = OneAgentMetadataEnricher.getMetadataFileName(reader);
     assertEquals(expected, result);
   }
 
   @Test
   public void testGetIndirectionFilePassNull() {
-    assertThrows(IOException.class, () -> enricher.getMetadataFileName(null));
+    assertThrows(IOException.class, () -> OneAgentMetadataEnricher.getMetadataFileName(null));
   }
 
   @Test
   public void testGetIndirectionFileContentEmptyContent() throws IOException {
     StringReader reader = new StringReader("");
-    assertNull(enricher.getMetadataFileName(reader));
+    assertNull(OneAgentMetadataEnricher.getMetadataFileName(reader));
   }
 
   @Test
@@ -83,7 +87,7 @@ public class OneAgentMetadataEnricherTest {
     expected.add("key3=value3");
 
     StringReader reader = new StringReader(String.join("\n", expected));
-    List<String> result = enricher.getOneAgentMetadataFileContent(reader);
+    List<String> result = OneAgentMetadataEnricher.getOneAgentMetadataFileContent(reader);
     assertEquals(expected, result);
     assertNotSame(expected, result);
   }
@@ -94,7 +98,7 @@ public class OneAgentMetadataEnricherTest {
     List<String> expected = Arrays.asList("=0", "", "a=", "", "=====", "", "test");
 
     StringReader reader = new StringReader(String.join("\n", inputs));
-    List<String> result = enricher.getOneAgentMetadataFileContent(reader);
+    List<String> result = OneAgentMetadataEnricher.getOneAgentMetadataFileContent(reader);
     assertEquals(expected, result);
     assertNotSame(expected, result);
   }
@@ -103,21 +107,24 @@ public class OneAgentMetadataEnricherTest {
   public void testGetOneAgentMetadataFileContentEmptyFile() throws IOException {
     List<String> expected = new ArrayList<>();
 
-    List<String> result = enricher.getOneAgentMetadataFileContent(new StringReader(""));
+    List<String> result =
+        OneAgentMetadataEnricher.getOneAgentMetadataFileContent(new StringReader(""));
     assertEquals(expected, result);
     assertNotSame(expected, result);
   }
 
   @Test
   public void testGetOneAgentMetadataFileContentPassNull() {
-    assertThrows(IOException.class, () -> enricher.getOneAgentMetadataFileContent(null));
+    assertThrows(
+        IOException.class, () -> OneAgentMetadataEnricher.getOneAgentMetadataFileContent(null));
   }
 
   @Test
   public void testGetMetadataFileContentWithRedirection_Valid() {
     List<String> expected = Arrays.asList("key1=value1", "key2=value2", "key3=value3");
     List<String> results =
-        enricher.getMetadataFileContentWithRedirection("src/test/resources/indirection.properties");
+        OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+            "src/test/resources/indirection.properties");
     assertEquals(expected, results);
     assertNotSame(expected, results);
   }
@@ -141,107 +148,150 @@ public class OneAgentMetadataEnricherTest {
   public void testGetMetadataFileContentWithRedirection_IndirectionFileDoesNotExist() {
     String filename = generateNonExistentFilename();
 
-    List<String> result = enricher.getMetadataFileContentWithRedirection(filename);
+    List<String> result = OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(filename);
     assertEquals(Collections.<String>emptyList(), result);
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedirection_IndirectionFileReturnsNull()
-      throws Exception {
-    OneAgentMetadataEnricher mockEnricher = Mockito.mock(OneAgentMetadataEnricher.class);
-    // ignore the return value of the testfile and mock the return value of the
-    // getIndirectionFileName call:
-    Mockito.when(mockEnricher.getMetadataFileName(Mockito.any(FileReader.class))).thenReturn(null);
-    Mockito.when(mockEnricher.getMetadataFileContentWithRedirection(Mockito.anyString()))
-        .thenCallRealMethod();
+  public void testGetMetadataFileContentWithRedirection_IndirectionFileReturnsNull() {
+    try (MockedStatic<OneAgentMetadataEnricher> mockEnricher =
+        Mockito.mockStatic(OneAgentMetadataEnricher.class)) {
+      mockEnricher
+          .when(() -> OneAgentMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
+          .thenReturn(null);
+      mockEnricher
+          .when(
+              () ->
+                  OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+                      Mockito.anyString()))
+          .thenCallRealMethod();
 
-    List<String> result =
-        mockEnricher.getMetadataFileContentWithRedirection(
-            "src/test/resources/mock_target.properties");
-    assertEquals(Collections.<String>emptyList(), result);
+      List<String> result =
+          OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+              "src/test/resources/mock_target.properties");
+      assertEquals(Collections.<String>emptyList(), result);
+    }
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedirection_IndirectionFileReturnsEmpty()
-      throws Exception {
-    OneAgentMetadataEnricher mockEnricher = Mockito.mock(OneAgentMetadataEnricher.class);
-    // ignore the return value of the testfile and mock the return value of the
-    // getIndirectionFileName call:
-    Mockito.when(mockEnricher.getMetadataFileName(Mockito.any(FileReader.class))).thenReturn("");
-    Mockito.when(mockEnricher.getMetadataFileContentWithRedirection(Mockito.anyString()))
-        .thenCallRealMethod();
+  public void testGetMetadataFileContentWithRedirection_IndirectionFileReturnsEmpty() {
+    try (MockedStatic<OneAgentMetadataEnricher> mockEnricher =
+        Mockito.mockStatic(OneAgentMetadataEnricher.class)) {
+      // ignore the return value of the testfile and mock the return value of the
+      // getIndirectionFileName call:
+      mockEnricher
+          .when(() -> OneAgentMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
+          .thenReturn("");
+      mockEnricher
+          .when(
+              () ->
+                  OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+                      Mockito.anyString()))
+          .thenCallRealMethod();
 
-    List<String> result =
-        mockEnricher.getMetadataFileContentWithRedirection(
-            "src/test/resources/mock_target.properties");
-    assertEquals(Collections.<String>emptyList(), result);
+      List<String> result =
+          OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+              "src/test/resources/mock_target.properties");
+      assertEquals(Collections.<String>emptyList(), result);
+    }
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedirection_IndirectionFileThrows() throws Exception {
-    OneAgentMetadataEnricher mockEnricher = Mockito.mock(OneAgentMetadataEnricher.class);
-    Mockito.when(mockEnricher.getLogger()).thenReturn(logger);
-    // ignore the return value of the testfile and mock the return value of the
-    // getIndirectionFileName call:
-    Mockito.when(mockEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-        .thenThrow(new IOException("test exception"));
-    Mockito.when(mockEnricher.getMetadataFileContentWithRedirection(Mockito.anyString()))
-        .thenCallRealMethod();
+  public void testGetMetadataFileContentWithRedirection_IndirectionFileThrows() {
+    try (MockedStatic<OneAgentMetadataEnricher> mockEnricher =
+        Mockito.mockStatic(OneAgentMetadataEnricher.class)) {
+      // ignore the return value of the testfile and mock the return value of the
+      // getIndirectionFileName call:
+      mockEnricher
+          .when(() -> OneAgentMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
+          .thenThrow(new IOException("test exception"));
+      mockEnricher
+          .when(
+              () ->
+                  OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+                      Mockito.anyString()))
+          .thenCallRealMethod();
 
-    List<String> result =
-        mockEnricher.getMetadataFileContentWithRedirection(
-            "src/test/resources/mock_target.properties");
-    assertEquals(Collections.<String>emptyList(), result);
+      List<String> result =
+          OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+              "src/test/resources/mock_target.properties");
+      assertEquals(Collections.<String>emptyList(), result);
+    }
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedirection_MetadataFileDoesNotExist()
-      throws IOException {
+  public void testGetMetadataFileContentWithRedirection_MetadataFileDoesNotExist() {
     String metadataFilename = generateNonExistentFilename();
-    OneAgentMetadataEnricher mockEnricher = Mockito.mock(OneAgentMetadataEnricher.class);
-    Mockito.when(mockEnricher.getLogger()).thenReturn(logger);
-    Mockito.when(mockEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-        .thenReturn(metadataFilename);
-    Mockito.when(mockEnricher.getMetadataFileContentWithRedirection(Mockito.anyString()))
-        .thenCallRealMethod();
+    try (MockedStatic<OneAgentMetadataEnricher> mockEnricher =
+        Mockito.mockStatic(OneAgentMetadataEnricher.class)) {
+      mockEnricher
+          .when(() -> OneAgentMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
+          .thenReturn(metadataFilename);
+      mockEnricher
+          .when(
+              () ->
+                  OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+                      Mockito.anyString()))
+          .thenCallRealMethod();
 
-    List<String> result =
-        mockEnricher.getMetadataFileContentWithRedirection(
-            "src/test/resources/mock_target.properties");
-    assertEquals(Collections.<String>emptyList(), result);
+      List<String> result =
+          OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+              "src/test/resources/mock_target.properties");
+      assertEquals(Collections.<String>emptyList(), result);
+    }
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedirection_MetadataFileReadThrows()
-      throws IOException {
-    OneAgentMetadataEnricher mockEnricher = Mockito.mock(OneAgentMetadataEnricher.class);
-    Mockito.when(mockEnricher.getLogger()).thenReturn(logger);
-    Mockito.when(mockEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-        .thenReturn("src/test/resources/mock_target.properties");
-    Mockito.when(mockEnricher.getOneAgentMetadataFileContent(Mockito.any(FileReader.class)))
-        .thenThrow(new IOException("test exception"));
-    Mockito.when(mockEnricher.getMetadataFileContentWithRedirection(Mockito.anyString()))
-        .thenCallRealMethod();
+  public void testGetMetadataFileContentWithRedirection_MetadataFileReadThrows() {
+    try (MockedStatic<OneAgentMetadataEnricher> mockEnricher =
+        Mockito.mockStatic(OneAgentMetadataEnricher.class)) {
+      mockEnricher
+          .when(() -> OneAgentMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
+          .thenReturn("src/test/resources/mock_target.properties");
+      mockEnricher
+          .when(
+              () ->
+                  OneAgentMetadataEnricher.getOneAgentMetadataFileContent(
+                      Mockito.any(FileReader.class)))
+          .thenThrow(new IOException("test exception"));
+      mockEnricher
+          .when(
+              () ->
+                  OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+                      Mockito.anyString()))
+          .thenCallRealMethod();
 
-    List<String> result =
-        mockEnricher.getMetadataFileContentWithRedirection(
-            "src/test/resources/mock_target.properties");
-    assertEquals(Collections.<String>emptyList(), result);
+      List<String> result =
+          OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+              "src/test/resources/mock_target.properties");
+      assertEquals(Collections.<String>emptyList(), result);
+    }
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedirection_EmptyMetadataFile() throws IOException {
-    OneAgentMetadataEnricher mockEnricher = Mockito.mock(OneAgentMetadataEnricher.class);
-    Mockito.when(mockEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-        .thenReturn("src/test/resources/mock_target.properties");
-    Mockito.when(mockEnricher.getOneAgentMetadataFileContent(Mockito.any(FileReader.class)))
-        .thenReturn(Collections.emptyList());
-    Mockito.when(mockEnricher.getMetadataFileContentWithRedirection(Mockito.anyString()))
-        .thenCallRealMethod();
+  public void testGetMetadataFileContentWithRedirection_EmptyMetadataFile() {
+    try (MockedStatic<OneAgentMetadataEnricher> mockEnricher =
+        Mockito.mockStatic(OneAgentMetadataEnricher.class)) {
+      mockEnricher
+          .when(() -> OneAgentMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
+          .thenReturn("src/test/resources/mock_target.properties");
+      mockEnricher
+          .when(
+              () ->
+                  OneAgentMetadataEnricher.getOneAgentMetadataFileContent(
+                      Mockito.any(FileReader.class)))
+          .thenReturn(Collections.emptyList());
+      mockEnricher
+          .when(
+              () ->
+                  OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+                      Mockito.anyString()))
+          .thenCallRealMethod();
 
-    List<String> result =
-        mockEnricher.getMetadataFileContentWithRedirection(
-            "src/test/resources/mock_target.properties");
-    assertEquals(Collections.<String>emptyList(), result);
+      List<String> result =
+          OneAgentMetadataEnricher.getMetadataFileContentWithRedirection(
+              "src/test/resources/mock_target.properties");
+      assertEquals(Collections.<String>emptyList(), result);
+    }
   }
 }
