@@ -128,7 +128,7 @@ class Normalize {
 
   static String metricKey(String key) {
     if (Strings.isNullOrEmpty(key)) {
-      return "";
+      return null;
     }
     if (key.length() > mk_max_length) {
       key = key.substring(0, mk_max_length);
@@ -142,7 +142,7 @@ class Normalize {
       if (Strings.isNullOrEmpty(section)) {
         if (firstSection) {
           logger.warning("first key section cannot be empty");
-          return "";
+          return null;
         }
         continue;
       }
@@ -165,7 +165,7 @@ class Normalize {
         if (firstSection) {
           logger.warning(
               String.format("first key section empty after normalization, was %s", section));
-          return "";
+          return null;
         }
         // section is empty after normalization and will be discarded.
         logger.info(
