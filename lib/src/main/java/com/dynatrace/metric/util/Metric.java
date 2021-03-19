@@ -46,8 +46,108 @@ public class Metric {
      * @param value the value to be serialized.
      * @return this
      */
-    public Builder setIntCounterValue(int value) {
-      this.value = new MetricValues.IntCounterValue(value);
+    public Builder setIntCounterValue(int value) throws MetricException {
+      this.value = new MetricValues.IntCounterValue(value, false);
+      return this;
+    }
+
+    /**
+     * Use an int absolute counter value for the current metric. Will produce the entry
+     * "count,delta=<number>" in the resulting metric line.
+     *
+     * @param value the value to be serialized
+     * @return this
+     */
+    public Builder setIntAbsoluteCounterValue(int value) throws MetricException {
+      this.value = new MetricValues.IntCounterValue(value, true);
+      return this;
+    }
+
+    /**
+     * Use an int gauge value for the current metric. Will produce the entry "gauge,<number>" in the
+     * resulting metric line
+     *
+     * @param value the value to be serialized
+     * @return this
+     */
+    public Builder setIntGaugeValue(int value) {
+      this.value = new MetricValues.IntGaugeValue(value);
+      return this;
+    }
+
+    /**
+     * Use an int summary value for the current metric. Will produce the entry
+     * "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>" in the resulting metric line
+     *
+     * @param min the minimum value for the current metric.
+     * @param max the maximum value for the current metric.
+     * @param sum the sum of all values in the recorded timeframe
+     * @param count the number of elements contributing to the value.
+     * @return this.
+     * @throws MetricException if min or max are greater than the sum or if the count is negative
+     */
+    public Builder setIntSummaryValue(int min, int max, int sum, int count) throws MetricException {
+      this.value = new MetricValues.IntSummaryValue(min, max, sum, count);
+      return this;
+    }
+
+    /**
+     * Use an double counter value for the current metric. Will produce the entry "count,<number>"
+     * in the resulting metric line.
+     *
+     * @param value the value to be serialized.
+     * @return this
+     */
+    public Builder setDoubleCounterValue(double value) throws MetricException {
+      this.value = new MetricValues.DoubleCounterValue(value, false);
+      return this;
+    }
+
+    /**
+     * Use an double absolute counter value for the current metric. Will produce the entry
+     * "count,delta=<number>" in the resulting metric line.
+     *
+     * @param value the value to be serialized
+     * @return this
+     */
+    public Builder setDoubleAbsoluteCounterValue(double value) throws MetricException {
+      this.value = new MetricValues.DoubleCounterValue(value, true);
+      return this;
+    }
+
+    /**
+     * Use an double gauge value for the current metric. Will produce the entry "gauge,<number>" in
+     * the resulting metric line
+     *
+     * @param value the value to be serialized
+     * @return this
+     */
+    public Builder setDoubleGaugeValue(double value) {
+      this.value = new MetricValues.DoubleGaugeValue(value);
+      return this;
+    }
+
+    /**
+     * Use an double summary value for the current metric. Will produce the entry
+     * "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>" in the resulting metric line
+     *
+     * @param min the minimum value for the current metric.
+     * @param max the maximum value for the current metric.
+     * @param sum the sum of all values in the recorded timeframe
+     * @param count the number of elements contributing to the value.
+     * @return this.
+     * @throws MetricException if min or max are greater than the sum or if the count is negative
+     */
+    public Builder setDoubleSummaryValue(double min, double max, double sum, int count)
+        throws MetricException {
+      if (count < 0) {
+        throw new MetricException("count cannot be negative");
+      }
+      if (min > sum || max > sum) {
+        throw new MetricException("min and max cannot be bigger than the sum");
+      }
+
+      this.value = new MetricValues.DoubleSummaryValue(min, max, sum, count);
       return this;
     }
 

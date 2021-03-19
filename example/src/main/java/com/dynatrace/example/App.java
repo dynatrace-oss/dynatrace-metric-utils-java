@@ -41,21 +41,33 @@ public class App {
     // dimensions in lists further right will overwrite dimensions in items further left.
     // this will have to be done for each metric, as each metric can have different labels.
     DimensionList merged = DimensionList.merge(defaultDims, labels, oneAgentData);
-    // create the metric.
-    Metric metric =
-        Metric.builder("name")
-            .setPrefix("prefix")
-            .setDimensions(merged)
-            .setCurrentTime()
-            .setIntCounterValue(32)
-            .build();
+
+    // create a metrics base. this can be used to create multiple metrics.
+    Metric.Builder metricBase =
+        Metric.builder("name").setPrefix("prefix").setDimensions(merged).setCurrentTime();
 
     try {
-      // and transform it to a string, which checks that all required fields are present
-      // and valid and throws if they arent.
-      System.out.println(metric.serialize());
+      System.out.println(metricBase.setIntCounterValue(123).build().serialize());
+      System.out.println(metricBase.setIntAbsoluteCounterValue(123).build().serialize());
+      System.out.println(metricBase.setIntGaugeValue(123).build().serialize());
+      System.out.println(metricBase.setIntSummaryValue(2, 10, 20, 10).build().serialize());
+
+      System.out.println(metricBase.setDoubleCounterValue(12.123).build().serialize());
+      System.out.println(metricBase.setDoubleAbsoluteCounterValue(12.123).build().serialize());
+      System.out.println(metricBase.setDoubleGaugeValue(12.123).build().serialize());
+      System.out.println(
+          metricBase.setDoubleSummaryValue(0.123, 10.321, 20.456, 10).build().serialize());
     } catch (MetricException me) {
       System.out.println(me.getMessage());
     }
+
+    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 count,123 1616157508
+    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 count,delta=123 1616157508
+    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 gauge,123 1616157508
+    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 gauge,min=2,max=10,sum=20,count=10 1616157508
+    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 count,12.123 1616157508
+    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 count,delta=12.123 1616157508
+    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 gauge,12.123 1616157508
+    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 gauge,min=0.123,max=10.321,sum=20.456,count=10 1616157508
   }
 }
