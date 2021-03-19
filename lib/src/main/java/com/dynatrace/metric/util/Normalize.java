@@ -14,55 +14,46 @@
 package com.dynatrace.metric.util;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 class Normalize {
   private static final Logger logger = Logger.getLogger(Normalize.class.getName());
 
-  //      # Metric keys (mk)
-  //    # characters not valid to start the first identifier key section
-  //  __re_mk_first_identifier_section_start = (re.compile(r"^[^a-zA-Z_]+"))
-  //
-  //          # characters not valid to start subsequent identifier key sections
-  //          __re_mk_identifier_section_start = re.compile(r"^[^a-zA-Z0-9_]+")
-  //  __re_mk_identifier_section_end = re.compile(r"[^a-zA-Z0-9_\-]+$")
-  //
-  //          # for the rest of the metric key characters, alphanumeric characters as
-  //    # well as hyphens and underscores are allowed. consecutive invalid
-  //    # characters will be condensed into one underscore.
-  //          __re_mk_invalid_characters = re.compile(r"[^a-zA-Z0-9_\-]+")
-  //
-  //  __mk_max_length = 250
-  //
-  //          # Dimension keys (dk)
-  //    # dimension keys have to start with a lowercase letter or an underscore.
-  //  __re_dk_start = re.compile(r"^[^a-z_]+")
-  //  __re_dk_end = re.compile(r"[^a-z0-9_\-:]+$")
-  //
-  //          # other valid characters in dimension keys are lowercase letters, numbers,
-  //          # colons, underscores and hyphens.
-  //          __re_dk_invalid_chars = re.compile(r"[^a-z0-9_\-:]+")
-  //
-  //  __dk_max_length = 100
-  //
-  //          # Dimension values (dv)
-  //    # all control characters (cc) are replaced with the null character (\u0000)
-  //    # and then removed as appropriate using the following regular expressions.
-  //  __re_dv_cc = re.compile(r"\u0000+")
-  //  __re_dv_cc_leading = re.compile(r"^" + __re_dv_cc.pattern)
-  //  __re_dv_cc_trailing = re.compile(__re_dv_cc.pattern + r"$")
-  //
-  //          # characters to be escaped in the dimension value
-  //  __re_dv_escape_chars = re.compile(r"([= ,\\])")
-  //
-  //  __dv_max_length = 250
+  //  Metric keys (mk)
+  //  characters not valid as leading characters in the first identifier key section
+  private static final Pattern re_mk_firstIdentifierSectionStart = Pattern.compile("^[^a-zA-Z_]+");
+  // characters not valid as leading characters in subsequent subsections.
+  private static final Pattern re_mk_subsequentIdentifierSectionStart =
+      Pattern.compile("^[^a-zA-Z0-9_]+");
+  // chars that are invalid as trailing characters
+  private static final Pattern re_mk_identifierSectionEnd = Pattern.compile("[^a-zA-Z0-9_\\-]+$");
+  // invalid characters for the rest of the key.
+  private static final Pattern re_mk_invalidCharacters = Pattern.compile("[^a-zA-Z0-9_\\-]+");
 
+  // maximum string length of a metric key.
   private static final int mk_max_length = 250;
+
+  // Dimension keys (dk)
+  // Dimension keys start with a lowercase letter or an underscore.
+  private static final Pattern re_dk_sectionStart = Pattern.compile("^[^a-z_]+");
+  // trailing characters not in this character class are trimmed off.
+  private static final Pattern re_dk_sectionEnd = Pattern.compile("[^a-z0-9_\\-:]+$");
+  // invalid characters in the rest of the dimension key
+  private static final Pattern re_dk_invalidCharacters = Pattern.compile("[^a-z0-9_\\-:]+");
+
+  // maximum string length of a dimension key.
   private static final int dk_max_length = 100;
+
+  // Dimension values (dv)
+  // Characters that need to be escaped in dimension values
+  private static final Pattern re_dv_charactersToEscape = Pattern.compile("([= ,\\\\])");
+  private static final CharMatcher dv_controlCharsMatcher = CharMatcher.javaIsoControl();
+
+  // maximum string length of a dimension value.
   private static final int dv_max_length = 250;
 
   static List<Dimension> dimensionList(Collection<Dimension> dimensions) {
@@ -80,32 +71,117 @@ class Normalize {
 
   static String dimensionKey(String key) throws IllegalArgumentException {
     if (Strings.isNullOrEmpty(key)) {
-      throw new IllegalArgumentException("key cannot be null or empty");
+      return "";
     }
     if (key.length() > dk_max_length) {
       key = key.substring(0, dk_max_length);
     }
-    // todo: normalization
-    return key;
+
+    Iterable<String> sections = Splitter.on('.').split(key);
+    StringBuilder normalizedKeyBuilder = new StringBuilder();
+    boolean firstSection = true;
+
+    for (String section : sections) {
+      if (Strings.isNullOrEmpty(section)) {
+        continue;
+      }
+      // move to lowercase
+      String normalizedSection = section.toLowerCase(Locale.ROOT);
+      // trim leading and trailing invalid characters.
+      normalizedSection = re_dk_sectionStart.matcher(normalizedSection).replaceAll("");
+      normalizedSection = re_dk_sectionEnd.matcher(normalizedSection).replaceAll("");
+      // replace consecutive invalid characters within the section with one underscore:
+      normalizedSection = re_dk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
+
+      if (Strings.isNullOrEmpty(normalizedSection)) {
+        // section is empty after normalization and will be discarded.
+        logger.info(
+            String.format(
+                "normalization of section '%s' lead to empty section, discarding...", section));
+      } else {
+        // re-concatenate the split sections separated with dots.
+        if (!firstSection) {
+          normalizedKeyBuilder.append(".");
+        } else {
+          firstSection = false;
+        }
+
+        normalizedKeyBuilder.append(normalizedSection);
+      }
+    }
+    return normalizedKeyBuilder.toString();
   }
 
   static String dimensionValue(String value) {
     if (value.length() > dv_max_length) {
       value = value.substring(0, dv_max_length);
     }
-    // remove control characters.
-    value = CharMatcher.javaIsoControl().removeFrom(value);
+    // trim leading and trailing control characters and collapse contained control chars to an "_"
+    value = dv_controlCharsMatcher.trimAndCollapseFrom(value, '_');
 
-    // todo
+    // escape characters matched by regex with backslash. $1 inserts the matched character.
+    value = re_dv_charactersToEscape.matcher(value).replaceAll("\\\\$1");
+
     return value;
   }
 
   static String metricKey(String key) {
+    if (Strings.isNullOrEmpty(key)) {
+      return "";
+    }
     if (key.length() > mk_max_length) {
       key = key.substring(0, mk_max_length);
     }
 
-    // todo
-    return key;
+    Iterable<String> sections = Splitter.on(".").split(key);
+    boolean firstSection = true;
+    StringBuilder normalizedKeyBuilder = new StringBuilder();
+
+    for (String section : sections) {
+      if (Strings.isNullOrEmpty(section)) {
+        if (firstSection) {
+          logger.warning("first key section cannot be empty");
+          return "";
+        }
+        continue;
+      }
+
+      String normalizedSection;
+      // first key section cannot start with a number while subsequent sections can.
+      if (firstSection) {
+        normalizedSection = re_mk_firstIdentifierSectionStart.matcher(section).replaceAll("");
+      } else {
+        normalizedSection = re_mk_subsequentIdentifierSectionStart.matcher(section).replaceAll("");
+      }
+
+      // trim trailing invalid chars
+      normalizedSection = re_mk_identifierSectionEnd.matcher(normalizedSection).replaceAll("");
+
+      // replace invalid chars with an underscore
+      normalizedSection = re_mk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
+
+      if (Strings.isNullOrEmpty(normalizedSection)) {
+        if (firstSection) {
+          logger.warning(
+              String.format("first key section empty after normalization, was %s", section));
+          return "";
+        }
+        // section is empty after normalization and will be discarded.
+        logger.info(
+            String.format(
+                "normalization of section '%s' lead to empty section, discarding...", section));
+      } else {
+        // re-concatenate the split sections separated with dots.
+        if (!firstSection) {
+          normalizedKeyBuilder.append(".");
+        } else {
+          firstSection = false;
+        }
+
+        normalizedKeyBuilder.append(normalizedSection);
+      }
+    }
+
+    return normalizedKeyBuilder.toString();
   }
 }
