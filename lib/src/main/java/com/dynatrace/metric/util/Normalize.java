@@ -59,13 +59,14 @@ class Normalize {
   static List<Dimension> dimensionList(Collection<Dimension> dimensions) {
     List<Dimension> normalized = new ArrayList<>();
     for (Dimension dimension : dimensions) {
-      String key = dimensionKey(dimension.Key);
+      String key = dimensionKey(dimension.getKey());
       if (Strings.isNullOrEmpty(key)) {
         logger.warning(
-            String.format("could not normalize dimension key: '%s'. Skipping...", dimension.Key));
+            String.format(
+                "could not normalize dimension key: '%s'. Skipping...", dimension.getKey()));
         continue;
       }
-      normalized.add(Dimension.create(key, dimensionValue(dimension.Value)));
+      normalized.add(Dimension.create(key, dimensionValue(dimension.getValue())));
     }
     return normalized;
   }

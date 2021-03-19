@@ -57,11 +57,11 @@ public class DimensionList {
     for (DimensionList dl : dimensionLists) {
       // overwrite dimension keys with items that are passed further right.
       for (Dimension dimension : dl.dimensions) {
-        if (Strings.isNullOrEmpty(dimension.Key)) {
+        if (Strings.isNullOrEmpty(dimension.getKey())) {
           logger.warning("skipping empty key");
           continue;
         }
-        dimensionMap.put(dimension.Key, dimension);
+        dimensionMap.put(dimension.getKey(), dimension);
       }
     }
     return new DimensionList(new ArrayList<>(dimensionMap.values()));

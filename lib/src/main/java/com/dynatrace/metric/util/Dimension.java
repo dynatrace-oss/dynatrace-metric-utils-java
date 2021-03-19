@@ -16,12 +16,20 @@ package com.dynatrace.metric.util;
 import java.util.Objects;
 
 public class Dimension {
-  public final String Key;
-  public final String Value;
+  private final String key;
+  private final String value;
 
   private Dimension(String key, String value) {
-    Key = key;
-    Value = value;
+    this.key = key;
+    this.value = value;
+  }
+
+  public String getKey() {
+    return key;
+  }
+
+  public String getValue() {
+    return value;
   }
 
   /**
@@ -41,7 +49,7 @@ public class Dimension {
   }
 
   String serialize() {
-    return String.format("%s=%s", Key, Value);
+    return String.format("%s=%s", key, value);
   }
 
   @Override
@@ -49,11 +57,11 @@ public class Dimension {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Dimension dimension = (Dimension) o;
-    return Objects.equals(Key, dimension.Key) && Objects.equals(Value, dimension.Value);
+    return Objects.equals(key, dimension.key) && Objects.equals(value, dimension.value);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(Key, Value);
+    return Objects.hash(key, value);
   }
 }

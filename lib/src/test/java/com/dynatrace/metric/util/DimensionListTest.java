@@ -214,7 +214,11 @@ class DimensionListTest {
   @Test
   void serializeMultipleElements() {
     // the normalization itself does not prohibit duplicated keys and leaves the order intact.
-    DimensionList dl = DimensionList.create(Dimension.create("key1", "value1"), Dimension.create("key2", "value2"), Dimension.create("key3", "value3"));
+    DimensionList dl =
+        DimensionList.create(
+            Dimension.create("key1", "value1"),
+            Dimension.create("key2", "value2"),
+            Dimension.create("key3", "value3"));
     String expected = "key1=value1,key2=value2,key3=value3";
     String actual = dl.serialize();
     assertEquals(expected, actual);
@@ -222,7 +226,11 @@ class DimensionListTest {
 
   @Test
   void serializeMultipleElementsWithDroppedInvalid() {
-    DimensionList dl = DimensionList.create(Dimension.create("key1", "value1"), Dimension.create("~@#$", "value2"), Dimension.create("key3", "value3"));
+    DimensionList dl =
+        DimensionList.create(
+            Dimension.create("key1", "value1"),
+            Dimension.create("~@#$", "value2"),
+            Dimension.create("key3", "value3"));
     String expected = "key1=value1,key3=value3";
     String actual = dl.serialize();
     assertEquals(expected, actual);
