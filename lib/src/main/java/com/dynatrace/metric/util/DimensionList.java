@@ -17,7 +17,7 @@ import com.google.common.base.Strings;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class DimensionList {
+public final class DimensionList {
   private static final Logger logger = Logger.getLogger(Dimension.class.getName());
 
   private final List<Dimension> dimensions;

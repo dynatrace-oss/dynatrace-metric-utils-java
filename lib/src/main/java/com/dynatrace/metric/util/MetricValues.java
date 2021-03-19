@@ -160,7 +160,4 @@ public class MetricValues {
     }
     return formatted;
   }
-
-  static <N extends Number> void checkSummaryItems(N min, N max, N sum, int count)
-      throws MetricException {}
 }

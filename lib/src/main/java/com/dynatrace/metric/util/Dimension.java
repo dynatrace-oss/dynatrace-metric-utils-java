@@ -15,7 +15,7 @@ package com.dynatrace.metric.util;
 
 import java.util.Objects;
 
-public class Dimension {
+public final class Dimension {
   private final String key;
   private final String value;
 

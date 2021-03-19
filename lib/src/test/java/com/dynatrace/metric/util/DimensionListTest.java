@@ -184,7 +184,7 @@ class DimensionListTest {
     DimensionList dl1 =
         DimensionList.create(
             Dimension.create("dimension", "default1"),
-            Dimension.create("dimension", "defaulte"),
+            Dimension.create("dimension", "default2"),
             Dimension.create("dimension", "default3"));
 
     Collection<Dimension> expected =

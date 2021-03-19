@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-class Normalize {
+final class Normalize {
   private static final Logger logger = Logger.getLogger(Normalize.class.getName());
 
   //  Metric keys (mk)

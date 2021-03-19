@@ -195,7 +195,7 @@ public class OneAgentMetadataEnricherTest {
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedireection_MetadataFileDoesNotExist()
+  public void testGetMetadataFileContentWithRedirection_MetadataFileDoesNotExist()
       throws IOException {
     String metadataFilename = generateNonExistentFilename();
     OneAgentMetadataEnricher mockEnricher = Mockito.mock(OneAgentMetadataEnricher.class);
@@ -212,7 +212,7 @@ public class OneAgentMetadataEnricherTest {
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedireection_MetadataFileReadThrows()
+  public void testGetMetadataFileContentWithRedirection_MetadataFileReadThrows()
       throws IOException {
     OneAgentMetadataEnricher mockEnricher = Mockito.mock(OneAgentMetadataEnricher.class);
     Mockito.when(mockEnricher.getLogger()).thenReturn(logger);
@@ -230,7 +230,7 @@ public class OneAgentMetadataEnricherTest {
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedireection_EmptyMetadataFile() throws IOException {
+  public void testGetMetadataFileContentWithRedirection_EmptyMetadataFile() throws IOException {
     OneAgentMetadataEnricher mockEnricher = Mockito.mock(OneAgentMetadataEnricher.class);
     Mockito.when(mockEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
         .thenReturn("src/test/resources/mock_target.properties");

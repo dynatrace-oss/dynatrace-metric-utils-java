@@ -16,8 +16,8 @@ package com.dynatrace.metric.util;
 import com.google.common.base.Strings;
 import java.time.Instant;
 
-public class Metric {
-  public static class Builder {
+public final class Metric {
+  public static final class Builder {
     private final String name;
     private String prefix;
     private IMetricValue value;
