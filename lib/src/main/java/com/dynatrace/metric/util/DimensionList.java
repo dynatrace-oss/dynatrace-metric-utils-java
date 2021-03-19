@@ -29,10 +29,32 @@ public class DimensionList {
     this.dimensions = dimensions;
   }
 
+  /**
+   * Create a new {@link DimensionList} object. All {@link DimensionList DimensionLists} must be
+   * normalized. This function will automatically normalize all dimensions passed to it, and discard
+   * Dimensions with invalid keys.
+   *
+   * @param dimensions An arbitrary number of {@link Dimension} objects.
+   * @return A {@link DimensionList} object only containing valid dimensions. Might still contain
+   *     duplicates.
+   */
   public static DimensionList create(Dimension... dimensions) {
     return new DimensionList(Normalize.dimensionList(Arrays.asList(dimensions)));
   }
 
+  /**
+   * Merge one or more {@link DimensionList} objects into one and remove duplicate keys. The order
+   * of the passed lists matters, {@link Dimension Dimensions} of {@link DimensionList
+   * DimensionLists} passed further right will overwrite {@link Dimension Dimensions} of {@link
+   * DimensionList DimensionLists} passed further left if they share the same key (after key
+   * normalization). Similarly, {@link Dimension Dimensions} in the same {@link DimensionList} that
+   * share a key will be overwritten by {@link Dimension Dimensions} in the same {@link
+   * DimensionList} if they share a key.
+   *
+   * @param dimensionLists One or more {@link DimensionList} objects.
+   * @return A new {@link DimensionList} object containing unique {@link Dimension Dimensions} from
+   *     all passed lists.
+   */
   public static DimensionList merge(DimensionList... dimensionLists) {
     Map<String, Dimension> dimensionMap = new HashMap<>();
     for (DimensionList dl : dimensionLists) {

@@ -22,6 +22,13 @@ public class Dimension {
     Value = value;
   }
 
+  /**
+   * Create a new Dimension object.
+   *
+   * @param key the key to store.
+   * @param value the value to store
+   * @return a new {@link Dimension} object with the two set values.
+   */
   public static Dimension create(String key, String value) {
     return new Dimension(key, value);
   }

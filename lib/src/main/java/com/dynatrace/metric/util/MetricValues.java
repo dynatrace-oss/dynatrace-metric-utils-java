@@ -13,6 +13,9 @@
  */
 package com.dynatrace.metric.util;
 
+/**
+ * Interface type that all Metric values have to follow.
+ */
 interface IMetricValue {
   String serialize();
 }
