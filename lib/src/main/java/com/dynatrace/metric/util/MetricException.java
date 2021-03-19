@@ -13,25 +13,9 @@
  */
 package com.dynatrace.metric.util;
 
-public class Dimension {
-  public final String Key;
-  public final String Value;
+public class MetricException extends Exception {
 
-  private Dimension(String key, String value) {
-    Key = key;
-    Value = value;
-  }
-
-  public static Dimension create(String key, String value) {
-    return new Dimension(key, value);
-  }
-
-  @Override
-  public String toString() {
-    return this.serialize();
-  }
-
-  String serialize() {
-    return String.format("%s=%s", Key, Value);
+  public MetricException(String message) {
+    super(message);
   }
 }

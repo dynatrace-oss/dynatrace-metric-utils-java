@@ -13,16 +13,17 @@
  */
 package com.dynatrace.metric.util;
 
-import java.time.LocalDateTime;
+import com.google.common.base.Strings;
+import java.time.Instant;
 
 public class Metric {
 
   public static class Builder {
-    private String name;
+    private final String name;
     private String prefix;
     private IMetricValue value;
     private DimensionList dimensions;
-    private LocalDateTime time;
+    private Instant time;
 
     private Builder(String name) {
       this.name = name;
@@ -43,13 +44,13 @@ public class Metric {
       return this;
     }
 
-    public Builder setTimestamp(LocalDateTime timestamp) {
+    public Builder setTimestamp(Instant timestamp) {
       this.time = timestamp;
       return this;
     }
 
     public Builder setCurrentTime() {
-      return this.setTimestamp(LocalDateTime.now());
+      return this.setTimestamp(Instant.now());
     }
 
     public Metric build() {
@@ -61,14 +62,10 @@ public class Metric {
   private final String name;
   private final IMetricValue value;
   private final DimensionList dimensions;
-  private final LocalDateTime time;
+  private final Instant time;
 
   private Metric(
-      String prefix,
-      String name,
-      IMetricValue value,
-      DimensionList dimensions,
-      LocalDateTime time) {
+      String prefix, String name, IMetricValue value, DimensionList dimensions, Instant time) {
     this.prefix = prefix;
     this.name = name;
     this.value = value;
@@ -80,8 +77,46 @@ public class Metric {
     return new Builder(name);
   }
 
-  public String serialize() {
-    // todo
-    return String.format("%s.%s dims %s time", prefix, name, value.serialize());
+  public String serialize() throws MetricException {
+    String normalizedKeyString = makeNormalizedMetricName();
+    if (Strings.isNullOrEmpty(normalizedKeyString)) {
+      throw new MetricException("normalized metric key is empty.");
+    }
+
+    if (this.value == null) {
+      throw new MetricException("no value set for metric");
+    }
+
+    // the two required arguments, name and value, are set and valid, so we start assembling the
+    // metric line here.
+    StringBuilder builder = new StringBuilder(normalizedKeyString);
+
+    String dimensionsString = null;
+    if (this.dimensions != null) {
+      dimensionsString = this.dimensions.serialize();
+    }
+
+    if (!Strings.isNullOrEmpty(dimensionsString)) {
+      builder.append(",");
+      builder.append(dimensionsString);
+      builder.append(" ");
+    }
+
+    builder.append(this.value.serialize());
+
+    if (this.time != null) {
+      builder.append(" ");
+      builder.append(time.getEpochSecond());
+    }
+
+    return builder.toString();
+  }
+
+  private String makeNormalizedMetricName() {
+    if (this.prefix == null) {
+      return Normalize.metricKey(name);
+    }
+
+    return Normalize.metricKey(String.format("%s.%s", prefix, name));
   }
 }

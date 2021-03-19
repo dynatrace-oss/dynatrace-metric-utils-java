@@ -59,17 +59,18 @@ class Normalize {
   static List<Dimension> dimensionList(Collection<Dimension> dimensions) {
     List<Dimension> normalized = new ArrayList<>();
     for (Dimension dimension : dimensions) {
-      try {
-        String key = dimensionKey(dimension.Key);
-        normalized.add(Dimension.create(key, dimensionValue(dimension.Value)));
-      } catch (IllegalArgumentException iae) {
-        logger.warning(String.format("could not normalize dimension key: '%s'", dimension.Key));
+      String key = dimensionKey(dimension.Key);
+      if (Strings.isNullOrEmpty(key)) {
+        logger.warning(
+            String.format("could not normalize dimension key: '%s'. Skipping...", dimension.Key));
+        continue;
       }
+      normalized.add(Dimension.create(key, dimensionValue(dimension.Value)));
     }
     return normalized;
   }
 
-  static String dimensionKey(String key) throws IllegalArgumentException {
+  static String dimensionKey(String key) {
     if (Strings.isNullOrEmpty(key)) {
       return "";
     }

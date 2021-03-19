@@ -17,11 +17,10 @@ package com.dynatrace.example;
 import com.dynatrace.metric.util.Dimension;
 import com.dynatrace.metric.util.DimensionList;
 import com.dynatrace.metric.util.Metric;
-import com.dynatrace.metric.util.MetricValues;
+import com.dynatrace.metric.util.MetricException;
 
 public class App {
     public static void main(String[] args) {
-
         // DimensionList.create will automatically call normalize for each of the dimensions.
         // the first two can be created once, and then passed to the merge function for each
         // new created metric. That way they dont have to be normalized every time.
@@ -54,12 +53,13 @@ public class App {
                 .setCurrentTime()
                 .setIntCounterValue(32)
                 .build();
-
-        // and transform it to a string
-        System.out.println(metric.serialize());
         
-        for (Dimension dim:merged.getDimensions()){
-            System.out.println(dim);
+        try {
+            // and transform it to a string, which checks that all required fields are present
+            // and valid and throws if they arent.
+            System.out.println(metric.serialize());
+        } catch (MetricException me) {
+            System.out.println(me.getMessage());
         }
     }
 }

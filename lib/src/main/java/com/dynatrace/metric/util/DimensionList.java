@@ -51,4 +51,25 @@ public class DimensionList {
   public Collection<Dimension> getDimensions() {
     return dimensions;
   }
+
+  String serialize() {
+    if (dimensions.isEmpty()) {
+      return "";
+    }
+
+    StringBuilder builder = new StringBuilder();
+    boolean firstIteration = true;
+
+    for (Dimension dimension : dimensions) {
+      if (!firstIteration) {
+        builder.append(",");
+      } else {
+        firstIteration = false;
+      }
+
+      builder.append(dimension.serialize());
+    }
+
+    return builder.toString();
+  }
 }
