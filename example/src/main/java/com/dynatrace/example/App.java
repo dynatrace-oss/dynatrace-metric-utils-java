@@ -13,59 +13,93 @@
  */
 package com.dynatrace.example;
 
-import com.dynatrace.metric.util.Dimension;
-import com.dynatrace.metric.util.DimensionList;
-import com.dynatrace.metric.util.Metric;
-import com.dynatrace.metric.util.MetricException;
+import com.dynatrace.metric.util.*;
 
 public class App {
   public static void main(String[] args) {
-    // DimensionList.create will automatically call normalize for each of the dimensions.
-    // the first two can be created once, and then passed to the merge function for each
-    // new created metric. That way they dont have to be normalized every time.
-    // The main question here is if we want a kind of factory, that we can pass these two
-    // lists to, and which will create metric objects given just a set of labels (but
-    // on the back end does exactly what is shown here).
     DimensionList defaultDims =
         DimensionList.create(
             Dimension.create("default1", "value1"), Dimension.create("default2", "value2"));
-
-    DimensionList oneAgentData = DimensionList.fromOneAgentMetadata();
 
     DimensionList labels =
         DimensionList.create(
             Dimension.create("label1", "value1"), Dimension.create("label2", "value2"));
 
-    // dimensions in lists further right will overwrite dimensions in items further left.
-    // this will have to be done for each metric, as each metric can have different labels.
-    DimensionList merged = DimensionList.merge(defaultDims, labels, oneAgentData);
-
-    // create a metrics base. this can be used to create multiple metrics.
-    Metric.Builder metricBase =
-        Metric.builder("name").setPrefix("prefix").setDimensions(merged).setCurrentTime();
+    DimensionList differentLabels =
+        DimensionList.create(Dimension.create("differentDim", "differentValue"));
+    // =============================================================================================
+    // Version 1: using the MetricBuilderFactory
+    // =============================================================================================
+    // setup metric builder factory with items that can be shared between multiple metrics
+    MetricBuilderFactory metricBuilderFactory =
+        MetricBuilderFactory.builder()
+            .withDefaultDimensions(defaultDims)
+            .withOneAgentMetadata()
+            .withLabels(labels)
+            .withPrefix("prefix")
+            .build();
 
     try {
-      System.out.println(metricBase.setIntCounterValue(123).build().serialize());
-      System.out.println(metricBase.setIntAbsoluteCounterValue(123).build().serialize());
-      System.out.println(metricBase.setIntGaugeValue(123).build().serialize());
-      System.out.println(metricBase.setIntSummaryValue(2, 10, 20, 10).build().serialize());
-
-      System.out.println(metricBase.setDoubleCounterValue(12.123).build().serialize());
-      System.out.println(metricBase.setDoubleAbsoluteCounterValue(12.123).build().serialize());
-      System.out.println(metricBase.setDoubleGaugeValue(12.123).build().serialize());
       System.out.println(
-          metricBase.setDoubleSummaryValue(0.123, 10.321, 20.456, 10).build().serialize());
+          metricBuilderFactory
+              .newMetricBuilder("metric1")
+              .setIntCounterValue(123)
+              .setCurrentTime()
+              .build()
+              .serialize());
+      System.out.println(
+          metricBuilderFactory
+              .newMetricBuilder("metric2")
+              .setDimensions(differentLabels)
+              .setIntCounterValue(321)
+              .setCurrentTime()
+              .build()
+              .serialize());
+
+      // labels are overwritten when setting new dimensions, but the default labels are still
+      // printed (second line). The same is true for OneAgent data, which is not shown here since
+      // this was run on a pc without OneAgent installed.
+      //      prefix.metric1,default1=value1,default2=value2,label1=value1,label2=value2 count,123
+      // 1616413311
+      //      prefix.metric2,default1=value1,default2=value2,differentdim=differentValue count,321
+      // 1616413311
+
     } catch (MetricException me) {
       System.out.println(me.getMessage());
     }
 
-    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 count,123 1616157508
-    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 count,delta=123 1616157508
-    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 gauge,123 1616157508
-    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 gauge,min=2,max=10,sum=20,count=10 1616157508
-    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 count,12.123 1616157508
-    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 count,delta=12.123 1616157508
-    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 gauge,12.123 1616157508
-    // prefix.name,default1=value1,default2=value2,one2=value2,label1=value1,label2=value2,one1=value1 gauge,min=0.123,max=10.321,sum=20.456,count=10 1616157508
+    // =============================================================================================
+    // Version 2: using the Metrics.Builder directly
+    // =============================================================================================
+    // this approach leaves reading and merging the dimensions to the user.
+    DimensionList oneAgentDimensions = DimensionList.fromOneAgentMetadata();
+
+    try {
+      System.out.println(
+          Metric.builder("metric1")
+              .setPrefix("prefix")
+              .setDimensions(DimensionList.merge(defaultDims, labels, oneAgentDimensions))
+              .setIntCounterValue(123)
+              .setCurrentTime()
+              .build()
+              .serialize());
+
+      System.out.println(
+          Metric.builder("metric2")
+              .setPrefix("prefix")
+              .setDimensions(DimensionList.merge(defaultDims, differentLabels, oneAgentDimensions))
+              .setIntCounterValue(321)
+              .setCurrentTime()
+              .build()
+              .serialize());
+
+      // output
+      //      prefix.metric1,default1=value1,default2=value2,label1=value1,label2=value2 count,123
+      // 1616413311
+      //      prefix.metric2,default1=value1,default2=value2,differentdim=differentValue count,321
+      // 1616413311
+    } catch (MetricException me) {
+      System.out.println(me.getMessage());
+    }
   }
 }

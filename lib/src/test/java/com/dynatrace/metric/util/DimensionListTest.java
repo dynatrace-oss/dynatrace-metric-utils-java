@@ -121,6 +121,19 @@ class DimensionListTest {
   }
 
   @Test
+  void mergeNull() {
+    DimensionList dl1 = null;
+    DimensionList dl2 = null;
+    DimensionList dl3 = null;
+
+    Collection<Dimension> expected = new ArrayList<>();
+    Collection<Dimension> actual = DimensionList.merge(dl1, dl2, dl3).getDimensions();
+
+    assertEquals(expected, actual);
+    assertNotSame(expected, actual);
+  }
+
+  @Test
   void mergeMultipleDimensionListsNoCollision() {
     DimensionList dl1 = DimensionList.create(Dimension.create("default", "dimension"));
     DimensionList dl2 = DimensionList.create(Dimension.create("label", "dimension"));

@@ -59,6 +59,9 @@ public final class DimensionList {
   public static DimensionList merge(DimensionList... dimensionLists) {
     Map<String, Dimension> dimensionMap = new HashMap<>();
     for (DimensionList dl : dimensionLists) {
+      if (dl == null) {
+        continue;
+      }
       // overwrite dimension keys with items that are passed further right.
       for (Dimension dimension : dl.dimensions) {
         if (Strings.isNullOrEmpty(dimension.getKey())) {

@@ -13,39 +13,40 @@
  */
 package com.dynatrace.metric.util;
 
-// todo this is to be thought through again...
 public class MetricBuilderFactory {
   private final DimensionList oneAgentDimensions;
+  private final DimensionList labels;
   private final DimensionList defaultDimensions;
+  private final String prefix;
 
-  private MetricBuilderFactory(DimensionList oneAgentDimensions, DimensionList defaultDimensions) {
+  private MetricBuilderFactory(
+      DimensionList defaultDimensions,
+      DimensionList labels,
+      DimensionList oneAgentDimensions,
+      String prefix) {
     this.oneAgentDimensions = oneAgentDimensions;
+    this.labels = labels;
     this.defaultDimensions = defaultDimensions;
+    this.prefix = prefix;
   }
 
-  private static MetricBuilderFactory doCreate(
-      DimensionList defaultDimensions, DimensionList oneAgentDimensions) {
-    DimensionList defaultList;
-    DimensionList oneAgentList;
-    if (defaultDimensions == null || defaultDimensions.getDimensions().isEmpty()) {
-      defaultList = DimensionList.create();
-    } else {
-      // merge with one list removes duplicates.
-      defaultList = DimensionList.merge(defaultDimensions);
-    }
+  public static MetricBuilderFactoryBuilder builder() {
+    return new MetricBuilderFactoryBuilder();
+  }
 
-    if (oneAgentDimensions == null || oneAgentDimensions.getDimensions().isEmpty()) {
-      oneAgentList = DimensionList.create();
-    } else {
-      oneAgentList = DimensionList.merge(oneAgentDimensions);
-    }
-
-    return new MetricBuilderFactory(defaultList, oneAgentList);
+  public Metric.Builder newMetricBuilder(String metricName) {
+    return Metric.builder(metricName)
+        .setDefaultDimensions(defaultDimensions)
+        .setOneAgentDimensions(oneAgentDimensions)
+        .setDimensions(labels)
+        .setPrefix(prefix);
   }
 
   public static class MetricBuilderFactoryBuilder {
     private DimensionList defaultDimensions;
     private boolean enrichWithOneAgentData;
+    private DimensionList labels;
+    private String prefix;
 
     private MetricBuilderFactoryBuilder() {}
 
@@ -54,22 +55,48 @@ public class MetricBuilderFactory {
       return this;
     }
 
-    public MetricBuilderFactoryBuilder setEnrichWithOneAgentData(boolean enrich) {
-      this.enrichWithOneAgentData = enrich;
+    public MetricBuilderFactoryBuilder withOneAgentMetadata() {
+      this.enrichWithOneAgentData = true;
+      return this;
+    }
+
+    public MetricBuilderFactoryBuilder withPrefix(String prefix) {
+      this.prefix = prefix;
+      return this;
+    }
+
+    public MetricBuilderFactoryBuilder withLabels(DimensionList labels) {
+      this.labels = labels;
       return this;
     }
 
     public MetricBuilderFactory build() {
+      DimensionList localDefaultDimensions = null;
+      DimensionList localLabels = null;
+      DimensionList localOneAgentDimensions = null;
+      String localPrefix = "";
+
       if (this.enrichWithOneAgentData) {
         OneAgentMetadataEnricher enricher = new OneAgentMetadataEnricher();
-        DimensionList oneAgentDimensions =
+        localOneAgentDimensions =
             DimensionList.create(
                 enricher.getDimensionsFromOneAgentMetadata().toArray(new Dimension[0]));
-
-        // if the default dimensions are not set, do create will catch that.
-        return doCreate(this.defaultDimensions, oneAgentDimensions);
       }
-      return doCreate(this.defaultDimensions, null);
+
+      if (this.defaultDimensions != null) {
+        localDefaultDimensions = this.defaultDimensions;
+      }
+
+      if (this.labels != null) {
+        localLabels = this.labels;
+      }
+
+      if (this.prefix != null) {
+        localPrefix = this.prefix;
+      }
+
+      return new MetricBuilderFactory(
+          localDefaultDimensions, localLabels, localOneAgentDimensions, localPrefix);
     }
   }
 }

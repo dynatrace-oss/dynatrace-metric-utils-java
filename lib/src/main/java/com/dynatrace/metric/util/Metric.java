@@ -21,11 +21,23 @@ public final class Metric {
     private final String name;
     private String prefix;
     private IMetricValue value;
-    private DimensionList dimensions;
     private Instant time;
+    private DimensionList dimensions;
+    private DimensionList defaultDimensions;
+    private DimensionList oneAgentDimensions;
 
     private Builder(String name) {
       this.name = name;
+    }
+
+    Builder setDefaultDimensions(DimensionList defaultDimensions) {
+      this.defaultDimensions = defaultDimensions;
+      return this;
+    }
+
+    Builder setOneAgentDimensions(DimensionList oneAgentDimensions) {
+      this.oneAgentDimensions = oneAgentDimensions;
+      return this;
     }
 
     /**
@@ -154,7 +166,9 @@ public final class Metric {
     /**
      * (Optional) Set the {@link DimensionList} to be serialized. Can be obtained from {@link
      * DimensionList#merge the merge function} if multiple should be passed, or a single list can be
-     * added. When called multiple times, this will overwrite previously added dimensions.
+     * added. When called multiple times, this will overwrite previously added dimensions. If the
+     * builder was created by the metric builder factory, default and OneAgent dimensions will be
+     * added to the passed dimensions.
      *
      * @param dimensions the {@link DimensionList} to be serialized
      * @return this
@@ -192,7 +206,10 @@ public final class Metric {
      * @return a new {@link Metric} object with fields initialized to the values set in the builder.
      */
     public Metric build() {
-      return new Metric(prefix, name, value, dimensions, time);
+      // merging here makes sure that the
+      DimensionList mergedDimensions =
+          DimensionList.merge(defaultDimensions, dimensions, oneAgentDimensions);
+      return new Metric(prefix, name, value, mergedDimensions, time);
     }
   }
 
