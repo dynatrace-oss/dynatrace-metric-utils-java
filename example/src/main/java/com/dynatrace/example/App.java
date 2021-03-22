@@ -21,11 +21,11 @@ public class App {
         DimensionList.create(
             Dimension.create("default1", "value1"), Dimension.create("default2", "value2"));
 
-    DimensionList labels =
+    DimensionList dimensions =
         DimensionList.create(
-            Dimension.create("label1", "value1"), Dimension.create("label2", "value2"));
+            Dimension.create("dim1", "value1"), Dimension.create("dim2", "value2"));
 
-    DimensionList differentLabels =
+    DimensionList differentDimensions =
         DimensionList.create(Dimension.create("differentDim", "differentValue"));
     // =============================================================================================
     // Version 1: using the MetricBuilderFactory
@@ -35,7 +35,6 @@ public class App {
         MetricBuilderFactory.builder()
             .withDefaultDimensions(defaultDims)
             .withOneAgentMetadata()
-            .withLabels(labels)
             .withPrefix("prefix")
             .build();
 
@@ -43,26 +42,21 @@ public class App {
       System.out.println(
           metricBuilderFactory
               .newMetricBuilder("metric1")
+              .setDimensions(dimensions)
               .setIntCounterValue(123)
               .setCurrentTime()
-              .build()
-              .serialize());
+              .buildAndSerialize());
       System.out.println(
           metricBuilderFactory
               .newMetricBuilder("metric2")
-              .setDimensions(differentLabels)
+              .setDimensions(differentDimensions)
               .setIntCounterValue(321)
               .setCurrentTime()
-              .build()
-              .serialize());
+              .buildAndSerialize());
 
-      // labels are overwritten when setting new dimensions, but the default labels are still
-      // printed (second line). The same is true for OneAgent data, which is not shown here since
-      // this was run on a pc without OneAgent installed.
-      //      prefix.metric1,default1=value1,default2=value2,label1=value1,label2=value2 count,123
-      // 1616413311
-      //      prefix.metric2,default1=value1,default2=value2,differentdim=differentValue count,321
-      // 1616413311
+      // prefix.metric1,dim2=value2,default1=value1,dim1=value1,default2=value2 count,123 1616416882
+      // prefix.metric2,default1=value1,default2=value2,differentdim=differentValue count,321
+      // 1616416882
 
     } catch (MetricException me) {
       System.out.println(me.getMessage());
@@ -78,26 +72,24 @@ public class App {
       System.out.println(
           Metric.builder("metric1")
               .setPrefix("prefix")
-              .setDimensions(DimensionList.merge(defaultDims, labels, oneAgentDimensions))
+              .setDimensions(DimensionList.merge(defaultDims, dimensions, oneAgentDimensions))
               .setIntCounterValue(123)
               .setCurrentTime()
-              .build()
-              .serialize());
+              .buildAndSerialize());
 
       System.out.println(
           Metric.builder("metric2")
               .setPrefix("prefix")
-              .setDimensions(DimensionList.merge(defaultDims, differentLabels, oneAgentDimensions))
+              .setDimensions(
+                  DimensionList.merge(defaultDims, differentDimensions, oneAgentDimensions))
               .setIntCounterValue(321)
               .setCurrentTime()
-              .build()
-              .serialize());
+              .buildAndSerialize());
 
       // output
-      //      prefix.metric1,default1=value1,default2=value2,label1=value1,label2=value2 count,123
-      // 1616413311
-      //      prefix.metric2,default1=value1,default2=value2,differentdim=differentValue count,321
-      // 1616413311
+      // prefix.metric1,dim2=value2,default1=value1,dim1=value1,default2=value2 count,123 1616416882
+      // prefix.metric2,default1=value1,default2=value2,differentdim=differentValue count,321
+      // 1616416882
     } catch (MetricException me) {
       System.out.println(me.getMessage());
     }

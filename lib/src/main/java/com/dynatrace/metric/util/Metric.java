@@ -40,6 +40,12 @@ public final class Metric {
       return this;
     }
 
+    private void throwIfValueAlreadySet() throws MetricException {
+      if (this.value != null) {
+        throw new MetricException("Value already set.");
+      }
+    }
+
     /**
      * (Optional) Set the prefix on the builder object.
      *
@@ -59,6 +65,7 @@ public final class Metric {
      * @return this
      */
     public Builder setIntCounterValue(int value) throws MetricException {
+      throwIfValueAlreadySet();
       this.value = new MetricValues.IntCounterValue(value, false);
       return this;
     }
@@ -71,6 +78,7 @@ public final class Metric {
      * @return this
      */
     public Builder setIntAbsoluteCounterValue(int value) throws MetricException {
+      throwIfValueAlreadySet();
       this.value = new MetricValues.IntCounterValue(value, true);
       return this;
     }
@@ -82,7 +90,8 @@ public final class Metric {
      * @param value the value to be serialized
      * @return this
      */
-    public Builder setIntGaugeValue(int value) {
+    public Builder setIntGaugeValue(int value) throws MetricException {
+      throwIfValueAlreadySet();
       this.value = new MetricValues.IntGaugeValue(value);
       return this;
     }
@@ -99,6 +108,7 @@ public final class Metric {
      * @throws MetricException if min or max are greater than the sum or if the count is negative
      */
     public Builder setIntSummaryValue(int min, int max, int sum, int count) throws MetricException {
+      throwIfValueAlreadySet();
       this.value = new MetricValues.IntSummaryValue(min, max, sum, count);
       return this;
     }
@@ -111,6 +121,7 @@ public final class Metric {
      * @return this
      */
     public Builder setDoubleCounterValue(double value) throws MetricException {
+      throwIfValueAlreadySet();
       this.value = new MetricValues.DoubleCounterValue(value, false);
       return this;
     }
@@ -123,6 +134,7 @@ public final class Metric {
      * @return this
      */
     public Builder setDoubleAbsoluteCounterValue(double value) throws MetricException {
+      throwIfValueAlreadySet();
       this.value = new MetricValues.DoubleCounterValue(value, true);
       return this;
     }
@@ -134,7 +146,8 @@ public final class Metric {
      * @param value the value to be serialized
      * @return this
      */
-    public Builder setDoubleGaugeValue(double value) {
+    public Builder setDoubleGaugeValue(double value) throws MetricException {
+      throwIfValueAlreadySet();
       this.value = new MetricValues.DoubleGaugeValue(value);
       return this;
     }
@@ -152,6 +165,7 @@ public final class Metric {
      */
     public Builder setDoubleSummaryValue(double min, double max, double sum, int count)
         throws MetricException {
+      throwIfValueAlreadySet();
       if (count < 0) {
         throw new MetricException("count cannot be negative");
       }
@@ -210,6 +224,10 @@ public final class Metric {
       DimensionList mergedDimensions =
           DimensionList.merge(defaultDimensions, dimensions, oneAgentDimensions);
       return new Metric(prefix, name, value, mergedDimensions, time);
+    }
+
+    public String buildAndSerialize() throws MetricException {
+      return this.build().serialize();
     }
   }
 

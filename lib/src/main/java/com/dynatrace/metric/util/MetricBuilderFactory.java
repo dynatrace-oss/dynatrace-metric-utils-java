@@ -15,7 +15,6 @@ package com.dynatrace.metric.util;
 
 public class MetricBuilderFactory {
   private final DimensionList oneAgentDimensions;
-  private final DimensionList labels;
   private final DimensionList defaultDimensions;
   private final String prefix;
 
@@ -25,7 +24,6 @@ public class MetricBuilderFactory {
       DimensionList oneAgentDimensions,
       String prefix) {
     this.oneAgentDimensions = oneAgentDimensions;
-    this.labels = labels;
     this.defaultDimensions = defaultDimensions;
     this.prefix = prefix;
   }
@@ -38,7 +36,6 @@ public class MetricBuilderFactory {
     return Metric.builder(metricName)
         .setDefaultDimensions(defaultDimensions)
         .setOneAgentDimensions(oneAgentDimensions)
-        .setDimensions(labels)
         .setPrefix(prefix);
   }
 
@@ -62,11 +59,6 @@ public class MetricBuilderFactory {
 
     public MetricBuilderFactoryBuilder withPrefix(String prefix) {
       this.prefix = prefix;
-      return this;
-    }
-
-    public MetricBuilderFactoryBuilder withLabels(DimensionList labels) {
-      this.labels = labels;
       return this;
     }
 
