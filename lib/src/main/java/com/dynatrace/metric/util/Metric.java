@@ -166,13 +166,6 @@ public final class Metric {
     public Builder setDoubleSummaryValue(double min, double max, double sum, int count)
         throws MetricException {
       throwIfValueAlreadySet();
-      if (count < 0) {
-        throw new MetricException("count cannot be negative");
-      }
-      if (min > sum || max > sum) {
-        throw new MetricException("min and max cannot be bigger than the sum");
-      }
-
       this.value = new MetricValues.DoubleSummaryValue(min, max, sum, count);
       return this;
     }
@@ -215,35 +208,62 @@ public final class Metric {
     }
 
     /**
-     * Create the {@link Metric} from the builder object.
+     * Serialize a {@link Metric.Builder} object to a String in a valid format for the Dynatrace
+     * metrics ingest endpoint.
      *
-     * @return a new {@link Metric} object with fields initialized to the values set in the builder.
+     * @return A {@link String} containing all properties set on the {@link Metric.Builder} in an
+     *     ingestion-ready format.
+     * @throws MetricException If no value is set or if the prefix/name combination evaluates to an
+     *     invalid/empty key after normalization.
      */
-    public Metric build() {
-      // merging here makes sure that the
-      DimensionList mergedDimensions =
-          DimensionList.merge(defaultDimensions, dimensions, oneAgentDimensions);
-      return new Metric(prefix, name, value, mergedDimensions, time);
+    public String serialize() throws MetricException {
+      String normalizedKeyString = makeNormalizedMetricName();
+      if (Strings.isNullOrEmpty(normalizedKeyString)) {
+        throw new MetricException("normalized metric key is empty.");
+      }
+
+      if (this.value == null) {
+        throw new MetricException("no value set for metric");
+      }
+
+      // the two required arguments, name and value, are set and valid, so we start assembling the
+      // metric line here.
+      StringBuilder builder = new StringBuilder(normalizedKeyString);
+
+      // combine default dimensions, dynamic dimensions and OneAgent dimensions into one list.
+      DimensionList allDimensions =
+          DimensionList.merge(this.defaultDimensions, this.dimensions, this.oneAgentDimensions);
+      String dimensionsString = null;
+      if (!allDimensions.isEmpty()) {
+        dimensionsString = allDimensions.serialize();
+      }
+
+      // if any dimensions are present, serialize and append them to the metric string.
+      if (!Strings.isNullOrEmpty(dimensionsString)) {
+        builder.append(",");
+        builder.append(dimensionsString);
+      }
+      builder.append(" ");
+
+      // add the serialized value to the metric string.
+      builder.append(this.value.serialize());
+
+      // if a timestamp is set, add it to the metric string.
+      if (this.time != null) {
+        builder.append(" ");
+        builder.append(time.getEpochSecond());
+      }
+
+      return builder.toString();
     }
 
-    public String buildAndSerialize() throws MetricException {
-      return this.build().serialize();
+    private String makeNormalizedMetricName() {
+      if (this.prefix == null) {
+        return Normalize.metricKey(name);
+      }
+
+      return Normalize.metricKey(String.format("%s.%s", prefix, name));
     }
-  }
-
-  private final String prefix;
-  private final String name;
-  private final IMetricValue value;
-  private final DimensionList dimensions;
-  private final Instant time;
-
-  private Metric(
-      String prefix, String name, IMetricValue value, DimensionList dimensions, Instant time) {
-    this.prefix = prefix;
-    this.name = name;
-    this.value = value;
-    this.dimensions = dimensions;
-    this.time = time;
   }
 
   /**
@@ -254,56 +274,5 @@ public final class Metric {
    */
   public static Builder builder(String name) {
     return new Builder(name);
-  }
-
-  /**
-   * Serialize a {@link Metric} object to a valid format for the Dynatrace metrics ingest endpoint.
-   *
-   * @return A {@link String} containing all properties set on the {@link Metric} in an
-   *     ingestion-ready format.
-   * @throws MetricException If no value is set or if the prefix/name combination evaluates to an
-   *     invalid/empty key after normalization.
-   */
-  public String serialize() throws MetricException {
-    String normalizedKeyString = makeNormalizedMetricName();
-    if (Strings.isNullOrEmpty(normalizedKeyString)) {
-      throw new MetricException("normalized metric key is empty.");
-    }
-
-    if (this.value == null) {
-      throw new MetricException("no value set for metric");
-    }
-
-    // the two required arguments, name and value, are set and valid, so we start assembling the
-    // metric line here.
-    StringBuilder builder = new StringBuilder(normalizedKeyString);
-
-    String dimensionsString = null;
-    if (this.dimensions != null) {
-      dimensionsString = this.dimensions.serialize();
-    }
-
-    if (!Strings.isNullOrEmpty(dimensionsString)) {
-      builder.append(",");
-      builder.append(dimensionsString);
-    }
-    builder.append(" ");
-
-    builder.append(this.value.serialize());
-
-    if (this.time != null) {
-      builder.append(" ");
-      builder.append(time.getEpochSecond());
-    }
-
-    return builder.toString();
-  }
-
-  private String makeNormalizedMetricName() {
-    if (this.prefix == null) {
-      return Normalize.metricKey(name);
-    }
-
-    return Normalize.metricKey(String.format("%s.%s", prefix, name));
   }
 }
