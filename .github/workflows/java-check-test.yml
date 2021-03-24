@@ -33,10 +33,10 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: jar (JDK ${{ matrix.java-version }})
-          path: dynatrace/build/libs/*.jar
+          path: lib/build/libs/*.jar
           if-no-files-found: error
       - name: Upload unit test results
         uses: actions/upload-artifact@v2
         with:
           name: unit-tests-results (JDK ${{ matrix.java-version }})
-          path: dynatrace/build/reports/tests/test/
+          path: lib/build/reports/tests/test/
