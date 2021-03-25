@@ -107,7 +107,7 @@ public final class Metric {
      * @return this.
      * @throws MetricException if min or max are greater than the sum or if the count is negative
      */
-    public Builder setLongSummaryValue(long min, long max, long sum, int count)
+    public Builder setLongSummaryValue(long min, long max, long sum, long count)
         throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.LongSummaryValue(min, max, sum, count);
@@ -164,7 +164,7 @@ public final class Metric {
      * @return this.
      * @throws MetricException if min or max are greater than the sum or if the count is negative
      */
-    public Builder setDoubleSummaryValue(double min, double max, double sum, int count)
+    public Builder setDoubleSummaryValue(double min, double max, double sum, long count)
         throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.DoubleSummaryValue(min, max, sum, count);

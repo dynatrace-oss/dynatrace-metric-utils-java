@@ -47,9 +47,9 @@ public class MetricValues {
     private final long min;
     private final long max;
     private final long sum;
-    private final int count;
+    private final long count;
 
-    public LongSummaryValue(long min, long max, long sum, int count) throws MetricException {
+    public LongSummaryValue(long min, long max, long sum, long count) throws MetricException {
       if (count < 0) {
         throw new MetricException("count cannot be negative");
       }
@@ -109,9 +109,9 @@ public class MetricValues {
     private final double min;
     private final double max;
     private final double sum;
-    private final int count;
+    private final long count;
 
-    public DoubleSummaryValue(double min, double max, double sum, int count)
+    public DoubleSummaryValue(double min, double max, double sum, long count)
         throws MetricException {
       if (count < 0) {
         throw new MetricException("count cannot be negative");
