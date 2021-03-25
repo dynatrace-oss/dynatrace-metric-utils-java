@@ -29,4 +29,3 @@ repositories {
     mavenCentral()
     jcenter()
 }
-
