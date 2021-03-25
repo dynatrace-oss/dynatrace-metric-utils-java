@@ -11,7 +11,7 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.example;
+package com.dynatrace.metric.util.example;
 
 import com.dynatrace.metric.util.*;
 
@@ -39,27 +39,29 @@ public class App {
             .build();
 
     try {
-      System.out.println(
+      // the following code will create this metric line:
+      // prefix.metric1,dim2=value2,default1=value1,dim1=value1,default2=value2 count,123 1616416882
+      String metricLine1 =
           metricBuilderFactory
               .newMetricBuilder("metric1")
               .setDimensions(dimensions)
               .setLongCounterValue(123)
               .setCurrentTime()
-              .serialize());
-      System.out.println(
+              .serialize();
+
+      String metricLine2 =
           metricBuilderFactory
               .newMetricBuilder("metric2")
               .setDimensions(differentDimensions)
               .setLongCounterValue(321)
               .setCurrentTime()
-              .serialize());
+              .serialize();
 
-      // prefix.metric1,dim2=value2,default1=value1,dim1=value1,default2=value2 count,123 1616416882
-      // prefix.metric2,default1=value1,default2=value2,differentdim=differentValue count,321
-      // 1616416882
+      System.out.println(metricLine1);
+      System.out.println(metricLine2);
 
     } catch (MetricException me) {
-      System.out.println(me.getMessage());
+      System.out.println(me.toString());
     }
 
     // =============================================================================================
@@ -69,29 +71,28 @@ public class App {
     DimensionList oneAgentDimensions = DimensionList.fromOneAgentMetadata();
 
     try {
-      System.out.println(
+      String metricLine1 =
           Metric.builder("metric1")
               .setPrefix("prefix")
               .setDimensions(DimensionList.merge(defaultDims, dimensions, oneAgentDimensions))
               .setLongCounterValue(123)
               .setCurrentTime()
-              .serialize());
+              .serialize();
 
-      System.out.println(
+      String metricLine2 =
           Metric.builder("metric2")
               .setPrefix("prefix")
               .setDimensions(
                   DimensionList.merge(defaultDims, differentDimensions, oneAgentDimensions))
               .setLongCounterValue(321)
               .setCurrentTime()
-              .serialize());
+              .serialize();
 
-      // output
-      // prefix.metric1,dim2=value2,default1=value1,dim1=value1,default2=value2 count,123 1616416882
-      // prefix.metric2,default1=value1,default2=value2,differentdim=differentValue count,321
-      // 1616416882
+      System.out.println(metricLine1);
+      System.out.println(metricLine2);
+
     } catch (MetricException me) {
-      System.out.println(me.getMessage());
+      System.out.println(me.toString());
     }
   }
 }

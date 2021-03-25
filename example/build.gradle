@@ -18,7 +18,7 @@ plugins {
 }
 
 application {
-    mainClass = 'com.dynatrace.example.App'
+    mainClass = 'com.dynatrace.metric.util.example.App'
 }
 
 dependencies {
