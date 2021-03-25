@@ -43,14 +43,14 @@ public class App {
           metricBuilderFactory
               .newMetricBuilder("metric1")
               .setDimensions(dimensions)
-              .setIntCounterValue(123)
+              .setLongCounterValue(123)
               .setCurrentTime()
               .serialize());
       System.out.println(
           metricBuilderFactory
               .newMetricBuilder("metric2")
               .setDimensions(differentDimensions)
-              .setIntCounterValue(321)
+              .setLongCounterValue(321)
               .setCurrentTime()
               .serialize());
 
@@ -73,7 +73,7 @@ public class App {
           Metric.builder("metric1")
               .setPrefix("prefix")
               .setDimensions(DimensionList.merge(defaultDims, dimensions, oneAgentDimensions))
-              .setIntCounterValue(123)
+              .setLongCounterValue(123)
               .setCurrentTime()
               .serialize());
 
@@ -82,7 +82,7 @@ public class App {
               .setPrefix("prefix")
               .setDimensions(
                   DimensionList.merge(defaultDims, differentDimensions, oneAgentDimensions))
-              .setIntCounterValue(321)
+              .setLongCounterValue(321)
               .setCurrentTime()
               .serialize());
 

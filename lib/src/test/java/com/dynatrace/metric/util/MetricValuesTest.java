@@ -33,49 +33,49 @@ class MetricValuesTest {
 
   @Test
   public void testIntCounterValue() throws MetricException {
-    MetricValues.IntCounterValue val;
-    val = new MetricValues.IntCounterValue(0, false);
+    MetricValues.LongCounterValue val;
+    val = new MetricValues.LongCounterValue(0, false);
     assertEquals("count,0", val.serialize());
 
-    val = new MetricValues.IntCounterValue(100, false);
+    val = new MetricValues.LongCounterValue(100, false);
     assertEquals("count,100", val.serialize());
 
-    assertThrows(MetricException.class, () -> new MetricValues.IntCounterValue(-10, false));
+    assertThrows(MetricException.class, () -> new MetricValues.LongCounterValue(-10, false));
 
-    val = new MetricValues.IntCounterValue(0, true);
+    val = new MetricValues.LongCounterValue(0, true);
     assertEquals("count,delta=0", val.serialize());
 
-    val = new MetricValues.IntCounterValue(100, true);
+    val = new MetricValues.LongCounterValue(100, true);
     assertEquals("count,delta=100", val.serialize());
 
-    val = new MetricValues.IntCounterValue(-10, true);
+    val = new MetricValues.LongCounterValue(-10, true);
     assertEquals("count,delta=-10", val.serialize());
   }
 
   @Test
   public void testIntSummaryValue() throws MetricException {
-    MetricValues.IntSummaryValue val;
-    val = new MetricValues.IntSummaryValue(0, 10, 20, 10);
+    MetricValues.LongSummaryValue val;
+    val = new MetricValues.LongSummaryValue(0, 10, 20, 10);
     assertEquals("gauge,min=0,max=10,sum=20,count=10", val.serialize());
 
-    val = new MetricValues.IntSummaryValue(0, 0, 0, 0);
+    val = new MetricValues.LongSummaryValue(0, 0, 0, 0);
     assertEquals("gauge,min=0,max=0,sum=0,count=0", val.serialize());
 
-    assertThrows(MetricException.class, () -> new MetricValues.IntSummaryValue(0, 10, 20, -10));
-    assertThrows(MetricException.class, () -> new MetricValues.IntSummaryValue(5, 3, 20, 10));
-    assertThrows(MetricException.class, () -> new MetricValues.IntSummaryValue(100, 100, 20, 10));
+    assertThrows(MetricException.class, () -> new MetricValues.LongSummaryValue(0, 10, 20, -10));
+    assertThrows(MetricException.class, () -> new MetricValues.LongSummaryValue(5, 3, 20, 10));
+    assertThrows(MetricException.class, () -> new MetricValues.LongSummaryValue(100, 100, 20, 10));
   }
 
   @Test
   public void testIntGaugeValue() {
-    MetricValues.IntGaugeValue val;
-    val = new MetricValues.IntGaugeValue(0);
+    MetricValues.LongGaugeValue val;
+    val = new MetricValues.LongGaugeValue(0);
     assertEquals("gauge,0", val.serialize());
 
-    val = new MetricValues.IntGaugeValue(123);
+    val = new MetricValues.LongGaugeValue(123);
     assertEquals("gauge,123", val.serialize());
 
-    val = new MetricValues.IntGaugeValue(-123);
+    val = new MetricValues.LongGaugeValue(-123);
     assertEquals("gauge,-123", val.serialize());
   }
 

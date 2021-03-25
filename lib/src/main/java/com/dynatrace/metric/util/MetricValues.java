@@ -22,11 +22,11 @@ interface IMetricValue {
 }
 
 public class MetricValues {
-  static final class IntCounterValue implements IMetricValue {
-    private final int value;
+  static final class LongCounterValue implements IMetricValue {
+    private final long value;
     private final boolean absolute;
 
-    public IntCounterValue(int value, boolean absolute) throws MetricException {
+    public LongCounterValue(long value, boolean absolute) throws MetricException {
       if (!absolute && value < 0) {
         throw new MetricException("counter value cannot be smaller than 0");
       }
@@ -43,13 +43,13 @@ public class MetricValues {
     }
   }
 
-  static final class IntSummaryValue implements IMetricValue {
-    private final int min;
-    private final int max;
-    private final int sum;
+  static final class LongSummaryValue implements IMetricValue {
+    private final long min;
+    private final long max;
+    private final long sum;
     private final int count;
 
-    public IntSummaryValue(int min, int max, int sum, int count) throws MetricException {
+    public LongSummaryValue(long min, long max, long sum, int count) throws MetricException {
       if (count < 0) {
         throw new MetricException("count cannot be negative");
       }
@@ -71,10 +71,10 @@ public class MetricValues {
     }
   }
 
-  static final class IntGaugeValue implements IMetricValue {
-    private final int value;
+  static final class LongGaugeValue implements IMetricValue {
+    private final long value;
 
-    public IntGaugeValue(int value) {
+    public LongGaugeValue(long value) {
       this.value = value;
     }
 

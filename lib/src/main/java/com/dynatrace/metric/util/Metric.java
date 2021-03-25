@@ -58,46 +58,46 @@ public final class Metric {
     }
 
     /**
-     * Use an int counter value for the current metric. Will produce the entry "count,<number>" in
+     * Use a long counter value for the current metric. Will produce the entry "count,<number>" in
      * the resulting metric line.
      *
      * @param value the value to be serialized.
      * @return this
      */
-    public Builder setIntCounterValue(int value) throws MetricException {
+    public Builder setLongCounterValue(long value) throws MetricException {
       throwIfValueAlreadySet();
-      this.value = new MetricValues.IntCounterValue(value, false);
+      this.value = new MetricValues.LongCounterValue(value, false);
       return this;
     }
 
     /**
-     * Use an int absolute counter value for the current metric. Will produce the entry
+     * Use a long absolute counter value for the current metric. Will produce the entry
      * "count,delta=<number>" in the resulting metric line.
      *
      * @param value the value to be serialized
      * @return this
      */
-    public Builder setIntAbsoluteCounterValue(int value) throws MetricException {
+    public Builder setLongAbsoluteCounterValue(long value) throws MetricException {
       throwIfValueAlreadySet();
-      this.value = new MetricValues.IntCounterValue(value, true);
+      this.value = new MetricValues.LongCounterValue(value, true);
       return this;
     }
 
     /**
-     * Use an int gauge value for the current metric. Will produce the entry "gauge,<number>" in the
+     * Use a long gauge value for the current metric. Will produce the entry "gauge,<number>" in the
      * resulting metric line
      *
      * @param value the value to be serialized
      * @return this
      */
-    public Builder setIntGaugeValue(int value) throws MetricException {
+    public Builder setLongGaugeValue(long value) throws MetricException {
       throwIfValueAlreadySet();
-      this.value = new MetricValues.IntGaugeValue(value);
+      this.value = new MetricValues.LongGaugeValue(value);
       return this;
     }
 
     /**
-     * Use an int summary value for the current metric. Will produce the entry
+     * Use a long summary value for the current metric. Will produce the entry
      * "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>" in the resulting metric line
      *
      * @param min the minimum value for the current metric.
@@ -107,9 +107,10 @@ public final class Metric {
      * @return this.
      * @throws MetricException if min or max are greater than the sum or if the count is negative
      */
-    public Builder setIntSummaryValue(int min, int max, int sum, int count) throws MetricException {
+    public Builder setLongSummaryValue(long min, long max, long sum, int count)
+        throws MetricException {
       throwIfValueAlreadySet();
-      this.value = new MetricValues.IntSummaryValue(min, max, sum, count);
+      this.value = new MetricValues.LongSummaryValue(min, max, sum, count);
       return this;
     }
 
