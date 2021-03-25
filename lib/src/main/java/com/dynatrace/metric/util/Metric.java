@@ -259,7 +259,7 @@ public final class Metric {
     }
 
     private String makeNormalizedMetricName() {
-      if (this.prefix == null) {
+      if (Strings.isNullOrEmpty(this.prefix)) {
         return Normalize.metricKey(name);
       }
 
