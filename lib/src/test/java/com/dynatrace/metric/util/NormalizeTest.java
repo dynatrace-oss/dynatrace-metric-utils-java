@@ -23,8 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NormalizeTest {
 
-  public void testDimensionList() {}
-
   @ParameterizedTest(name = "{index}: {0}, input: {1}, expected: {2}")
   @MethodSource("provideDimensionKeys")
   public void testDimensionKey(String name, String input, String expected) {
@@ -43,7 +41,7 @@ public class NormalizeTest {
     assertEquals(expected, Normalize.metricKey(input));
   }
 
-  private static String stringOfLength(int n) {
+  private static String createNonsenseStringOfLength(int n) {
     return new String(new char[n]).replace("\0", "a");
   }
 
@@ -102,7 +100,10 @@ public class NormalizeTest {
         Arguments.of("invalid example 3", "metriÄ", "metri"),
         Arguments.of("invalid example 4", "Ätric", "tric"),
         Arguments.of("invalid example 5", "meträääääÖÖÖc", "metr_c"),
-        Arguments.of("invalid truncate key too long", stringOfLength(270), stringOfLength(250)));
+        Arguments.of(
+            "invalid truncate key too long",
+            createNonsenseStringOfLength(270),
+            createNonsenseStringOfLength(250)));
   }
 
   private static Stream<Arguments> provideDimensionKeys() {
@@ -162,7 +163,10 @@ public class NormalizeTest {
         Arguments.of("invalid example 5", "ääätag", "tag"),
         Arguments.of("invalid example 6", "ä_ätag", "__tag"),
         Arguments.of("invalid example 7", "Bla___", "bla___"),
-        Arguments.of("invalid truncate key too long", stringOfLength(120), stringOfLength(100)));
+        Arguments.of(
+            "invalid truncate key too long",
+            createNonsenseStringOfLength(120),
+            createNonsenseStringOfLength(100)));
   }
 
   private static Stream<Arguments> provideDimensionValues() {
@@ -190,6 +194,9 @@ public class NormalizeTest {
         Arguments.of("invalid trailing unicode NUL", "a\u0000", "a"),
         Arguments.of("invalid enclosed unicode NUL", "a\u0000b", "a_b"),
         Arguments.of("invalid consecutive enclosed unicode NUL", "a\u0000\u0007\u0000b", "a_b"),
-        Arguments.of("invalid truncate value too long", stringOfLength(270), stringOfLength(250)));
+        Arguments.of(
+            "invalid truncate value too long",
+            createNonsenseStringOfLength(270),
+            createNonsenseStringOfLength(250)));
   }
 }
