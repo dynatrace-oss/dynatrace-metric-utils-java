@@ -56,8 +56,16 @@ final class Normalize {
   // maximum string length of a dimension value.
   private static final int dv_max_length = 250;
 
+  /**
+   * @param dimensions The dimensions to normalize.
+   * @return A list holding all elements that were not discarded due to invalid keys after
+   *     normalization or an empty list if no keys are valid.
+   */
   static List<Dimension> dimensionList(Collection<Dimension> dimensions) {
     List<Dimension> normalized = new ArrayList<>();
+    if (dimensions == null) {
+      return normalized;
+    }
     for (Dimension dimension : dimensions) {
       String key = dimensionKey(dimension.getKey());
       if (Strings.isNullOrEmpty(key)) {

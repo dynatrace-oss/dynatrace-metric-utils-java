@@ -61,7 +61,7 @@ public class App {
       System.out.println(metricLine2);
 
     } catch (MetricException me) {
-      System.out.println(me.toString());
+      System.out.println(me);
     }
 
     // =============================================================================================
@@ -92,7 +92,7 @@ public class App {
       System.out.println(metricLine2);
 
     } catch (MetricException me) {
-      System.out.println(me.toString());
+      System.out.println(me);
     }
   }
 }

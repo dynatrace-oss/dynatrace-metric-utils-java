@@ -15,6 +15,8 @@ package com.dynatrace.metric.util;
 
 import java.util.Objects;
 
+/** The dimension class represents a key-value pair of strings. */
+@javax.annotation.concurrent.Immutable
 public final class Dimension {
   private final String key;
   private final String value;
@@ -24,10 +26,12 @@ public final class Dimension {
     this.value = value;
   }
 
+  /** @return A {@link String} containing the dimension key. */
   public String getKey() {
     return key;
   }
 
+  /** @return A {@link String} containing the dimension value. */
   public String getValue() {
     return value;
   }
@@ -43,6 +47,10 @@ public final class Dimension {
     return new Dimension(key, value);
   }
 
+  /**
+   * @return A {@link String} containing key and value, concatenated with an equals sign (e.g.
+   *     "key=value").
+   */
   @Override
   public String toString() {
     return this.serialize();

@@ -18,31 +18,56 @@ import java.util.*;
 import java.util.logging.Logger;
 
 public final class DimensionList {
-  private static final Logger logger = Logger.getLogger(Dimension.class.getName());
+  private static final Logger logger = Logger.getLogger(DimensionList.class.getName());
 
   private final List<Dimension> dimensions;
 
   private DimensionList(List<Dimension> dimensions) {
-    this.dimensions = dimensions;
+    this.dimensions = Collections.unmodifiableList(dimensions);
   }
 
   /**
-   * Create a new {@link DimensionList} object. All {@link DimensionList DimensionLists} must be
-   * normalized. This function will automatically normalize all dimensions passed to it, and discard
-   * Dimensions with invalid keys.
+   * Create a new {@link DimensionList} from a {@link Collection} of {@link Dimension Dimensions}.
+   * All {@link DimensionList DimensionLists} must be normalized, therefore any collection passed
+   * here will be normalized before storing it. Normalization does not remove duplicates.
+   *
+   * @param dimensions A collecion of {@link Dimension} objects, to be normalized and stored.
+   * @return A {@link DimensionList} object, containing normalized {@link Dimension Dimensions}. Can
+   *     still contain duplicate keys.
+   */
+  public static DimensionList fromCollection(Collection<Dimension> dimensions) {
+    return new DimensionList(Normalize.dimensionList(dimensions));
+  }
+
+  /**
+   * Create a new {@link DimensionList} object. Calls to {@link #fromCollection} under the hood,
+   * ensuring that passed dimensions are normalized.
    *
    * @param dimensions An arbitrary number of {@link Dimension} objects.
-   * @return A {@link DimensionList} object only containing valid dimensions. Might still contain
-   *     duplicates.
+   * @return A {@link DimensionList} object, containing normalized {@link Dimension Dimensions}. Can
+   *     still contain duplicate keys.
    */
   public static DimensionList create(Dimension... dimensions) {
-    return new DimensionList(Normalize.dimensionList(Arrays.asList(dimensions)));
+    return DimensionList.fromCollection(Arrays.asList(dimensions));
   }
 
+  /**
+   * Create a {@link DimensionList} from OneAgent metadata. The metadata is read automatically,
+   * normalized, and stored in the resulting {@link DimensionList}. Use the returned list in a
+   * {@link #merge} function or a {@link MetricBuilderFactory}.
+   *
+   * @return A list of normalized OneAgent dimensions.
+   */
   public static DimensionList fromOneAgentMetadata() {
-    return new DimensionList(OneAgentMetadataEnricher.getDimensionsFromOneAgentMetadata());
+    return DimensionList.fromCollection(
+        OneAgentMetadataEnricher.getDimensionsFromOneAgentMetadata());
   }
 
+  /**
+   * Check if the {@link DimensionList} contains no elements.
+   *
+   * @return true if the list is empty and false otherwise.
+   */
   public boolean isEmpty() {
     return dimensions.isEmpty();
   }
@@ -54,13 +79,17 @@ public final class DimensionList {
    * DimensionList DimensionLists} passed further left if they share the same key (after key
    * normalization). Similarly, {@link Dimension Dimensions} in the same {@link DimensionList} that
    * share a key will be overwritten by {@link Dimension Dimensions} in the same {@link
-   * DimensionList} if they share a key.
+   * DimensionList} with the same key. When passing only one list, removes duplicates from the list.
    *
    * @param dimensionLists One or more {@link DimensionList} objects.
    * @return A new {@link DimensionList} object containing unique {@link Dimension Dimensions} from
    *     all passed lists.
    */
   public static DimensionList merge(DimensionList... dimensionLists) {
+    if (dimensionLists == null) {
+      return DimensionList.create();
+    }
+
     Map<String, Dimension> dimensionMap = new HashMap<>();
     for (DimensionList dl : dimensionLists) {
       if (dl == null) {
@@ -75,9 +104,14 @@ public final class DimensionList {
         dimensionMap.put(dimension.getKey(), dimension);
       }
     }
-    return new DimensionList(new ArrayList<>(dimensionMap.values()));
+    return DimensionList.fromCollection(dimensionMap.values());
   }
 
+  /**
+   * Access the elements in the {@link DimensionList}.
+   *
+   * @return A {@link Collection} of {@link java.awt.Dimension} objects.
+   */
   public Collection<Dimension> getDimensions() {
     return dimensions;
   }

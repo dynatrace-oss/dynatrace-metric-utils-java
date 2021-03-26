@@ -21,7 +21,8 @@ interface IMetricValue {
   String serialize();
 }
 
-public class MetricValues {
+/** Holder class for the different value classes. */
+final class MetricValues {
   static final class LongCounterValue implements IMetricValue {
     private final long value;
     private final boolean absolute;
