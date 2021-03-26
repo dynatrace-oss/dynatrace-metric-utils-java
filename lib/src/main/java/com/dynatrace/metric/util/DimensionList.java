@@ -13,7 +13,6 @@
  */
 package com.dynatrace.metric.util;
 
-import com.google.common.base.Strings;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -23,7 +22,7 @@ public final class DimensionList {
   private final List<Dimension> dimensions;
 
   private DimensionList(List<Dimension> dimensions) {
-    this.dimensions = Collections.unmodifiableList(dimensions);
+    this.dimensions = dimensions;
   }
 
   /**
@@ -97,7 +96,7 @@ public final class DimensionList {
       }
       // overwrite dimension keys with items that are passed further right.
       for (Dimension dimension : dl.dimensions) {
-        if (Strings.isNullOrEmpty(dimension.getKey())) {
+        if (dimension.getKey() == null || dimension.getKey().isEmpty()) {
           logger.warning("skipping empty key");
           continue;
         }

@@ -13,7 +13,6 @@
  */
 package com.dynatrace.metric.util;
 
-import com.google.common.base.Strings;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
@@ -83,7 +82,7 @@ final class OneAgentMetadataEnricher {
 
     try (BufferedReader reader = new BufferedReader(fileContents)) {
       String line = reader.readLine();
-      if (!Strings.isNullOrEmpty(line)) {
+      if (line != null && !line.isEmpty()) {
         oneAgentMetadataFileName = line;
       }
     }
@@ -128,7 +127,7 @@ final class OneAgentMetadataEnricher {
               e.getMessage()));
     }
 
-    if (Strings.isNullOrEmpty(oneAgentMetadataFileName)) {
+    if (oneAgentMetadataFileName == null || oneAgentMetadataFileName.isEmpty()) {
       return Collections.emptyList();
     }
 

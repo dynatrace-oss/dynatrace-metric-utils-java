@@ -13,10 +13,10 @@
  */
 package com.dynatrace.metric.util;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -51,10 +51,16 @@ final class Normalize {
   // Dimension values (dv)
   // Characters that need to be escaped in dimension values
   private static final Pattern re_dv_charactersToEscape = Pattern.compile("([= ,\\\\])");
-  private static final CharMatcher dv_controlCharsMatcher = CharMatcher.javaIsoControl();
+  private static final Pattern re_dv_controlCharacters = Pattern.compile("[\\p{C}]+");
+  private static final Pattern re_dv_controlCharactersStart = Pattern.compile("^[\\p{C}]+");
+  private static final Pattern re_dv_controlCharactersEnd = Pattern.compile("[\\p{C}]+$");
 
   // maximum string length of a dimension value.
   private static final int dv_max_length = 250;
+
+  private static boolean isNullOrEmpty(String s) {
+    return s == null || s.isEmpty();
+  }
 
   /**
    * @param dimensions The dimensions to normalize.
@@ -68,7 +74,7 @@ final class Normalize {
     }
     for (Dimension dimension : dimensions) {
       String key = dimensionKey(dimension.getKey());
-      if (Strings.isNullOrEmpty(key)) {
+      if (isNullOrEmpty(key)) {
         logger.warning(
             String.format(
                 "could not normalize dimension key: '%s'. Skipping...", dimension.getKey()));
@@ -80,19 +86,19 @@ final class Normalize {
   }
 
   static String dimensionKey(String key) {
-    if (Strings.isNullOrEmpty(key)) {
+    if (isNullOrEmpty(key)) {
       return "";
     }
     if (key.length() > dk_max_length) {
       key = key.substring(0, dk_max_length);
     }
 
-    Iterable<String> sections = Splitter.on('.').split(key);
+    String[] sections = key.split("\\.");
     StringBuilder normalizedKeyBuilder = new StringBuilder();
     boolean firstSection = true;
 
     for (String section : sections) {
-      if (Strings.isNullOrEmpty(section)) {
+      if (isNullOrEmpty(section)) {
         continue;
       }
       // move to lowercase
@@ -103,7 +109,7 @@ final class Normalize {
       // replace consecutive invalid characters within the section with one underscore:
       normalizedSection = re_dk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
 
-      if (Strings.isNullOrEmpty(normalizedSection)) {
+      if (isNullOrEmpty(normalizedSection)) {
         // section is empty after normalization and will be discarded.
         logger.info(
             String.format(
@@ -127,7 +133,9 @@ final class Normalize {
       value = value.substring(0, dv_max_length);
     }
     // trim leading and trailing control characters and collapse contained control chars to an "_"
-    value = dv_controlCharsMatcher.trimAndCollapseFrom(value, '_');
+    value = re_dv_controlCharactersStart.matcher(value).replaceAll("");
+    value = re_dv_controlCharactersEnd.matcher(value).replaceAll("");
+    value = re_dv_controlCharacters.matcher(value).replaceAll("_");
 
     // escape characters matched by regex with backslash. $1 inserts the matched character.
     value = re_dv_charactersToEscape.matcher(value).replaceAll("\\\\$1");
@@ -136,19 +144,22 @@ final class Normalize {
   }
 
   static String metricKey(String key) {
-    if (Strings.isNullOrEmpty(key)) {
+    if (isNullOrEmpty(key)) {
       return null;
     }
     if (key.length() > mk_max_length) {
       key = key.substring(0, mk_max_length);
     }
 
-    Iterable<String> sections = Splitter.on(".").split(key);
+    String[] sections = key.split("\\.");
+    if (sections.length == 0) {
+      return null;
+    }
     boolean firstSection = true;
     StringBuilder normalizedKeyBuilder = new StringBuilder();
 
     for (String section : sections) {
-      if (Strings.isNullOrEmpty(section)) {
+      if (isNullOrEmpty(section)) {
         if (firstSection) {
           logger.warning("first key section cannot be empty");
           return null;
@@ -170,7 +181,7 @@ final class Normalize {
       // replace invalid chars with an underscore
       normalizedSection = re_mk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
 
-      if (Strings.isNullOrEmpty(normalizedSection)) {
+      if (isNullOrEmpty(normalizedSection)) {
         if (firstSection) {
           logger.warning(
               String.format("first key section empty after normalization, was %s", section));

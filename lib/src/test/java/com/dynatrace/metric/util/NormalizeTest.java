@@ -13,13 +13,13 @@
  */
 package com.dynatrace.metric.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.google.common.base.Strings;
-import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NormalizeTest {
 
@@ -41,6 +41,10 @@ public class NormalizeTest {
   @MethodSource("provideMetricKeys")
   public void testMetricKey(String name, String input, String expected) {
     assertEquals(expected, Normalize.metricKey(input));
+  }
+
+  private static String stringOfLength(int n) {
+    return new String(new char[n]).replace("\0", "a");
   }
 
   private static Stream<Arguments> provideMetricKeys() {
@@ -98,8 +102,7 @@ public class NormalizeTest {
         Arguments.of("invalid example 3", "metriÄ", "metri"),
         Arguments.of("invalid example 4", "Ätric", "tric"),
         Arguments.of("invalid example 5", "meträääääÖÖÖc", "metr_c"),
-        Arguments.of(
-            "invalid truncate key too long", Strings.repeat("a", 270), Strings.repeat("a", 250)));
+        Arguments.of("invalid truncate key too long", stringOfLength(270), stringOfLength(250)));
   }
 
   private static Stream<Arguments> provideDimensionKeys() {
@@ -159,8 +162,7 @@ public class NormalizeTest {
         Arguments.of("invalid example 5", "ääätag", "tag"),
         Arguments.of("invalid example 6", "ä_ätag", "__tag"),
         Arguments.of("invalid example 7", "Bla___", "bla___"),
-        Arguments.of(
-            "invalid truncate key too long", Strings.repeat("a", 120), Strings.repeat("a", 100)));
+        Arguments.of("invalid truncate key too long", stringOfLength(120), stringOfLength(100)));
   }
 
   private static Stream<Arguments> provideDimensionValues() {
@@ -188,7 +190,6 @@ public class NormalizeTest {
         Arguments.of("invalid trailing unicode NUL", "a\u0000", "a"),
         Arguments.of("invalid enclosed unicode NUL", "a\u0000b", "a_b"),
         Arguments.of("invalid consecutive enclosed unicode NUL", "a\u0000\u0007\u0000b", "a_b"),
-        Arguments.of(
-            "invalid truncate value too long", Strings.repeat("a", 270), Strings.repeat("a", 250)));
+        Arguments.of("invalid truncate value too long", stringOfLength(270), stringOfLength(250)));
   }
 }

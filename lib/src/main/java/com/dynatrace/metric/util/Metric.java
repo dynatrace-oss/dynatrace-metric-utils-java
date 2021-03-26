@@ -13,7 +13,6 @@
  */
 package com.dynatrace.metric.util;
 
-import com.google.common.base.Strings;
 import java.time.Instant;
 
 public final class Metric {
@@ -219,7 +218,7 @@ public final class Metric {
      */
     public String serialize() throws MetricException {
       String normalizedKeyString = makeNormalizedMetricName();
-      if (Strings.isNullOrEmpty(normalizedKeyString)) {
+      if (normalizedKeyString == null || normalizedKeyString.isEmpty()) {
         throw new MetricException("normalized metric key is empty.");
       }
 
@@ -240,7 +239,7 @@ public final class Metric {
       }
 
       // if any dimensions are present, serialize and append them to the metric string.
-      if (!Strings.isNullOrEmpty(dimensionsString)) {
+      if (dimensionsString != null && !dimensionsString.isEmpty()) {
         builder.append(",");
         builder.append(dimensionsString);
       }
@@ -259,7 +258,7 @@ public final class Metric {
     }
 
     private String makeNormalizedMetricName() {
-      if (Strings.isNullOrEmpty(this.prefix)) {
+      if (this.prefix == null || this.prefix.isEmpty()) {
         return Normalize.metricKey(name);
       }
 

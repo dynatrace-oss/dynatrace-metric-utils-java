@@ -16,7 +16,6 @@ package com.dynatrace.metric.util;
 import java.util.Objects;
 
 /** The dimension class represents a key-value pair of strings. */
-@javax.annotation.concurrent.Immutable
 public final class Dimension {
   private final String key;
   private final String value;
