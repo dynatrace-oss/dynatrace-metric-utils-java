@@ -15,12 +15,14 @@
 plugins {
     id 'java-library'
     id 'com.github.sherter.google-java-format' version '0.8'
+    id 'maven-publish'
 }
 
 repositories {
     mavenCentral()
     jcenter()
 }
+
 dependencies {
     // Use JUnit test framework.
     testImplementation(platform('org.junit:junit-bom:5.7.0'))
@@ -36,3 +38,14 @@ test {
     }
 }
 
+// information for publishing as maven package.
+group = 'com.dynatrace.metric.utils'
+version = '1.0'
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
