@@ -45,7 +45,7 @@ public class App {
           metricBuilderFactory
               .newMetricBuilder("metric1")
               .setDimensions(dimensions)
-              .setLongCounterValue(123)
+              .setLongCounterValueTotal(123)
               .setCurrentTime()
               .serialize();
 
@@ -53,7 +53,7 @@ public class App {
           metricBuilderFactory
               .newMetricBuilder("metric2")
               .setDimensions(differentDimensions)
-              .setLongCounterValue(321)
+              .setLongCounterValueTotal(321)
               .setCurrentTime()
               .serialize();
 
@@ -75,7 +75,7 @@ public class App {
           Metric.builder("metric1")
               .setPrefix("prefix")
               .setDimensions(DimensionList.merge(defaultDims, dimensions, oneAgentDimensions))
-              .setLongCounterValue(123)
+              .setLongCounterValueTotal(123)
               .setCurrentTime()
               .serialize();
 
@@ -84,7 +84,7 @@ public class App {
               .setPrefix("prefix")
               .setDimensions(
                   DimensionList.merge(defaultDims, differentDimensions, oneAgentDimensions))
-              .setLongCounterValue(321)
+              .setLongCounterValueTotal(321)
               .setCurrentTime()
               .serialize();
 

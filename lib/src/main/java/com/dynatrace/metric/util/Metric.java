@@ -17,7 +17,7 @@ import java.time.Instant;
 
 public final class Metric {
   public static final class Builder {
-    private final String name;
+    private final String metricKey;
     private String prefix;
     private IMetricValue value;
     private Instant time;
@@ -25,8 +25,8 @@ public final class Metric {
     private DimensionList defaultDimensions;
     private DimensionList oneAgentDimensions;
 
-    private Builder(String name) {
-      this.name = name;
+    private Builder(String metricKey) {
+      this.metricKey = metricKey;
     }
 
     Builder setDefaultDimensions(DimensionList defaultDimensions) {
@@ -41,14 +41,14 @@ public final class Metric {
 
     private void throwIfValueAlreadySet() throws MetricException {
       if (this.value != null) {
-        throw new MetricException("Value already set.");
+        throw new MetricException("A value was already set for this metric.");
       }
     }
 
     /**
      * (Optional) Set the prefix on the builder object.
      *
-     * @param prefix to be prepended to the name
+     * @param prefix to be prepended to the metric key
      * @return this
      */
     public Builder setPrefix(String prefix) {
@@ -57,13 +57,15 @@ public final class Metric {
     }
 
     /**
-     * Use a long counter value for the current metric. Will produce the entry "count,<number>" in
+     * Use a long counter value for the current metric. Will produce the entry "count,<value>" in
      * the resulting metric line.
      *
      * @param value the value to be serialized.
      * @return this
+     * @throws MetricException if the a value has already been set on the metric or if the value is
+     *     less than 0.
      */
-    public Builder setLongCounterValue(long value) throws MetricException {
+    public Builder setLongCounterValueTotal(long value) throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.LongCounterValue(value, false);
       return this;
@@ -71,23 +73,25 @@ public final class Metric {
 
     /**
      * Use a long absolute counter value for the current metric. Will produce the entry
-     * "count,delta=<number>" in the resulting metric line.
+     * "count,delta=<value>" in the resulting metric line.
      *
      * @param value the value to be serialized
      * @return this
+     * @throws MetricException if the a value has already been set on the metric.
      */
-    public Builder setLongAbsoluteCounterValue(long value) throws MetricException {
+    public Builder setLongCounterValueDelta(long value) throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.LongCounterValue(value, true);
       return this;
     }
 
     /**
-     * Use a long gauge value for the current metric. Will produce the entry "gauge,<number>" in the
+     * Use a long gauge value for the current metric. Will produce the entry "gauge,<value>" in the
      * resulting metric line
      *
      * @param value the value to be serialized
      * @return this
+     * @throws MetricException if the a value has already been set on the metric.
      */
     public Builder setLongGaugeValue(long value) throws MetricException {
       throwIfValueAlreadySet();
@@ -104,7 +108,8 @@ public final class Metric {
      * @param sum the sum of all values in the recorded timeframe
      * @param count the number of elements contributing to the value.
      * @return this.
-     * @throws MetricException if min or max are greater than the sum or if the count is negative
+     * @throws MetricException if the a value has already been set on the metric. Also thrown if min
+     *     or max are greater than the sum or if the count is negative.
      */
     public Builder setLongSummaryValue(long min, long max, long sum, long count)
         throws MetricException {
@@ -114,37 +119,41 @@ public final class Metric {
     }
 
     /**
-     * Use an double counter value for the current metric. Will produce the entry "count,<number>"
-     * in the resulting metric line.
+     * Use a double counter value for the current metric. Will produce the entry "count,<value>" in
+     * the resulting metric line.
      *
      * @param value the value to be serialized.
      * @return this
+     * @throws MetricException if the a value has already been set on the metric or if the value is
+     *     less than 0.
      */
-    public Builder setDoubleCounterValue(double value) throws MetricException {
+    public Builder setDoubleCounterValueTotal(double value) throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.DoubleCounterValue(value, false);
       return this;
     }
 
     /**
-     * Use an double absolute counter value for the current metric. Will produce the entry
-     * "count,delta=<number>" in the resulting metric line.
+     * Use a double absolute counter value for the current metric. Will produce the entry
+     * "count,delta=<value>" in the resulting metric line.
      *
      * @param value the value to be serialized
      * @return this
+     * @throws MetricException if the a value has already been set on the metric.
      */
-    public Builder setDoubleAbsoluteCounterValue(double value) throws MetricException {
+    public Builder setDoubleCounterValueDelta(double value) throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.DoubleCounterValue(value, true);
       return this;
     }
 
     /**
-     * Use an double gauge value for the current metric. Will produce the entry "gauge,<number>" in
+     * Use a double gauge value for the current metric. Will produce the entry "gauge,<value>" in
      * the resulting metric line
      *
      * @param value the value to be serialized
      * @return this
+     * @throws MetricException if the a value has already been set on the metric.
      */
     public Builder setDoubleGaugeValue(double value) throws MetricException {
       throwIfValueAlreadySet();
@@ -153,7 +162,7 @@ public final class Metric {
     }
 
     /**
-     * Use an double summary value for the current metric. Will produce the entry
+     * Use a double summary value for the current metric. Will produce the entry
      * "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>" in the resulting metric line
      *
      * @param min the minimum value for the current metric.
@@ -161,7 +170,8 @@ public final class Metric {
      * @param sum the sum of all values in the recorded timeframe
      * @param count the number of elements contributing to the value.
      * @return this.
-     * @throws MetricException if min or max are greater than the sum or if the count is negative
+     * @throws MetricException if the a value has already been set on the metric. Also thrown if min
+     *     or max are greater than the sum or if the count is negative.
      */
     public Builder setDoubleSummaryValue(double min, double max, double sum, long count)
         throws MetricException {
@@ -171,11 +181,11 @@ public final class Metric {
     }
 
     /**
-     * (Optional) Set the {@link DimensionList} to be serialized. Can be obtained from {@link
-     * DimensionList#merge the merge function} if multiple should be passed, or a single list can be
-     * added. When called multiple times, this will overwrite previously added dimensions. If the
-     * builder was created by the metric builder factory, default and OneAgent dimensions will be
-     * added to the passed dimensions.
+     * (Optional) Set the {@link DimensionList} to be serialized. Either a single list of dimensions
+     * or a merged list obtained from {@link DimensionList#merge} can be passed. When called
+     * multiple times, this will overwrite previously added dimensions. If the builder was created
+     * by the metric builder factory, default and OneAgent dimensions will be added to the passed
+     * dimensions without having to manually merge them first.
      *
      * @param dimensions the {@link DimensionList} to be serialized
      * @return this
@@ -213,21 +223,21 @@ public final class Metric {
      *
      * @return A {@link String} containing all properties set on the {@link Metric.Builder} in an
      *     ingestion-ready format.
-     * @throws MetricException If no value is set or if the prefix/name combination evaluates to an
-     *     invalid/empty key after normalization.
+     * @throws MetricException If no value is set or if the prefix/metric key combination evaluates
+     *     to an invalid/empty metric key after normalization.
      */
     public String serialize() throws MetricException {
-      String normalizedKeyString = makeNormalizedMetricName();
+      String normalizedKeyString = makeNormalizedMetricKey();
       if (normalizedKeyString == null || normalizedKeyString.isEmpty()) {
-        throw new MetricException("normalized metric key is empty.");
+        throw new MetricException("Normalized metric key is empty.");
       }
 
       if (this.value == null) {
-        throw new MetricException("no value set for metric");
+        throw new MetricException("No value set for metric.");
       }
 
-      // the two required arguments, name and value, are set and valid, so we start assembling the
-      // metric line here.
+      // the two required arguments, metric key and value, are set and valid, so we start assembling
+      // the metric line here.
       StringBuilder builder = new StringBuilder(normalizedKeyString);
 
       // combine default dimensions, dynamic dimensions and OneAgent dimensions into one list.
@@ -257,22 +267,23 @@ public final class Metric {
       return builder.toString();
     }
 
-    private String makeNormalizedMetricName() {
+    private String makeNormalizedMetricKey() {
       if (this.prefix == null || this.prefix.isEmpty()) {
-        return Normalize.metricKey(name);
+        return Normalize.metricKey(metricKey);
       }
 
-      return Normalize.metricKey(String.format("%s.%s", prefix, name));
+      return Normalize.metricKey(String.format("%s.%s", prefix, metricKey));
     }
   }
 
   /**
    * Create a new {@link Builder Metric.Builder} object.
    *
-   * @param name The metric name.
-   * @return A new {@link Builder} object with the name property set.
+   * @param metricKey The metric key. A prefix can be added right away or using the method on the
+   *     builder.
+   * @return A new {@link Builder} object with the metricKey property set.
    */
-  public static Builder builder(String name) {
-    return new Builder(name);
+  public static Builder builder(String metricKey) {
+    return new Builder(metricKey);
   }
 }

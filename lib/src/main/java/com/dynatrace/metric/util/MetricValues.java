@@ -24,19 +24,19 @@ interface IMetricValue {
 final class MetricValues {
   static final class LongCounterValue implements IMetricValue {
     private final long value;
-    private final boolean absolute;
+    private final boolean delta;
 
-    public LongCounterValue(long value, boolean absolute) throws MetricException {
-      if (!absolute && value < 0) {
+    public LongCounterValue(long value, boolean delta) throws MetricException {
+      if (!delta && value < 0) {
         throw new MetricException("counter value cannot be smaller than 0");
       }
       this.value = value;
-      this.absolute = absolute;
+      this.delta = delta;
     }
 
     @Override
     public String serialize() {
-      if (this.absolute) {
+      if (this.delta) {
         return String.format("count,delta=%d", this.value);
       }
       return String.format("count,%d", this.value);
@@ -88,12 +88,12 @@ final class MetricValues {
     private final double value;
     private final boolean absolute;
 
-    public DoubleCounterValue(double value, boolean absolute) throws MetricException {
-      if (!absolute && value < 0) {
+    public DoubleCounterValue(double value, boolean delta) throws MetricException {
+      if (!delta && value < 0) {
         throw new MetricException("counter value cannot be smaller than 0");
       }
       this.value = value;
-      this.absolute = absolute;
+      this.absolute = delta;
     }
 
     @Override

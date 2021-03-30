@@ -29,7 +29,7 @@ class MetricBuilderTest {
   @Test
   public void testSetIntCount() throws MetricException {
     String expected = "name count,1";
-    String actual = Metric.builder("name").setLongCounterValue(1).serialize();
+    String actual = Metric.builder("name").setLongCounterValueTotal(1).serialize();
 
     assertEquals(expected, actual);
   }
@@ -45,7 +45,7 @@ class MetricBuilderTest {
   @Test
   public void testIntAbsoluteCounter() throws MetricException {
     String expected = "name count,delta=1";
-    String actual = Metric.builder("name").setLongAbsoluteCounterValue(1).serialize();
+    String actual = Metric.builder("name").setLongCounterValueDelta(1).serialize();
 
     assertEquals(expected, actual);
   }
@@ -61,7 +61,7 @@ class MetricBuilderTest {
   @Test
   public void testSetDoubleCount() throws MetricException {
     String expected = "name count,1.23";
-    String actual = Metric.builder("name").setDoubleCounterValue(1.23).serialize();
+    String actual = Metric.builder("name").setDoubleCounterValueTotal(1.23).serialize();
 
     assertEquals(expected, actual);
   }
@@ -77,7 +77,7 @@ class MetricBuilderTest {
   @Test
   public void testSetDoubleAbsoluteCounter() throws MetricException {
     String expected = "name count,delta=1.23";
-    String actual = Metric.builder("name").setDoubleAbsoluteCounterValue(1.23).serialize();
+    String actual = Metric.builder("name").setDoubleCounterValueDelta(1.23).serialize();
 
     assertEquals(expected, actual);
   }
@@ -100,19 +100,24 @@ class MetricBuilderTest {
     assertThrows(
         MetricException.class,
         () ->
-            Metric.builder("name").setLongCounterValue(1).setDoubleCounterValue(1.23).serialize());
+            Metric.builder("name")
+                .setLongCounterValueTotal(1)
+                .setDoubleCounterValueTotal(1.23)
+                .serialize());
   }
 
   @Test
   public void testInvalidName() {
     assertThrows(
-        MetricException.class, () -> Metric.builder("~@#$").setLongCounterValue(1).serialize());
+        MetricException.class,
+        () -> Metric.builder("~@#$").setLongCounterValueTotal(1).serialize());
   }
 
   @Test
   public void testPrefix() throws MetricException {
     String expected = "prefix.name count,1";
-    String actual = Metric.builder("name").setPrefix("prefix").setLongCounterValue(1).serialize();
+    String actual =
+        Metric.builder("name").setPrefix("prefix").setLongCounterValueTotal(1).serialize();
 
     assertEquals(expected, actual);
   }
@@ -121,14 +126,14 @@ class MetricBuilderTest {
   public void testInvalidPrefix() {
     assertThrows(
         MetricException.class,
-        () -> Metric.builder("name").setPrefix("~@#$").setLongCounterValue(1).serialize());
+        () -> Metric.builder("name").setPrefix("~@#$").setLongCounterValueTotal(1).serialize());
   }
 
   @Test
   public void testInvalidPrefixAndName() {
     assertThrows(
         MetricException.class,
-        () -> Metric.builder("~@#$").setPrefix("!@#").setLongCounterValue(1).serialize());
+        () -> Metric.builder("~@#$").setPrefix("!@#").setLongCounterValueTotal(1).serialize());
   }
 
   @Test
@@ -137,7 +142,7 @@ class MetricBuilderTest {
     String actual =
         Metric.builder("name")
             .setPrefix("prefix")
-            .setLongCounterValue(1)
+            .setLongCounterValueTotal(1)
             .setTimestamp(Instant.ofEpochSecond(1616580000))
             .serialize();
 
@@ -150,7 +155,7 @@ class MetricBuilderTest {
     String actual =
         Metric.builder("name")
             .setPrefix("prefix")
-            .setLongCounterValue(1)
+            .setLongCounterValueTotal(1)
             .setDimensions(DimensionList.create(Dimension.create("dim1", "val1")))
             .serialize();
 
@@ -163,7 +168,7 @@ class MetricBuilderTest {
     String actual =
         Metric.builder("name")
             .setPrefix("prefix")
-            .setLongCounterValue(1)
+            .setLongCounterValueTotal(1)
             .setDefaultDimensions(DimensionList.create(Dimension.create("defdim1", "val1")))
             .serialize();
 
@@ -177,7 +182,7 @@ class MetricBuilderTest {
     String actual =
         Metric.builder("name")
             .setPrefix("prefix")
-            .setLongCounterValue(1)
+            .setLongCounterValueTotal(1)
             // only available in package.
             .setDimensions(DimensionList.create(Dimension.create("dim1", "val1")))
             .setDefaultDimensions(
@@ -198,7 +203,7 @@ class MetricBuilderTest {
     String actual =
         Metric.builder("name")
             .setPrefix("prefix")
-            .setLongCounterValue(1)
+            .setLongCounterValueTotal(1)
             .setDimensions(DimensionList.create(Dimension.create("dim1", "val1")))
             .setDefaultDimensions(
                 DimensionList.create(Dimension.create("defaultDim1", "defaultVal1")))
@@ -221,7 +226,7 @@ class MetricBuilderTest {
     String actual =
         Metric.builder("name")
             .setPrefix("prefix")
-            .setLongCounterValue(1)
+            .setLongCounterValueTotal(1)
             .setDefaultDimensions(
                 DimensionList.create(
                     Dimension.create("dim1", "defaultVal1"),
