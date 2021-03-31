@@ -28,12 +28,30 @@ To create metric lines from data points, use a pattern like the following:
 
 ```java
 metricBuilderFactory
-    .newMetricBuilder("metric1")    // the metric name is required.
-    .setLongCounterValue(123)       // name and value are the only required fields.
-    .setDimensions(dimensions)      // set dynamic dimensions that are specific to the current metric.
-    .setCurrentTime()               // set the current time as timestamp for the data point.
-    .serialize()                    // create a String from the information set above.
+    .newMetricBuilder("my_metric_key")  // the metric key is required.
+    .setLongCounterValue(123)           // metric key and value are the only required fields.
+    .setDimensions(dimensions)          // set dynamic dimensions that are specific to the current metric.
+    .setCurrentTime()                   // set the current time as timestamp for the data point.
+    .serialize()                        // create a String from the information set above.
 ```
+
+#### Metric line creation options
+
+* `setPrefix`: set a prefix that will be prepended to the metric key.
+* `setDimensions`:
+  * when using the `MetricBuilderFactory`: set the dimensions specific to this metric.
+  Default and OneAgent dimensions will be merged in (see [information on precedence](#dimension-precedence) below).
+  * when using the `Metric.Builder` directly without the factory, either set a single `DimensionList` on this method, or call `DimensionList.merge` on multiple lists before passing it.
+  Merge will be called on the passed list in the serialize function, so if passing a single list it does not have to be de-duplicated.
+* `setLongCounterValueTotal` / `setDoubleCounterValueTotal`: sets a single value that is serialized as `count,<value>`.
+* `setLongCounterValueDelta` / `setDoubleCounterValueDelta`: sets a single value that is serialized as `count,delta=<value>`.
+* `setLongGaugeValue` / `setDoubleGaugeValue`: sets a single value that is serialized as `gauge,<value>`.
+* `setLongSummaryValue` / `setDoubleSummaryValue`: sets min, max, sum and count values that are serialized as `gauge,min=<min>,max=<max>,sum=<sum>,count=<count>`.
+* `setTimestamp`: sets a specific `Instant` object on the metric that will be used to create the timestamp on the metric line.
+* `setCurrentTime`: sets the current timestamp to the `Metric` object.
+
+A metric line can be serialized only if it has a valid name (including the optional prefix) and exactly one `Value` attribute set.
+Timestamps and dimensions are optional.
 
 #### Dimension precedence
 
