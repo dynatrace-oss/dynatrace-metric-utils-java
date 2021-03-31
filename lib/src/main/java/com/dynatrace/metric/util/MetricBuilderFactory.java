@@ -29,8 +29,6 @@ public class MetricBuilderFactory {
   /**
    * Create a new {@link MetricBuilderFactoryBuilder} that can be used to set up a {@link
    * MetricBuilderFactory}.
-   *
-   * @return An {@link MetricBuilderFactoryBuilder} object with no values set.
    */
   public static MetricBuilderFactoryBuilder builder() {
     return new MetricBuilderFactoryBuilder();
@@ -41,11 +39,12 @@ public class MetricBuilderFactory {
    * default dimensions and OneAgent dimensions set on the {@link MetricBuilderFactory} are already
    * set on the {@link Metric.Builder} object.
    *
-   * @param metricName
-   * @return
+   * @param metricKey the metric key (not including the prefix) for the new metric.
+   * @return An instance of class {@link Metric.Builder} with default and OneAgent dimensions and
+   *     the prefix set if set in the factory.
    */
-  public Metric.Builder newMetricBuilder(String metricName) {
-    return Metric.builder(metricName)
+  public Metric.Builder newMetricBuilder(String metricKey) {
+    return Metric.builder(metricKey)
         .setDefaultDimensions(defaultDimensions)
         .setOneAgentDimensions(oneAgentDimensions)
         .setPrefix(prefix);
@@ -74,7 +73,7 @@ public class MetricBuilderFactory {
     /**
      * If this method is called upon building the {@link MetricBuilderFactory} object, OneAgent
      * metadata will automatically be pulled in and added to all {@link Metric.Builder} objects
-     * created by the factory.
+     * created by the factory. If this method is not called, the setting will default to false.
      *
      * @return this
      */
@@ -84,7 +83,7 @@ public class MetricBuilderFactory {
     }
 
     /**
-     * Sets a common prefix that will be added to all metric lines that are created using {@link
+     * Set a common prefix that will be prepended to all metric keys that are created using {@link
      * Metric.Builder} objects created by this {@link MetricBuilderFactory}.
      *
      * @param prefix The prefix to be added to metric keys.
@@ -103,23 +102,13 @@ public class MetricBuilderFactory {
      *     objects.
      */
     public MetricBuilderFactory build() {
-      DimensionList localDefaultDimensions = null;
       DimensionList localOneAgentDimensions = null;
-      String localPrefix = "";
 
       if (this.enrichWithOneAgentData) {
         localOneAgentDimensions = DimensionList.fromOneAgentMetadata();
       }
 
-      if (this.defaultDimensions != null) {
-        localDefaultDimensions = this.defaultDimensions;
-      }
-
-      if (this.prefix != null) {
-        localPrefix = this.prefix;
-      }
-
-      return new MetricBuilderFactory(localDefaultDimensions, localOneAgentDimensions, localPrefix);
+      return new MetricBuilderFactory(this.defaultDimensions, localOneAgentDimensions, this.prefix);
     }
   }
 }

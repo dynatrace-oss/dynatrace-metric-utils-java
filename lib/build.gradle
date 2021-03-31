@@ -40,7 +40,7 @@ test {
 
 // information for publishing as maven package.
 group = 'com.dynatrace.metric.utils'
-version = '1.0'
+version = '1.0-rc.1'
 
 publishing {
     publications {

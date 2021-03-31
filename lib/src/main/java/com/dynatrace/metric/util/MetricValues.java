@@ -24,19 +24,19 @@ interface IMetricValue {
 final class MetricValues {
   static final class LongCounterValue implements IMetricValue {
     private final long value;
-    private final boolean delta;
+    private final boolean isDelta;
 
-    public LongCounterValue(long value, boolean delta) throws MetricException {
-      if (!delta && value < 0) {
+    public LongCounterValue(long value, boolean isDelta) throws MetricException {
+      if (!isDelta && value < 0) {
         throw new MetricException("counter value cannot be smaller than 0");
       }
       this.value = value;
-      this.delta = delta;
+      this.isDelta = isDelta;
     }
 
     @Override
     public String serialize() {
-      if (this.delta) {
+      if (this.isDelta) {
         return String.format("count,delta=%d", this.value);
       }
       return String.format("count,%d", this.value);
@@ -55,9 +55,6 @@ final class MetricValues {
       }
       if (min > max) {
         throw new MetricException("min cannot be greater than max!");
-      }
-      if (max > sum) {
-        throw new MetricException("min and max cannot be bigger than the sum");
       }
       this.min = min;
       this.max = max;
@@ -88,12 +85,12 @@ final class MetricValues {
     private final double value;
     private final boolean absolute;
 
-    public DoubleCounterValue(double value, boolean delta) throws MetricException {
-      if (!delta && value < 0) {
+    public DoubleCounterValue(double value, boolean isDelta) throws MetricException {
+      if (!isDelta && value < 0) {
         throw new MetricException("counter value cannot be smaller than 0");
       }
       this.value = value;
-      this.absolute = delta;
+      this.absolute = isDelta;
     }
 
     @Override
@@ -118,9 +115,6 @@ final class MetricValues {
       }
       if (min > max) {
         throw new MetricException("min cannot be greater than max!");
-      }
-      if (max > sum) {
-        throw new MetricException("min and max cannot be bigger than the sum");
       }
 
       this.min = min;

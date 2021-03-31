@@ -13,7 +13,8 @@
  */
 package com.dynatrace.metric.util;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -63,7 +64,6 @@ class MetricValuesTest {
 
     assertThrows(MetricException.class, () -> new MetricValues.LongSummaryValue(0, 10, 20, -10));
     assertThrows(MetricException.class, () -> new MetricValues.LongSummaryValue(5, 3, 20, 10));
-    assertThrows(MetricException.class, () -> new MetricValues.LongSummaryValue(100, 100, 20, 10));
   }
 
   @Test
@@ -121,9 +121,6 @@ class MetricValuesTest {
     // min > max
     assertThrows(
         MetricException.class, () -> new MetricValues.DoubleSummaryValue(5.3, 3.3, 20.3, 10));
-    // max > sum
-    assertThrows(
-        MetricException.class, () -> new MetricValues.DoubleSummaryValue(1.2, 100.4, 20.3, 10));
   }
 
   @Test
