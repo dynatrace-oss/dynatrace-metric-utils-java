@@ -75,6 +75,7 @@ public class NormalizeTest {
         Arguments.of("invalid two consecutive dots", "a..b", "a.b"),
         Arguments.of("invalid five consecutive dots", "a.....b", "a.b"),
         Arguments.of("invalid just a dot", ".", null),
+        Arguments.of("invalid three dots", "...", null),
         Arguments.of("invalid leading dot", ".a", null),
         Arguments.of("invalid trailing dot", "a.", "a"),
         Arguments.of("invalid enclosing dots", ".a.", null),
@@ -171,6 +172,8 @@ public class NormalizeTest {
   private static Stream<Arguments> provideDimensionValues() {
     return Stream.of(
         Arguments.of("valid value", "value", "value"),
+        Arguments.of("valid empty", "", ""),
+        Arguments.of("pass null", null, ""),
         Arguments.of("valid uppercase", "VALUE", "VALUE"),
         Arguments.of("valid colon", "a:3", "a:3"),
         Arguments.of("valid value 2", "~@#ä", "~@#ä"),
@@ -188,6 +191,7 @@ public class NormalizeTest {
         //     A umlaut, a with ring, O umlaut, U umlaut, all valid.
         Arguments.of("valid unicode", "\u0132_\u0133_\u0150_\u0156", "\u0132_\u0133_\u0150_\u0156"),
         Arguments.of("invalid leading unicode NUL", "\u0000a", "a"),
+        Arguments.of("invalid only unicode", "\u0000\u0000", ""),
         Arguments.of("invalid consecutive leading unicode", "\u0000\u0000\u0000a", "a"),
         Arguments.of("invalid consecutive trailing unicode", "a\u0000\u0000\u0000", "a"),
         Arguments.of("invalid trailing unicode NUL", "a\u0000", "a"),

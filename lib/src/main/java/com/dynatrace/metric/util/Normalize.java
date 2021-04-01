@@ -58,11 +58,16 @@ final class Normalize {
   // maximum string length of a dimension value.
   private static final int dv_max_length = 250;
 
+  private Normalize() {} // static helper class
+
   private static boolean isNullOrEmpty(String s) {
     return s == null || s.isEmpty();
   }
 
   /**
+   * Normalizes all dimension keys and values for a given collection of Dimensions. Does *not*
+   * deduplicate dimensions with the same (normalized) key.
+   *
    * @param dimensions The dimensions to normalize.
    * @return A list holding all elements that were not discarded due to invalid keys after
    *     normalization or an empty list if no keys are valid.
@@ -73,14 +78,14 @@ final class Normalize {
       return normalized;
     }
     for (Dimension dimension : dimensions) {
-      String key = dimensionKey(dimension.getKey());
-      if (isNullOrEmpty(key)) {
+      String normalizedKey = dimensionKey(dimension.getKey());
+      if (isNullOrEmpty(normalizedKey)) {
         logger.warning(
             String.format(
                 "could not normalize dimension key: '%s'. Skipping...", dimension.getKey()));
-        continue;
+      } else {
+        normalized.add(Dimension.create(normalizedKey, dimensionValue(dimension.getValue())));
       }
-      normalized.add(Dimension.create(key, dimensionValue(dimension.getValue())));
     }
     return normalized;
   }
@@ -98,37 +103,39 @@ final class Normalize {
     boolean firstSection = true;
 
     for (String section : sections) {
-      if (isNullOrEmpty(section)) {
-        continue;
-      }
-      // move to lowercase
-      String normalizedSection = section.toLowerCase(Locale.ROOT);
-      // trim leading and trailing invalid characters.
-      normalizedSection = re_dk_sectionStart.matcher(normalizedSection).replaceAll("");
-      normalizedSection = re_dk_sectionEnd.matcher(normalizedSection).replaceAll("");
-      // replace consecutive invalid characters within the section with one underscore:
-      normalizedSection = re_dk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
+      if (!section.isEmpty()) {
+        // move to lowercase
+        String normalizedSection = section.toLowerCase(Locale.ROOT);
+        // trim leading and trailing invalid characters.
+        normalizedSection = re_dk_sectionStart.matcher(normalizedSection).replaceAll("");
+        normalizedSection = re_dk_sectionEnd.matcher(normalizedSection).replaceAll("");
+        // replace consecutive invalid characters within the section with one underscore:
+        normalizedSection = re_dk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
 
-      if (isNullOrEmpty(normalizedSection)) {
-        // section is empty after normalization and will be discarded.
-        logger.info(
-            String.format(
-                "normalization of section '%s' lead to empty section, discarding...", section));
-      } else {
-        // re-concatenate the split sections separated with dots.
-        if (!firstSection) {
-          normalizedKeyBuilder.append(".");
+        if (normalizedSection.isEmpty()) {
+          // section is empty after normalization and will be discarded.
+          logger.info(
+              String.format(
+                  "normalization of section '%s' lead to empty section, discarding...", section));
         } else {
-          firstSection = false;
-        }
+          // re-concatenate the split sections separated with dots.
+          if (!firstSection) {
+            normalizedKeyBuilder.append(".");
+          } else {
+            firstSection = false;
+          }
 
-        normalizedKeyBuilder.append(normalizedSection);
+          normalizedKeyBuilder.append(normalizedSection);
+        }
       }
     }
     return normalizedKeyBuilder.toString();
   }
 
   static String dimensionValue(String value) {
+    if (value == null) {
+      return "";
+    }
     if (value.length() > dv_max_length) {
       value = value.substring(0, dv_max_length);
     }
@@ -145,8 +152,10 @@ final class Normalize {
 
   static String metricKey(String key) {
     if (isNullOrEmpty(key)) {
+      logger.warning("null or empty metric key passed to normalization.");
       return null;
     }
+
     if (key.length() > mk_max_length) {
       key = key.substring(0, mk_max_length);
     }
@@ -159,47 +168,49 @@ final class Normalize {
     StringBuilder normalizedKeyBuilder = new StringBuilder();
 
     for (String section : sections) {
-      if (isNullOrEmpty(section)) {
+      if (section.isEmpty()) {
         if (firstSection) {
-          logger.warning("first key section cannot be empty");
+          logger.warning("first metric key section cannot be empty");
           return null;
         }
-        continue;
-      }
-
-      String normalizedSection;
-      // first key section cannot start with a number while subsequent sections can.
-      if (firstSection) {
-        normalizedSection = re_mk_firstIdentifierSectionStart.matcher(section).replaceAll("");
       } else {
-        normalizedSection = re_mk_subsequentIdentifierSectionStart.matcher(section).replaceAll("");
-      }
-
-      // trim trailing invalid chars
-      normalizedSection = re_mk_identifierSectionEnd.matcher(normalizedSection).replaceAll("");
-
-      // replace invalid chars with an underscore
-      normalizedSection = re_mk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
-
-      if (isNullOrEmpty(normalizedSection)) {
+        String normalizedSection;
+        // first key section cannot start with a number while subsequent sections can.
         if (firstSection) {
-          logger.warning(
-              String.format("first key section empty after normalization, was %s", section));
-          return null;
-        }
-        // section is empty after normalization and will be discarded.
-        logger.info(
-            String.format(
-                "normalization of section '%s' lead to empty section, discarding...", section));
-      } else {
-        // re-concatenate the split sections separated with dots.
-        if (!firstSection) {
-          normalizedKeyBuilder.append(".");
+          normalizedSection = re_mk_firstIdentifierSectionStart.matcher(section).replaceAll("");
         } else {
-          firstSection = false;
+          normalizedSection =
+              re_mk_subsequentIdentifierSectionStart.matcher(section).replaceAll("");
         }
 
-        normalizedKeyBuilder.append(normalizedSection);
+        // trim trailing invalid chars
+        normalizedSection = re_mk_identifierSectionEnd.matcher(normalizedSection).replaceAll("");
+
+        // replace invalid chars with an underscore
+        normalizedSection = re_mk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
+
+        if (normalizedSection.isEmpty()) {
+          if (firstSection) {
+            logger.warning(
+                String.format(
+                    "first metric key section empty while normalizing '%s', discarding...", key));
+            return null;
+          }
+          // section is empty after normalization and will be discarded.
+          logger.info(
+              String.format(
+                  "normalization of section '%s' in '%s' leads to empty section, discarding section...",
+                  section, key));
+        } else {
+          // re-concatenate the split sections separated with dots.
+          if (!firstSection) {
+            normalizedKeyBuilder.append(".");
+          } else {
+            firstSection = false;
+          }
+
+          normalizedKeyBuilder.append(normalizedSection);
+        }
       }
     }
 
