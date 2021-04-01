@@ -37,20 +37,20 @@ metricBuilderFactory
 
 #### Metric line creation options
 
-* `setPrefix`: set a prefix that will be prepended to the metric key.
+* `setPrefix`: sets a prefix that will be prepended to the metric key.
 * `setDimensions`:
-  * when using the `MetricBuilderFactory`: set the dimensions specific to this metric.
-  Default and OneAgent dimensions will be merged in (see [information on precedence](#dimension-precedence) below).
-  * when using the `Metric.Builder` directly without the factory, either set a single `DimensionList` on this method, or call `DimensionList.merge` on multiple lists before passing it.
-  Merge will be called on the passed list in the serialize function, so if passing a single list it does not have to be de-duplicated.
+  * When creating the `Metric.Builder` using the `MetricBuilderFactory`: sets the dimensions specific to this metric.
+    Default and OneAgent dimensions will be merged in (see [information on precedence](#dimension-precedence) below).
+  * When using the `Metric.Builder` directly without the factory, either sets a single `DimensionList` on this method, or call `DimensionList.merge` on multiple lists before passing it.
+    Merge will be called on the passed list in the serialize function, so if passing a single list it does not have to be de-duplicated.
 * `setLongCounterValueTotal` / `setDoubleCounterValueTotal`: sets a single value that is serialized as `count,<value>`.
 * `setLongCounterValueDelta` / `setDoubleCounterValueDelta`: sets a single value that is serialized as `count,delta=<value>`.
 * `setLongGaugeValue` / `setDoubleGaugeValue`: sets a single value that is serialized as `gauge,<value>`.
 * `setLongSummaryValue` / `setDoubleSummaryValue`: sets min, max, sum and count values that are serialized as `gauge,min=<min>,max=<max>,sum=<sum>,count=<count>`.
 * `setTimestamp`: sets a specific `Instant` object on the metric that will be used to create the timestamp on the metric line.
-* `setCurrentTime`: sets the current timestamp to the `Metric` object.
+* `setCurrentTime`: sets the current timestamp on the `Metric` object.
 
-A metric line can be serialized only if it has a valid name (including the optional prefix) and exactly one `Value` attribute set.
+A metric line can be serialized only if it has a valid key (including the optional prefix) and exactly one `Value` attribute set.
 Timestamps and dimensions are optional.
 
 #### Dimension precedence
