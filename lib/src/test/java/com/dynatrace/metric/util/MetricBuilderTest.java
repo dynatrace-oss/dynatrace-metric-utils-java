@@ -138,12 +138,12 @@ class MetricBuilderTest {
 
   @Test
   public void testSetTimestamp() throws MetricException {
-    String expected = "prefix.name count,1 1616580000000";
+    String expected = "prefix.name count,1 1616580000123";
     String actual =
         Metric.builder("name")
             .setPrefix("prefix")
             .setLongCounterValueTotal(1)
-            .setTimestamp(Instant.ofEpochMilli(1616580000000L))
+            .setTimestamp(Instant.ofEpochMilli(1616580000123L))
             .serialize();
 
     assertEquals(expected, actual);
