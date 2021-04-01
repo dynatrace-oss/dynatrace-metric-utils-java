@@ -1,0 +1,42 @@
+name: Java build with Gradle
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        java-version: [ 8, 11, 15 ]
+      fail-fast: false
+
+    name: Java ${{ matrix.java-version }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Compile
+        run: ./gradlew assemble
+      - name: Test
+        run: ./gradlew check
+      - name: Upload JAR
+        uses: actions/upload-artifact@v2
+        with:
+          name: jar (JDK ${{ matrix.java-version }})
+          path: lib/build/libs/*.jar
+          if-no-files-found: error
+      - name: Upload unit test results
+        uses: actions/upload-artifact@v2
+        with:
+          name: unit-tests-results (JDK ${{ matrix.java-version }})
+          path: lib/build/reports/tests/test/
