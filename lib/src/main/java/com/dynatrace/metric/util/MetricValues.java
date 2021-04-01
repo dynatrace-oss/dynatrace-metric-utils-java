@@ -26,7 +26,7 @@ final class MetricValues {
     private final long value;
     private final boolean isDelta;
 
-    public LongCounterValue(long value, boolean isDelta) throws MetricException {
+    LongCounterValue(long value, boolean isDelta) throws MetricException {
       if (!isDelta && value < 0) {
         throw new MetricException("counter value cannot be smaller than 0");
       }
@@ -49,7 +49,7 @@ final class MetricValues {
     private final long sum;
     private final long count;
 
-    public LongSummaryValue(long min, long max, long sum, long count) throws MetricException {
+    LongSummaryValue(long min, long max, long sum, long count) throws MetricException {
       if (count < 0) {
         throw new MetricException("count cannot be negative");
       }
@@ -71,7 +71,7 @@ final class MetricValues {
   static final class LongGaugeValue implements IMetricValue {
     private final long value;
 
-    public LongGaugeValue(long value) {
+    LongGaugeValue(long value) {
       this.value = value;
     }
 
@@ -85,7 +85,7 @@ final class MetricValues {
     private final double value;
     private final boolean absolute;
 
-    public DoubleCounterValue(double value, boolean isDelta) throws MetricException {
+    DoubleCounterValue(double value, boolean isDelta) throws MetricException {
       if (!isDelta && value < 0) {
         throw new MetricException("counter value cannot be smaller than 0");
       }
@@ -108,8 +108,7 @@ final class MetricValues {
     private final double sum;
     private final long count;
 
-    public DoubleSummaryValue(double min, double max, double sum, long count)
-        throws MetricException {
+    DoubleSummaryValue(double min, double max, double sum, long count) throws MetricException {
       if (count < 0) {
         throw new MetricException("count cannot be negative");
       }
@@ -134,7 +133,7 @@ final class MetricValues {
   static final class DoubleGaugeValue implements IMetricValue {
     private final double value;
 
-    public DoubleGaugeValue(double value) {
+    DoubleGaugeValue(double value) {
       this.value = value;
     }
 
