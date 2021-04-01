@@ -27,7 +27,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testSetIntCount() throws MetricException {
+  public void testSetLongCounterValueTotal() throws MetricException {
     String expected = "name count,1";
     String actual = Metric.builder("name").setLongCounterValueTotal(1).serialize();
 
@@ -35,7 +35,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testIntGauge() throws MetricException {
+  public void testSetLongGaugeValue() throws MetricException {
     String expected = "name gauge,1";
     String actual = Metric.builder("name").setLongGaugeValue(1).serialize();
 
@@ -43,7 +43,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testIntAbsoluteCounter() throws MetricException {
+  public void testSetLongCounterValueDelta() throws MetricException {
     String expected = "name count,delta=1";
     String actual = Metric.builder("name").setLongCounterValueDelta(1).serialize();
 
@@ -51,7 +51,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testSetIntSummaryValue() throws MetricException {
+  public void testSetLongSummaryValue() throws MetricException {
     String expected = "name gauge,min=1,max=10,sum=20,count=7";
     String actual = Metric.builder("name").setLongSummaryValue(1, 10, 20, 7).serialize();
 
@@ -59,7 +59,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testSetDoubleCount() throws MetricException {
+  public void testSetDoubleCounterValueTotal() throws MetricException {
     String expected = "name count,1.23";
     String actual = Metric.builder("name").setDoubleCounterValueTotal(1.23).serialize();
 
@@ -75,7 +75,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testSetDoubleAbsoluteCounter() throws MetricException {
+  public void testSetDoubleCounterValueDelta() throws MetricException {
     String expected = "name count,delta=1.23";
     String actual = Metric.builder("name").setDoubleCounterValueDelta(1.23).serialize();
 
@@ -138,15 +138,31 @@ class MetricBuilderTest {
 
   @Test
   public void testSetTimestamp() throws MetricException {
-    String expected = "prefix.name count,1 1616580000";
+    String expected = "prefix.name count,1 1616580000000";
     String actual =
         Metric.builder("name")
             .setPrefix("prefix")
             .setLongCounterValueTotal(1)
-            .setTimestamp(Instant.ofEpochSecond(1616580000))
+            .setTimestamp(Instant.ofEpochMilli(1616580000000L))
             .serialize();
 
     assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testCurrentTimestamp() throws MetricException {
+    String expectedStart = "prefix.name count,1 ";
+    // this is just for the string length.
+    String expectedDummy = "prefix.name count,1 1616580000000";
+    String actual =
+        Metric.builder("name")
+            .setPrefix("prefix")
+            .setLongCounterValueTotal(1)
+            .setCurrentTime()
+            .serialize();
+
+    assertTrue(actual.startsWith(expectedStart));
+    assertTrue(actual.length() >= expectedDummy.length());
   }
 
   @Test

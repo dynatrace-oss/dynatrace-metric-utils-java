@@ -60,7 +60,7 @@ public final class Metric {
      * Use a long counter value for the current metric. Will produce the entry "count,<value>" in
      * the resulting metric line.
      *
-     * @param value the value to be serialized.
+     * @param value the value to be serialized. Only positive counter values are accepted.
      * @return this
      * @throws MetricException if the a value has already been set on the metric or if the value is
      *     less than 0.
@@ -122,7 +122,7 @@ public final class Metric {
      * Use a double counter value for the current metric. Will produce the entry "count,<value>" in
      * the resulting metric line.
      *
-     * @param value the value to be serialized.
+     * @param value the value to be serialized. Only positive counter values are accepted.
      * @return this
      * @throws MetricException if the a value has already been set on the metric or if the value is
      *     less than 0.
@@ -261,7 +261,7 @@ public final class Metric {
       // if a timestamp is set, add it to the metric string.
       if (this.time != null) {
         builder.append(" ");
-        builder.append(time.getEpochSecond());
+        builder.append(time.toEpochMilli());
       }
 
       return builder.toString();

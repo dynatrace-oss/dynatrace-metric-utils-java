@@ -33,7 +33,7 @@ class MetricValuesTest {
   }
 
   @Test
-  public void testIntCounterValue() throws MetricException {
+  public void testLongCounterValue() throws MetricException {
     MetricValues.LongCounterValue val;
     val = new MetricValues.LongCounterValue(0, false);
     assertEquals("count,0", val.serialize());
@@ -54,7 +54,7 @@ class MetricValuesTest {
   }
 
   @Test
-  public void testIntSummaryValue() throws MetricException {
+  public void testLongSummaryValue() throws MetricException {
     MetricValues.LongSummaryValue val;
     val = new MetricValues.LongSummaryValue(0, 10, 20, 10);
     assertEquals("gauge,min=0,max=10,sum=20,count=10", val.serialize());
@@ -67,7 +67,7 @@ class MetricValuesTest {
   }
 
   @Test
-  public void testIntGaugeValue() {
+  public void testLongGaugeValue() {
     MetricValues.LongGaugeValue val;
     val = new MetricValues.LongGaugeValue(0);
     assertEquals("gauge,0", val.serialize());
