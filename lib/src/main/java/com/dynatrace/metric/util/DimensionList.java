@@ -30,10 +30,11 @@ public final class DimensionList {
    * Create a new {@link DimensionList} from a {@link Collection} of {@link Dimension Dimensions}.
    * All {@link DimensionList DimensionLists} must be normalized, therefore any collection passed
    * here will be normalized before storing it. Normalization does not remove duplicates.
+   * Normalization will drop invalid {@link Dimension} objects.
    *
    * @param dimensions A collecion of {@link Dimension} objects, to be normalized and stored.
    * @return A {@link DimensionList} object, containing normalized {@link Dimension Dimensions}. Can
-   *     still contain duplicate keys.
+   *     still contain duplicate keys but no invalid {@link Dimension Dimensions}.
    */
   public static DimensionList fromCollection(Collection<Dimension> dimensions) {
     return new DimensionList(Normalize.dimensionList(dimensions));
