@@ -168,49 +168,41 @@ final class Normalize {
     StringBuilder normalizedKeyBuilder = new StringBuilder();
 
     for (String section : sections) {
-      if (section.isEmpty()) {
+      String normalizedSection;
+      // first key section cannot start with a number while subsequent sections can.
+      if (firstSection) {
+        normalizedSection = re_mk_firstIdentifierSectionStart.matcher(section).replaceAll("");
+      } else {
+        normalizedSection = re_mk_subsequentIdentifierSectionStart.matcher(section).replaceAll("");
+      }
+
+      // trim trailing invalid chars
+      normalizedSection = re_mk_identifierSectionEnd.matcher(normalizedSection).replaceAll("");
+
+      // replace invalid chars with an underscore
+      normalizedSection = re_mk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
+
+      if (normalizedSection.isEmpty()) {
         if (firstSection) {
-          logger.warning("first metric key section cannot be empty");
+          logger.warning(
+              String.format(
+                  "first metric key section empty while normalizing '%s', discarding...", key));
           return null;
         }
+        // section is empty after normalization and will be discarded.
+        logger.info(
+            String.format(
+                "normalization of section '%s' in '%s' leads to empty section, discarding section...",
+                section, key));
       } else {
-        String normalizedSection;
-        // first key section cannot start with a number while subsequent sections can.
-        if (firstSection) {
-          normalizedSection = re_mk_firstIdentifierSectionStart.matcher(section).replaceAll("");
+        // re-concatenate the split sections separated with dots.
+        if (!firstSection) {
+          normalizedKeyBuilder.append(".");
         } else {
-          normalizedSection =
-              re_mk_subsequentIdentifierSectionStart.matcher(section).replaceAll("");
+          firstSection = false;
         }
 
-        // trim trailing invalid chars
-        normalizedSection = re_mk_identifierSectionEnd.matcher(normalizedSection).replaceAll("");
-
-        // replace invalid chars with an underscore
-        normalizedSection = re_mk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
-
-        if (normalizedSection.isEmpty()) {
-          if (firstSection) {
-            logger.warning(
-                String.format(
-                    "first metric key section empty while normalizing '%s', discarding...", key));
-            return null;
-          }
-          // section is empty after normalization and will be discarded.
-          logger.info(
-              String.format(
-                  "normalization of section '%s' in '%s' leads to empty section, discarding section...",
-                  section, key));
-        } else {
-          // re-concatenate the split sections separated with dots.
-          if (!firstSection) {
-            normalizedKeyBuilder.append(".");
-          } else {
-            firstSection = false;
-          }
-
-          normalizedKeyBuilder.append(normalizedSection);
-        }
+        normalizedKeyBuilder.append(normalizedSection);
       }
     }
 
