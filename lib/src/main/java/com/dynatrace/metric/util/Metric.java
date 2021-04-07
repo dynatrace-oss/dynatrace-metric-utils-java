@@ -15,7 +15,13 @@ package com.dynatrace.metric.util;
 
 import java.time.Instant;
 
+/**
+ * Represents a single data point consisting of a metric key (with optional prefix), a value, an
+ * optional timestamp and optional dimensions.
+ */
 public final class Metric {
+
+  /** Builder class for {@link Metric Metrics}. */
   public static final class Builder {
     private final String metricKey;
     private String prefix;
@@ -57,7 +63,7 @@ public final class Metric {
     }
 
     /**
-     * Use a long counter value for the current metric. Will produce the entry "count,<value>" in
+     * Use a long counter value for the current metric. Will produce the entry "count,[value]" in
      * the resulting metric line.
      *
      * @param value the value to be serialized. Only positive counter values are accepted.
@@ -73,7 +79,7 @@ public final class Metric {
 
     /**
      * Use a long absolute counter value for the current metric. Will produce the entry
-     * "count,delta=<value>" in the resulting metric line.
+     * "count,delta=[value]" in the resulting metric line.
      *
      * @param value the value to be serialized
      * @return this
@@ -86,7 +92,7 @@ public final class Metric {
     }
 
     /**
-     * Use a long gauge value for the current metric. Will produce the entry "gauge,<value>" in the
+     * Use a long gauge value for the current metric. Will produce the entry "gauge,[value]" in the
      * resulting metric line
      *
      * @param value the value to be serialized
@@ -101,7 +107,7 @@ public final class Metric {
 
     /**
      * Use a long summary value for the current metric. Will produce the entry
-     * "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>" in the resulting metric line
+     * "gauge,min=[min],max=[max],sum=[sum],count=[count]" in the resulting metric line
      *
      * @param min the minimum value for the current metric.
      * @param max the maximum value for the current metric.
@@ -119,7 +125,7 @@ public final class Metric {
     }
 
     /**
-     * Use a double counter value for the current metric. Will produce the entry "count,<value>" in
+     * Use a double counter value for the current metric. Will produce the entry "count,[value]" in
      * the resulting metric line.
      *
      * @param value the value to be serialized. Only positive counter values are accepted.
@@ -135,7 +141,7 @@ public final class Metric {
 
     /**
      * Use a double absolute counter value for the current metric. Will produce the entry
-     * "count,delta=<value>" in the resulting metric line.
+     * "count,delta=[value]" in the resulting metric line.
      *
      * @param value the value to be serialized
      * @return this
@@ -148,7 +154,7 @@ public final class Metric {
     }
 
     /**
-     * Use a double gauge value for the current metric. Will produce the entry "gauge,<value>" in
+     * Use a double gauge value for the current metric. Will produce the entry "gauge,[value]" in
      * the resulting metric line
      *
      * @param value the value to be serialized
@@ -163,7 +169,7 @@ public final class Metric {
 
     /**
      * Use a double summary value for the current metric. Will produce the entry
-     * "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>" in the resulting metric line
+     * "gauge,min=[min],max=[max],sum=[sum],count=[count]" in the resulting metric line
      *
      * @param min the minimum value for the current metric.
      * @param max the maximum value for the current metric.
@@ -275,6 +281,9 @@ public final class Metric {
       return Normalize.metricKey(String.format("%s.%s", prefix, metricKey));
     }
   }
+
+  /** Created using {@link Metric.Builder} */
+  private Metric() {}
 
   /**
    * Create a new {@link Builder Metric.Builder} object.

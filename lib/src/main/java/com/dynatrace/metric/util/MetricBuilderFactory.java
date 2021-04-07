@@ -29,6 +29,8 @@ public class MetricBuilderFactory {
   /**
    * Create a new {@link MetricBuilderFactoryBuilder} that can be used to set up a {@link
    * MetricBuilderFactory}.
+   *
+   * @return The created builder instance.
    */
   public static MetricBuilderFactoryBuilder builder() {
     return new MetricBuilderFactoryBuilder();
