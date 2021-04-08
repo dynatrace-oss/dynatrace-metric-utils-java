@@ -50,7 +50,10 @@ java {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            artifactId 'dynatrace-metric-utils-java'
+
             from components.java
+
             pom {
                 name = 'dynatrace-metric-utils-java'
                 description = 'Utility for preparing communication with the Dynatrace v2 metrics API.'
