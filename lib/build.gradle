@@ -14,9 +14,13 @@
 
 plugins {
     id 'java-library'
-    id 'com.github.sherter.google-java-format' version '0.8'
     id 'maven-publish'
+    id 'signing'
+    id 'com.github.sherter.google-java-format' version '0.8'
 }
+
+group 'com.dynatrace.metric.util'
+version = '0.1'
 
 repositories {
     mavenCentral()
@@ -38,14 +42,59 @@ test {
     }
 }
 
-// information for publishing as maven package.
-group = 'com.dynatrace.metric.utils'
-version = '1.0-rc.1'
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
 
 publishing {
     publications {
-        maven(MavenPublication) {
+        mavenJava(MavenPublication) {
             from components.java
+            pom {
+                name = 'dynatrace-metric-utils-java'
+                description = 'Utility for preparing communication with the Dynatrace v2 metrics API.'
+                url = 'https://github.com/dynatrace-oss/dynatrace-metric-utils-java'
+
+                scm {
+                    connection = 'scm:git:git://github.com/dynatrace-oss/dynatrace-metric-utils-java.git'
+                    developerConnection = 'scm:git:ssh://github.com:dynatrace-oss/dynatrace-metric-utils-java.git'
+                    url = 'https://github.com/dynatrace-oss/dynatrace-metric-utils-java'
+                }
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        name = 'Dynatrace Open Source Engineering'
+                        email = 'opensource@dynatrace.com'
+                        organization = 'Dynatrace LLC'
+                        organizationUrl = 'https://www.dynatrace.com'
+                    }
+                }
+            }
         }
     }
+    repositories {
+        maven {
+            name 'sonatype'
+            url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            credentials {
+                username findProperty('sonatypeUsername')
+                password findProperty('sonatypePassword')
+            }
+        }
+    }
+}
+
+signing {
+    def signingKey = findProperty('signingKey')
+    def signingPassword = findProperty('signingPassword')
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.mavenJava
 }

@@ -16,7 +16,7 @@ package com.dynatrace.metric.util;
 import java.util.*;
 import java.util.logging.Logger;
 
-/** An immutable list of normalized {@link Dimension Dimensions} */
+/** An immutable list of normalized {@link Dimension Dimensions}. */
 public final class DimensionList {
   private static final Logger logger = Logger.getLogger(DimensionList.class.getName());
 
