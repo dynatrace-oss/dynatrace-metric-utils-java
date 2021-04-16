@@ -13,8 +13,6 @@
  */
 package com.dynatrace.metric.util;
 
-import java.util.regex.Pattern;
-
 /** Interface type that all Metric values have to follow. */
 interface IMetricValue {
   String serialize();
@@ -143,16 +141,7 @@ final class MetricValues {
     }
   }
 
-  private static final Pattern regexTrailingZeroes = Pattern.compile("[0]+$");
-
   static String formatDouble(double d) {
-    String formatted = String.valueOf(d);
-    // trim trailing zeros
-    formatted = regexTrailingZeroes.matcher(formatted).replaceAll("");
-    if (formatted.charAt(formatted.length() - 1) == '.') {
-      formatted = formatted.substring(0, formatted.length() - 1);
-    }
-
-    return formatted;
+    return String.valueOf(d);
   }
 }
