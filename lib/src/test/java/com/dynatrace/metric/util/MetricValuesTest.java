@@ -21,15 +21,24 @@ import org.junit.jupiter.api.Test;
 class MetricValuesTest {
   @Test
   public void testFormatDouble() {
-    assertEquals("0", MetricValues.formatDouble(0));
-    assertEquals("0", MetricValues.formatDouble(-0));
-    assertEquals("0", MetricValues.formatDouble(.000000000000000));
-    assertEquals("1", MetricValues.formatDouble(1));
-    assertEquals("1", MetricValues.formatDouble(1.00000000000000));
-    assertEquals("1.234567", MetricValues.formatDouble(1.234567));
-    assertEquals("1.234568", MetricValues.formatDouble(1.234567890));
-    assertEquals("-1.234567", MetricValues.formatDouble(-1.234567));
-    assertEquals("-1.234568", MetricValues.formatDouble(-1.234567890));
+    assertEquals("0.0", MetricValues.formatDouble(0));
+    assertEquals("0.0", MetricValues.formatDouble(-0));
+    assertEquals("0.0", MetricValues.formatDouble(.000000000000000));
+    assertEquals("1.0", MetricValues.formatDouble(1));
+    assertEquals("1.0", MetricValues.formatDouble(1.00000000000000));
+    assertEquals("1.23456789", MetricValues.formatDouble(1.23456789000));
+    assertEquals("1.1234567890123457", MetricValues.formatDouble(1.1234567890123456789));
+    assertEquals("-1.23456789", MetricValues.formatDouble(-1.23456789000));
+    assertEquals("-1.1234567890123457", MetricValues.formatDouble(-1.1234567890123456789));
+    assertEquals("200.0", MetricValues.formatDouble(200));
+    assertEquals("200.0", MetricValues.formatDouble(200.00000000));
+    assertEquals("1.0E10", MetricValues.formatDouble(1e10));
+    assertEquals("1.0E12", MetricValues.formatDouble(1_000_000_000_000d));
+    assertEquals("1.234567E12", MetricValues.formatDouble(1_234_567_000_000d));
+    assertEquals("1.234567000000123E12", MetricValues.formatDouble(1_234_567_000_000.123));
+    assertEquals("1.7976931348623157E308", MetricValues.formatDouble(Double.MAX_VALUE));
+    assertEquals("4.9E-324", MetricValues.formatDouble(Double.MIN_VALUE));
+    assertEquals("NaN", MetricValues.formatDouble(Double.NaN));
   }
 
   @Test
@@ -83,24 +92,24 @@ class MetricValuesTest {
   public void testDoubleCounterValue() throws MetricException {
     MetricValues.DoubleCounterValue val;
     val = new MetricValues.DoubleCounterValue(0.000, false);
-    assertEquals("count,0", val.serialize());
+    assertEquals("count,0.0", val.serialize());
 
     val = new MetricValues.DoubleCounterValue(100.123, false);
     assertEquals("count,100.123", val.serialize());
 
     val = new MetricValues.DoubleCounterValue(100.123456789, false);
-    assertEquals("count,100.123457", val.serialize());
+    assertEquals("count,100.123456789", val.serialize());
 
     assertThrows(MetricException.class, () -> new MetricValues.DoubleCounterValue(-10.123, false));
 
     val = new MetricValues.DoubleCounterValue(0.000, true);
-    assertEquals("count,delta=0", val.serialize());
+    assertEquals("count,delta=0.0", val.serialize());
 
     val = new MetricValues.DoubleCounterValue(100.123, true);
     assertEquals("count,delta=100.123", val.serialize());
 
     val = new MetricValues.DoubleCounterValue(100.123456789, true);
-    assertEquals("count,delta=100.123457", val.serialize());
+    assertEquals("count,delta=100.123456789", val.serialize());
 
     val = new MetricValues.DoubleCounterValue(-10.123, true);
     assertEquals("count,delta=-10.123", val.serialize());
@@ -113,7 +122,7 @@ class MetricValuesTest {
     assertEquals("gauge,min=0.123,max=10.321,sum=20.456,count=10", val.serialize());
 
     val = new MetricValues.DoubleSummaryValue(0.000, 0.000, 0.000, 0);
-    assertEquals("gauge,min=0,max=0,sum=0,count=0", val.serialize());
+    assertEquals("gauge,min=0.0,max=0.0,sum=0.0,count=0", val.serialize());
 
     // negative count
     assertThrows(
@@ -127,7 +136,7 @@ class MetricValuesTest {
   public void testDoubleGaugeValue() {
     MetricValues.DoubleGaugeValue val;
     val = new MetricValues.DoubleGaugeValue(0.000);
-    assertEquals("gauge,0", val.serialize());
+    assertEquals("gauge,0.0", val.serialize());
 
     val = new MetricValues.DoubleGaugeValue(123.456);
     assertEquals("gauge,123.456", val.serialize());

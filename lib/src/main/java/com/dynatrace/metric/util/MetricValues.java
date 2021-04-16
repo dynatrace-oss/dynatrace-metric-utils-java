@@ -13,8 +13,6 @@
  */
 package com.dynatrace.metric.util;
 
-import java.util.regex.Pattern;
-
 /** Interface type that all Metric values have to follow. */
 interface IMetricValue {
   String serialize();
@@ -143,16 +141,7 @@ final class MetricValues {
     }
   }
 
-  private static final Pattern regexTrailingZeroesOrDots = Pattern.compile("[0.]+$");
-
   static String formatDouble(double d) {
-    String formatted = String.format("%.6f", d);
-    // trim trailing zeros and dots
-    formatted = regexTrailingZeroesOrDots.matcher(formatted).replaceAll("");
-    if (formatted.isEmpty()) {
-      // everything was trimmed away, number was 0.0000
-      return "0";
-    }
-    return formatted;
+    return String.valueOf(d);
   }
 }
