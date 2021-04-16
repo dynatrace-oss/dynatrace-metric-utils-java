@@ -143,16 +143,16 @@ final class MetricValues {
     }
   }
 
-  private static final Pattern regexTrailingZeroesOrDots = Pattern.compile("[0.]+$");
+  private static final Pattern regexTrailingZeroes = Pattern.compile("[0]+$");
 
   static String formatDouble(double d) {
-    String formatted = String.format("%.6f", d);
-    // trim trailing zeros and dots
-    formatted = regexTrailingZeroesOrDots.matcher(formatted).replaceAll("");
-    if (formatted.isEmpty()) {
-      // everything was trimmed away, number was 0.0000
-      return "0";
+    String formatted = String.valueOf(d);
+    // trim trailing zeros
+    formatted = regexTrailingZeroes.matcher(formatted).replaceAll("");
+    if (formatted.charAt(formatted.length() - 1) == '.') {
+      formatted = formatted.substring(0, formatted.length() - 1);
     }
+
     return formatted;
   }
 }

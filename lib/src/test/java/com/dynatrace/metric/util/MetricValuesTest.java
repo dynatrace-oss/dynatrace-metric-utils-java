@@ -13,10 +13,10 @@
  */
 package com.dynatrace.metric.util;
 
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import org.junit.jupiter.api.Test;
 
 class MetricValuesTest {
   @Test
@@ -26,10 +26,15 @@ class MetricValuesTest {
     assertEquals("0", MetricValues.formatDouble(.000000000000000));
     assertEquals("1", MetricValues.formatDouble(1));
     assertEquals("1", MetricValues.formatDouble(1.00000000000000));
-    assertEquals("1.234567", MetricValues.formatDouble(1.234567));
-    assertEquals("1.234568", MetricValues.formatDouble(1.234567890));
-    assertEquals("-1.234567", MetricValues.formatDouble(-1.234567));
-    assertEquals("-1.234568", MetricValues.formatDouble(-1.234567890));
+    assertEquals("1.23456789", MetricValues.formatDouble(1.23456789000));
+    assertEquals("1.1234567890123457", MetricValues.formatDouble(1.1234567890123456789));
+    assertEquals("-1.23456789", MetricValues.formatDouble(-1.23456789000));
+    assertEquals("-1.1234567890123457", MetricValues.formatDouble(-1.1234567890123456789));
+    assertEquals("200", MetricValues.formatDouble(200));
+    assertEquals("200", MetricValues.formatDouble(200.00000000));
+    assertEquals("1.0E12", MetricValues.formatDouble(1_000_000_000_000.));
+    assertEquals("1.234567E12", MetricValues.formatDouble(1_234_567_000_000.));
+    assertEquals("1.234567000000123E12", MetricValues.formatDouble(1_234_567_000_000.123));
   }
 
   @Test
