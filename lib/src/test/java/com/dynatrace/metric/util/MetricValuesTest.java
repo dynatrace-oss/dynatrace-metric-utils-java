@@ -13,10 +13,10 @@
  */
 package com.dynatrace.metric.util;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
 
 class MetricValuesTest {
   @Test
@@ -94,7 +94,7 @@ class MetricValuesTest {
     assertEquals("count,100.123", val.serialize());
 
     val = new MetricValues.DoubleCounterValue(100.123456789, false);
-    assertEquals("count,100.123457", val.serialize());
+    assertEquals("count,100.123456789", val.serialize());
 
     assertThrows(MetricException.class, () -> new MetricValues.DoubleCounterValue(-10.123, false));
 
@@ -105,7 +105,7 @@ class MetricValuesTest {
     assertEquals("count,delta=100.123", val.serialize());
 
     val = new MetricValues.DoubleCounterValue(100.123456789, true);
-    assertEquals("count,delta=100.123457", val.serialize());
+    assertEquals("count,delta=100.123456789", val.serialize());
 
     val = new MetricValues.DoubleCounterValue(-10.123, true);
     assertEquals("count,delta=-10.123", val.serialize());
