@@ -32,6 +32,7 @@ class MetricValuesTest {
     assertEquals("-1.1234567890123457", MetricValues.formatDouble(-1.1234567890123456789));
     assertEquals("200.0", MetricValues.formatDouble(200));
     assertEquals("200.0", MetricValues.formatDouble(200.00000000));
+    assertEquals("1.0E10", MetricValues.formatDouble(1e10));
     assertEquals("1.0E12", MetricValues.formatDouble(1_000_000_000_000d));
     assertEquals("1.234567E12", MetricValues.formatDouble(1_234_567_000_000d));
     assertEquals("1.234567000000123E12", MetricValues.formatDouble(1_234_567_000_000.123));
