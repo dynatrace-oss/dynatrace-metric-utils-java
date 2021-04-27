@@ -13,10 +13,13 @@
  */
 package com.dynatrace.metric.util;
 
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import org.junit.jupiter.api.Test;
 
 class MetricValuesTest {
   @Test
@@ -38,7 +41,11 @@ class MetricValuesTest {
     assertEquals("1.234567000000123E12", MetricValues.formatDouble(1_234_567_000_000.123));
     assertEquals("1.7976931348623157E308", MetricValues.formatDouble(Double.MAX_VALUE));
     assertEquals("4.9E-324", MetricValues.formatDouble(Double.MIN_VALUE));
+    // these should never happen in the execution of the program, but these tests ensure that
+    // nothing is thrown from the the format method.
     assertEquals("NaN", MetricValues.formatDouble(Double.NaN));
+    assertEquals("Infinity", MetricValues.formatDouble(Double.POSITIVE_INFINITY));
+    assertEquals("-Infinity", MetricValues.formatDouble(Double.NEGATIVE_INFINITY));
   }
 
   @Test
@@ -113,6 +120,23 @@ class MetricValuesTest {
 
     val = new MetricValues.DoubleCounterValue(-10.123, true);
     assertEquals("count,delta=-10.123", val.serialize());
+
+    assertThrows(
+        MetricException.class, () -> new MetricValues.DoubleCounterValue(Double.NaN, false));
+    assertThrows(
+        MetricException.class,
+        () -> new MetricValues.DoubleCounterValue(Double.NEGATIVE_INFINITY, false));
+    assertThrows(
+        MetricException.class,
+        () -> new MetricValues.DoubleCounterValue(Double.POSITIVE_INFINITY, false));
+    assertThrows(
+        MetricException.class, () -> new MetricValues.DoubleCounterValue(Double.NaN, true));
+    assertThrows(
+        MetricException.class,
+        () -> new MetricValues.DoubleCounterValue(Double.NEGATIVE_INFINITY, true));
+    assertThrows(
+        MetricException.class,
+        () -> new MetricValues.DoubleCounterValue(Double.POSITIVE_INFINITY, true));
   }
 
   @Test
@@ -130,10 +154,28 @@ class MetricValuesTest {
     // min > max
     assertThrows(
         MetricException.class, () -> new MetricValues.DoubleSummaryValue(5.3, 3.3, 20.3, 10));
+
+    Double validValue = 1.23d;
+    List<Double> values =
+        Arrays.asList(Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, validValue);
+    for (Double minVal : values) {
+      for (Double maxVal : values) {
+        for (Double sumVal : values) {
+          if (minVal.equals(validValue) && maxVal.equals(validValue) && sumVal.equals(validValue)) {
+            // skip the case where min, max, and count are the valid number. All other combinations
+            // where at least one of the values is invalid should throw.
+            continue;
+          }
+          assertThrows(
+              MetricException.class,
+              () -> new MetricValues.DoubleSummaryValue(minVal, maxVal, sumVal, 1));
+        }
+      }
+    }
   }
 
   @Test
-  public void testDoubleGaugeValue() {
+  public void testDoubleGaugeValue() throws MetricException {
     MetricValues.DoubleGaugeValue val;
     val = new MetricValues.DoubleGaugeValue(0.000);
     assertEquals("gauge,0.0", val.serialize());
@@ -143,5 +185,11 @@ class MetricValuesTest {
 
     val = new MetricValues.DoubleGaugeValue(-123.456);
     assertEquals("gauge,-123.456", val.serialize());
+
+    assertThrows(MetricException.class, () -> new MetricValues.DoubleGaugeValue(Double.NaN));
+    assertThrows(
+        MetricException.class, () -> new MetricValues.DoubleGaugeValue(Double.NEGATIVE_INFINITY));
+    assertThrows(
+        MetricException.class, () -> new MetricValues.DoubleGaugeValue(Double.POSITIVE_INFINITY));
   }
 }

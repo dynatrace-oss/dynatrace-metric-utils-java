@@ -20,6 +20,16 @@ interface IMetricValue {
 
 /** Holder class for the different value classes. */
 final class MetricValues {
+  private static void throwIfNaNOrInfDouble(double d) throws MetricException {
+    if (Double.isNaN(d)) {
+      throw new MetricException("Value was NaN.");
+    }
+
+    if (Double.isInfinite(d)) {
+      throw new MetricException(String.format("Value was infinite (%s).", d));
+    }
+  }
+
   static final class LongCounterValue implements IMetricValue {
     private final long value;
     private final boolean isDelta;
@@ -84,6 +94,7 @@ final class MetricValues {
     private final boolean absolute;
 
     DoubleCounterValue(double value, boolean isDelta) throws MetricException {
+      throwIfNaNOrInfDouble(value);
       if (!isDelta && value < 0) {
         throw new MetricException("counter value cannot be smaller than 0");
       }
@@ -107,6 +118,9 @@ final class MetricValues {
     private final long count;
 
     DoubleSummaryValue(double min, double max, double sum, long count) throws MetricException {
+      throwIfNaNOrInfDouble(min);
+      throwIfNaNOrInfDouble(max);
+      throwIfNaNOrInfDouble(sum);
       if (count < 0) {
         throw new MetricException("count cannot be negative");
       }
@@ -131,7 +145,8 @@ final class MetricValues {
   static final class DoubleGaugeValue implements IMetricValue {
     private final double value;
 
-    DoubleGaugeValue(double value) {
+    DoubleGaugeValue(double value) throws MetricException {
+      throwIfNaNOrInfDouble(value);
       this.value = value;
     }
 
