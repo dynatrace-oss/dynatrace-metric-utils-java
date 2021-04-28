@@ -26,6 +26,7 @@ public final class Metric {
   /** Builder class for {@link Metric Metrics}. */
   public static final class Builder {
     private static final Logger logger = Logger.getLogger(Builder.class.getName());
+    private static short numberOfTimestampWarnings = 0;
     private final String metricKey;
     private String prefix;
     private IMetricValue value;
@@ -219,10 +220,18 @@ public final class Metric {
     public Builder setTimestamp(Instant timestamp) {
       int year = timestamp.atZone(ZoneOffset.UTC).getYear();
       if (year < 2000 || year > 3000) {
-        logger.warning(
-            "Order of magnitude of the timestamp seems off. "
-                + "The timestamp represents a time before the year 2000 or after the year 3000. "
-                + "Skipping setting timestamp, the current server time will be added upon ingestion.");
+        if (numberOfTimestampWarnings == 0) {
+          logger.warning(
+              "Order of magnitude of the timestamp seems off. "
+                  + "The timestamp represents a time before the year 2000 or after the year 3000. "
+                  + "Skipping setting timestamp, the current server time will be added upon ingestion. "
+                  + "Only every 1000th of these messages will be printed.");
+        }
+        numberOfTimestampWarnings++;
+        if (numberOfTimestampWarnings == 1000) {
+          numberOfTimestampWarnings = 0;
+        }
+
         // do not set the timestamp, metric will be exported without timestamp and the current
         // server timestamp is added upon ingestion.
         return this;
