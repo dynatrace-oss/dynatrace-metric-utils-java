@@ -208,9 +208,9 @@ public final class Metric {
      * (Optional) Set the timestamp for the exported metric line. In most cases, {@link
      * Builder#setCurrentTime()} should be suitable.
      *
-     * <p>If the timestamp is from before the year 2000 or from after the year 3000 * (e.g., when
-     * the wrong unit was used when creating the {@link Instant}), * the timestamp will be discarded
-     * and no value will be set.
+     * <p>If the timestamp is from before the year 2000 or from after the year 3000 (e.g., when the
+     * wrong unit was used when creating the {@link Instant}), the timestamp will be discarded and
+     * no value will be set.
      *
      * @param timestamp an {@link Instant} object describing the time at which the {@link Metric}
      *     was created.
