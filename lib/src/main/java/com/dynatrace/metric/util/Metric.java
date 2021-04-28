@@ -206,8 +206,10 @@ public final class Metric {
 
     /**
      * (Optional) Set the timestamp for the exported metric line. In most cases, {@link
-     * Builder#setCurrentTime()} should be suitable. If the timestamp is from before the year 2000
-     * or from after the year 3000, the timestamp will be discarded and no value will be set.
+     * Builder#setCurrentTime()} should be suitable. * Builder#setCurrentTime()} should be suitable.
+     * If the timestamp is from before the year 2000 or from after the year 3000 * (e.g., when the
+     * wrong unit was used when creating the {@link Instant}), * the timestamp will be discarded and
+     * no value will be set.
      *
      * @param timestamp an {@link Instant} object describing the time at which the {@link Metric}
      *     was created.
@@ -217,7 +219,9 @@ public final class Metric {
       int year = timestamp.atZone(ZoneOffset.UTC).getYear();
       if (year < 2000 || year > 3000) {
         logger.warning(
-            "Timestamp does not seem to be in millisecond format. Skipping setting timestamp, the current server time will be added upon ingestion.");
+            "Order of magnitude of the timestamp seems off. "
+                + "The timestamp represents a time before the year 2000 or after the year 3000. "
+                + "Skipping setting timestamp, the current server time will be added upon ingestion.");
         // do not set the timestamp, metric will be exported without timestamp and the current
         // server timestamp is added upon ingestion.
         return this;

@@ -26,7 +26,7 @@ final class MetricValues {
     }
 
     if (Double.isInfinite(d)) {
-      throw new MetricException(String.format("Value was infinite (%s).", d));
+      throw new MetricException(String.format("Value was infinite (%f).", d));
     }
   }
 
