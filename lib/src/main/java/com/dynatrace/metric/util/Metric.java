@@ -14,6 +14,8 @@
 package com.dynatrace.metric.util;
 
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.logging.Logger;
 
 /**
  * Represents a single data point consisting of a metric key (with optional prefix), a value, an
@@ -23,6 +25,7 @@ public final class Metric {
 
   /** Builder class for {@link Metric Metrics}. */
   public static final class Builder {
+    private static final Logger logger = Logger.getLogger(Builder.class.getName());
     private final String metricKey;
     private String prefix;
     private IMetricValue value;
@@ -203,13 +206,23 @@ public final class Metric {
 
     /**
      * (Optional) Set the timestamp for the exported metric line. In most cases, {@link
-     * Builder#setCurrentTime()} should be suitable.
+     * Builder#setCurrentTime()} should be suitable. If the timestamp is from before the year 2000
+     * or from after the year 3000, the timestamp will be discarded and no value will be set.
      *
      * @param timestamp an {@link Instant} object describing the time at which the {@link Metric}
      *     was created.
      * @return this
      */
     public Builder setTimestamp(Instant timestamp) {
+      int year = timestamp.atZone(ZoneOffset.UTC).getYear();
+      if (year < 2000 || year > 3000) {
+        logger.warning(
+            "timestamp does not seem to be in millisecond format. Skipping setting timestamp, the current server time will be added upon ingestion.");
+        // do not set the timestamp, metric will be exported without timestamp and the current
+        // server timestamp is added upon ingestion.
+        return this;
+      }
+
       this.time = timestamp;
       return this;
     }
