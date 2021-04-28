@@ -217,7 +217,7 @@ public final class Metric {
       int year = timestamp.atZone(ZoneOffset.UTC).getYear();
       if (year < 2000 || year > 3000) {
         logger.warning(
-            "timestamp does not seem to be in millisecond format. Skipping setting timestamp, the current server time will be added upon ingestion.");
+            "Timestamp does not seem to be in millisecond format. Skipping setting timestamp, the current server time will be added upon ingestion.");
         // do not set the timestamp, metric will be exported without timestamp and the current
         // server timestamp is added upon ingestion.
         return this;
