@@ -15,6 +15,7 @@ package com.dynatrace.metric.util;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 /**
@@ -26,10 +27,10 @@ public final class Metric {
   /** Builder class for {@link Metric Metrics}. */
   public static final class Builder {
     private static final Logger logger = Logger.getLogger(Builder.class.getName());
-    // The timestamp warning is rate-limited to export only once every time this factor is reached
-    // by the timestampWarningCounter.
-    private static final short TIMESTAMP_WARNING_THROTTLE_FACTOR = 1000;
-    private static short timestampWarningCounter = 0;
+    // The timestamp warning is rate-limited to log only once every time this factor is reached by
+    // the timestampWarningCounter.
+    private static final int TIMESTAMP_WARNING_THROTTLE_FACTOR = 1000;
+    private static final AtomicInteger timestampWarningCounter = new AtomicInteger(0);
     private final String metricKey;
     private String prefix;
     private IMetricValue value;
@@ -223,19 +224,16 @@ public final class Metric {
     public Builder setTimestamp(Instant timestamp) {
       int year = timestamp.atZone(ZoneOffset.UTC).getYear();
       if (year < 2000 || year > 3000) {
-        if (timestampWarningCounter == 0) {
+        if (timestampWarningCounter.getAndIncrement() == 0) {
           logger.warning(
               String.format(
                   "Order of magnitude of the timestamp seems off. "
                       + "The timestamp represents a time before the year 2000 or after the year 3000. "
                       + "Skipping setting timestamp, the current server time will be added upon ingestion. "
-                      + "Only every %s of these messages will be printed.",
+                      + "Only one out of every %d of these messages will be printed.",
                   TIMESTAMP_WARNING_THROTTLE_FACTOR));
         }
-        timestampWarningCounter++;
-        if (timestampWarningCounter == TIMESTAMP_WARNING_THROTTLE_FACTOR) {
-          timestampWarningCounter = 0;
-        }
+        timestampWarningCounter.compareAndSet(TIMESTAMP_WARNING_THROTTLE_FACTOR, 0);
 
         // do not set the timestamp, metric will be exported without timestamp and the current
         // server timestamp is added upon ingestion.
