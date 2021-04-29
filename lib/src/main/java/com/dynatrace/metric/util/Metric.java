@@ -222,6 +222,10 @@ public final class Metric {
      * @return this
      */
     public Builder setTimestamp(Instant timestamp) {
+      if (timestamp == null) {
+        return this;
+      }
+
       int year = timestamp.atZone(ZoneOffset.UTC).getYear();
       if (year < 2000 || year > 3000) {
         if (timestampWarningCounter.getAndIncrement() == 0) {
