@@ -227,11 +227,11 @@ public final class Metric {
         if (timestampWarningCounter.getAndIncrement() == 0) {
           logger.warning(
               String.format(
-                  "Order of magnitude of the timestamp seems off. "
+                  "Order of magnitude of the timestamp seems off (%s). "
                       + "The timestamp represents a time before the year 2000 or after the year 3000. "
                       + "Skipping setting timestamp, the current server time will be added upon ingestion. "
                       + "Only one out of every %d of these messages will be printed.",
-                  TIMESTAMP_WARNING_THROTTLE_FACTOR));
+                  timestamp.toString(), TIMESTAMP_WARNING_THROTTLE_FACTOR));
         }
         timestampWarningCounter.compareAndSet(TIMESTAMP_WARNING_THROTTLE_FACTOR, 0);
 
