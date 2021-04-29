@@ -26,7 +26,10 @@ public final class Metric {
   /** Builder class for {@link Metric Metrics}. */
   public static final class Builder {
     private static final Logger logger = Logger.getLogger(Builder.class.getName());
-    private static short numberOfTimestampWarnings = 0;
+    // The timestamp warning is rate-limited to export only once every time this factor is reached
+    // by the timestampWarningCounter.
+    private static final short TIMESTAMP_WARNING_THROTTLE_FACTOR = 1000;
+    private static short timestampWarningCounter = 0;
     private final String metricKey;
     private String prefix;
     private IMetricValue value;
@@ -220,16 +223,18 @@ public final class Metric {
     public Builder setTimestamp(Instant timestamp) {
       int year = timestamp.atZone(ZoneOffset.UTC).getYear();
       if (year < 2000 || year > 3000) {
-        if (numberOfTimestampWarnings == 0) {
+        if (timestampWarningCounter == 0) {
           logger.warning(
-              "Order of magnitude of the timestamp seems off. "
-                  + "The timestamp represents a time before the year 2000 or after the year 3000. "
-                  + "Skipping setting timestamp, the current server time will be added upon ingestion. "
-                  + "Only every 1000th of these messages will be printed.");
+              String.format(
+                  "Order of magnitude of the timestamp seems off. "
+                      + "The timestamp represents a time before the year 2000 or after the year 3000. "
+                      + "Skipping setting timestamp, the current server time will be added upon ingestion. "
+                      + "Only every %s of these messages will be printed.",
+                  TIMESTAMP_WARNING_THROTTLE_FACTOR));
         }
-        numberOfTimestampWarnings++;
-        if (numberOfTimestampWarnings == 1000) {
-          numberOfTimestampWarnings = 0;
+        timestampWarningCounter++;
+        if (timestampWarningCounter == TIMESTAMP_WARNING_THROTTLE_FACTOR) {
+          timestampWarningCounter = 0;
         }
 
         // do not set the timestamp, metric will be exported without timestamp and the current
