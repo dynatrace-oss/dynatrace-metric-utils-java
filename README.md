@@ -2,6 +2,11 @@
 
 Java Utility for preparing communication with the [Dynatrace v2 metrics API](https://www.dynatrace.com/support/help/dynatrace-api/environment-api/metric-v2/).
 
+## Installation
+
+The library is available on [Maven Central](https://mvnrepository.com/artifact/com.dynatrace.metric.util/dynatrace-metric-utils-java/latest)
+(`com.dynatrace.metric.util:dynatrace-metric-utils-java`), where snippets for major dependency managers can be found.
+
 ## Usage
 
 Examples for how to use this library can be found in [the example application](example/src/main/java/com/dynatrace/example/App.java).
