@@ -150,6 +150,34 @@ class MetricBuilderTest {
   }
 
   @Test
+  public void testSetInvalidTimestampsSeconds() throws MetricException {
+    // timestamp specified in seconds
+    String expected = "prefix.name count,1";
+    String actual =
+        Metric.builder("name")
+            .setPrefix("prefix")
+            .setLongCounterValueTotal(1)
+            .setTimestamp(Instant.ofEpochMilli(1616580000L))
+            .serialize();
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testSetInvalidTimestampsNanoseconds() throws MetricException {
+    // timestamp specified in nanoseconds
+    String expected = "prefix.name count,1";
+    String actual =
+        Metric.builder("name")
+            .setPrefix("prefix")
+            .setLongCounterValueTotal(1)
+            .setTimestamp(Instant.ofEpochMilli(1616580000000000L))
+            .serialize();
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
   public void testCurrentTimestamp() throws MetricException {
     String expectedStart = "prefix.name count,1 ";
     // this is just for the string length.
