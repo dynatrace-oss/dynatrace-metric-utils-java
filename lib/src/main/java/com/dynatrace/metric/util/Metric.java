@@ -76,7 +76,7 @@ public final class Metric {
      *
      * @param value the value to be serialized. Only positive counter values are accepted.
      * @return this
-     * @throws MetricException if the a value has already been set on the metric.
+     * @throws MetricException if a value has already been set on the metric.
      */
     public Builder setLongCounterValueTotal(long value) throws MetricException {
       throwIfValueAlreadySet();
@@ -90,7 +90,7 @@ public final class Metric {
      *
      * @param value the value to be serialized
      * @return this
-     * @throws MetricException if the a value has already been set on the metric.
+     * @throws MetricException if a value has already been set on the metric.
      */
     public Builder setLongCounterValueDelta(long value) throws MetricException {
       throwIfValueAlreadySet();
@@ -104,7 +104,7 @@ public final class Metric {
      *
      * @param value the value to be serialized
      * @return this
-     * @throws MetricException if the a value has already been set on the metric.
+     * @throws MetricException if a value has already been set on the metric.
      */
     public Builder setLongGaugeValue(long value) throws MetricException {
       throwIfValueAlreadySet();
@@ -121,8 +121,8 @@ public final class Metric {
      * @param sum the sum of all values in the recorded timeframe
      * @param count the number of elements contributing to the value.
      * @return this.
-     * @throws MetricException if the a value has already been set on the metric. Also thrown if min
-     *     or max are greater than the sum or if the count is negative.
+     * @throws MetricException if a value has already been set on the metric. Also thrown if min or
+     *     max are greater than the sum or if the count is negative.
      */
     public Builder setLongSummaryValue(long min, long max, long sum, long count)
         throws MetricException {
@@ -137,7 +137,7 @@ public final class Metric {
      *
      * @param value the value to be serialized. Only positive counter values are accepted.
      * @return this
-     * @throws MetricException if the a value has already been set on the metric.
+     * @throws MetricException if a value has already been set on the metric.
      */
     public Builder setDoubleCounterValueTotal(double value) throws MetricException {
       throwIfValueAlreadySet();
@@ -151,7 +151,7 @@ public final class Metric {
      *
      * @param value the value to be serialized
      * @return this
-     * @throws MetricException if the a value has already been set on the metric.
+     * @throws MetricException if a value has already been set on the metric.
      */
     public Builder setDoubleCounterValueDelta(double value) throws MetricException {
       throwIfValueAlreadySet();
@@ -165,7 +165,7 @@ public final class Metric {
      *
      * @param value the value to be serialized
      * @return this
-     * @throws MetricException if the a value has already been set on the metric.
+     * @throws MetricException if a value has already been set on the metric.
      */
     public Builder setDoubleGaugeValue(double value) throws MetricException {
       throwIfValueAlreadySet();
@@ -182,8 +182,8 @@ public final class Metric {
      * @param sum the sum of all values in the recorded timeframe
      * @param count the number of elements contributing to the value.
      * @return this.
-     * @throws MetricException if the a value has already been set on the metric. Also thrown if min
-     *     or max are greater than the sum or if the count is negative.
+     * @throws MetricException if a value has already been set on the metric. Also thrown if min or
+     *     max are greater than the sum or if the count is negative.
      */
     public Builder setDoubleSummaryValue(double min, double max, double sum, long count)
         throws MetricException {
