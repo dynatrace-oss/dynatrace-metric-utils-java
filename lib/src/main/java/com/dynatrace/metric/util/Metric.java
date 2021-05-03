@@ -76,8 +76,7 @@ public final class Metric {
      *
      * @param value the value to be serialized. Only positive counter values are accepted.
      * @return this
-     * @throws MetricException if the a value has already been set on the metric or if the value is
-     *     less than 0.
+     * @throws MetricException if the a value has already been set on the metric.
      */
     public Builder setLongCounterValueTotal(long value) throws MetricException {
       throwIfValueAlreadySet();
@@ -138,8 +137,7 @@ public final class Metric {
      *
      * @param value the value to be serialized. Only positive counter values are accepted.
      * @return this
-     * @throws MetricException if the a value has already been set on the metric or if the value is
-     *     less than 0.
+     * @throws MetricException if the a value has already been set on the metric.
      */
     public Builder setDoubleCounterValueTotal(double value) throws MetricException {
       throwIfValueAlreadySet();
