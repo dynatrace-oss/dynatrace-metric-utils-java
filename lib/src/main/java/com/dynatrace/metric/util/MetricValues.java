@@ -34,7 +34,7 @@ final class MetricValues {
     private final long value;
     private final boolean isDelta;
 
-    LongCounterValue(long value, boolean isDelta) throws MetricException {
+    LongCounterValue(long value, boolean isDelta) {
       this.value = value;
       this.isDelta = isDelta;
     }
