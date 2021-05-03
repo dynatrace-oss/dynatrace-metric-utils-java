@@ -56,7 +56,8 @@ class MetricValuesTest {
     val = new MetricValues.LongCounterValue(100, false);
     assertEquals("count,100", val.serialize());
 
-    assertThrows(MetricException.class, () -> new MetricValues.LongCounterValue(-10, false));
+    val = new MetricValues.LongCounterValue(-10, false);
+    assertEquals("count,-10", val.serialize());
 
     val = new MetricValues.LongCounterValue(0, true);
     assertEquals("count,delta=0", val.serialize());
@@ -106,7 +107,8 @@ class MetricValuesTest {
     val = new MetricValues.DoubleCounterValue(100.123456789, false);
     assertEquals("count,100.123456789", val.serialize());
 
-    assertThrows(MetricException.class, () -> new MetricValues.DoubleCounterValue(-10.123, false));
+    val = new MetricValues.DoubleCounterValue(-10.123, false);
+    assertEquals("count,-10.123", val.serialize());
 
     val = new MetricValues.DoubleCounterValue(0.000, true);
     assertEquals("count,delta=0.0", val.serialize());

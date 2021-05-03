@@ -35,9 +35,6 @@ final class MetricValues {
     private final boolean isDelta;
 
     LongCounterValue(long value, boolean isDelta) throws MetricException {
-      if (!isDelta && value < 0) {
-        throw new MetricException("counter value cannot be smaller than 0");
-      }
       this.value = value;
       this.isDelta = isDelta;
     }
@@ -95,9 +92,6 @@ final class MetricValues {
 
     DoubleCounterValue(double value, boolean isDelta) throws MetricException {
       throwIfNaNOrInfDouble(value);
-      if (!isDelta && value < 0) {
-        throw new MetricException("counter value cannot be smaller than 0");
-      }
       this.value = value;
       this.absolute = isDelta;
     }
