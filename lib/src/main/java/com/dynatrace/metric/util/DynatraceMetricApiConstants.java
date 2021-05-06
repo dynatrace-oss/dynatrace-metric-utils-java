@@ -16,16 +16,19 @@ package com.dynatrace.metric.util;
 public final class DynatraceMetricApiConstants {
   private DynatraceMetricApiConstants() {}
 
-  private static final String DEFAULT_ONEAGENT_ENDPOINT = "http://127.0.0.1:14499/metrics/ingest";
+  private static final String DEFAULT_ONEAGENT_ENDPOINT = "http://localhost:14499/metrics/ingest";
   private static final int PAYLOAD_LINES_LIMIT = 1000;
 
-  /** @return The default OneAgent endpoint. */
+  /** 
+   * @return The default OneAgent endpoint.
+   * @see See the <a href="https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/local-api/">Dynatrace documentation</a> for more information.
+   */
   public static String getDefaultOneAgentEndpoint() {
     return DEFAULT_ONEAGENT_ENDPOINT;
   }
 
   /**
-   * @return The maximum number of metric lines per POST request to the /metrics/ingest endpoint.
+   * @return The maximum number of metric lines per request accepted by the ingest endpoint.
    */
   public static int getPayloadLinesLimit() {
     return PAYLOAD_LINES_LIMIT;
