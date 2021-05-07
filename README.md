@@ -64,3 +64,18 @@ Since there are multiple levels of dimensions (default, dynamic, OneAgent) and d
 Default dimensions will be overwritten by dynamic dimensions, and all dimensions will be overwritten by OneAgent dimensions if they share the same key after normalization.
 Note that the OneAgent dimensions will only contain [dimension keys reserved by Dynatrace](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/metric-ingestion-protocol/#syntax).
 If the `.withOneAgentMetadata()` method is not called on the `MetricBuilderFactory`, OneAgent metadata will not be queried and added.
+
+### Common constants
+
+The library also provides constants that might be helpful in the projects consuming this library.
+
+To access the constants, call the respective static methods on `DynatraceMetricApiConstants`:
+
+```java
+String oneAgentEndpoint = DynatraceMetricApiConstants.getDefaultOneAgentEndpoint();
+```
+
+Currently available constants are:
+
+* the default [local OneAgent metric API](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/local-api/) endpoint (`getDefaultOneAgentEndpoint()`)
+* the limit for how many metric lines can be ingested in one request (`getPayloadLinesLimit()`)
