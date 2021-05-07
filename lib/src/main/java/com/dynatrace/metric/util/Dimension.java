@@ -56,7 +56,7 @@ public final class Dimension {
   }
 
   String serialize() {
-    return String.format("%s=%s", key, value);
+    return String.format("%s=%s", key, Normalize.escapeDimensionValue(value));
   }
 
   @Override

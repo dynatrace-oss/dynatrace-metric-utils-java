@@ -144,8 +144,16 @@ final class Normalize {
     value = re_dv_controlCharactersEnd.matcher(value).replaceAll("");
     value = re_dv_controlCharacters.matcher(value).replaceAll("_");
 
+    return value;
+  }
+
+  static String escapeDimensionValue(String val) {
     // escape characters matched by regex with backslash. $1 inserts the matched character.
-    value = re_dv_charactersToEscape.matcher(value).replaceAll("\\\\$1");
+    String value = re_dv_charactersToEscape.matcher(val).replaceAll("\\\\$1");
+
+    if (value.length() > dv_max_length) {
+      value = value.substring(0, dv_max_length);
+    }
 
     return value;
   }
