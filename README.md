@@ -68,8 +68,6 @@ If the `.withOneAgentMetadata()` method is not called on the `MetricBuilderFacto
 ### Common constants
 
 The library also provides constants that might be helpful in the projects consuming this library.
-The default OneAgent endpoint is an example: Every exporter using this library will likely provide a way to export to the default OneAgent endpoint.
-Instead of coding the URL into each of these projects, it is provided here in one place.
 
 To access the constants, call the respective static methods on `DynatraceMetricApiConstants`:
 
@@ -79,5 +77,5 @@ String oneAgentEndpoint = DynatraceMetricApiConstants.getDefaultOneAgentEndpoint
 
 Currently available constants are:
 
-* the default OneAgent endpoint (`getDefaultOneAgentEndpoint()`)
-* the limit for how many lines can be ingested in one request (`getPayloadLinesLimit()`)
+* the default [local OneAgent metric API](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/local-api/) endpoint (`getDefaultOneAgentEndpoint()`)
+* the limit for how many metric lines can be ingested in one request (`getPayloadLinesLimit()`)
