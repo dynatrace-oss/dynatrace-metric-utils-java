@@ -78,5 +78,6 @@ String oneAgentEndpoint = DynatraceMetricApiConstants.getDefaultOneAgentEndpoint
 ```
 
 Currently available constants are:
+
 * the default OneAgent endpoint (`getDefaultOneAgentEndpoint()`)
 * the limit for how many lines can be ingested in one request (`getPayloadLinesLimit()`)
