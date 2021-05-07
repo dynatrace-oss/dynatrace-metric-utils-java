@@ -201,12 +201,12 @@ public class NormalizeTest {
         Arguments.of("valid uppercase", "VALUE", "VALUE"),
         Arguments.of("valid colon", "a:3", "a:3"),
         Arguments.of("valid value 2", "~@#ä", "~@#ä"),
-        Arguments.of("escape spaces", "a b", "a b"),
-        Arguments.of("escape comma", "a,b", "a,b"),
-        Arguments.of("escape equals", "a=b", "a=b"),
-        Arguments.of("escape backslash", "a\\b", "a\\b"),
-        Arguments.of("escape multiple invalids", " ,=\\", " ,=\\"),
-        Arguments.of("escape key-value pair", "key=\"value\"", "key=\"value\""),
+        Arguments.of("valid spaces", "a b", "a b"),
+        Arguments.of("valid comma", "a,b", "a,b"),
+        Arguments.of("valid equals", "a=b", "a=b"),
+        Arguments.of("valid backslash", "a\\b", "a\\b"),
+        Arguments.of("valid multiple special chars", " ,=\\", " ,=\\"),
+        Arguments.of("valid key-value pair", "key=\"value\"", "key=\"value\""),
         //     \u0000 NUL character, \u0007 bell character
         Arguments.of("invalid unicode", "\u0000a\u0007", "a"),
         Arguments.of("invalid unicode space", "a\u0001b", "a_b"),
@@ -233,7 +233,9 @@ public class NormalizeTest {
         Arguments.of("escape comma", "a,b", "a\\,b"),
         Arguments.of("escape equals", "a=b", "a\\=b"),
         Arguments.of("escape backslash", "a\\b", "a\\\\b"),
-        Arguments.of("escape multiple invalids", " ,=\\", "\\ \\,\\=\\\\"),
+        Arguments.of("escape multiple special chars", " ,=\\", "\\ \\,\\=\\\\"),
+        Arguments.of(
+            "escape consecutive special chars", "  ,,==\\\\", "\\ \\ \\,\\,\\=\\=\\\\\\\\"),
         Arguments.of("escape key-value pair", "key=\"value\"", "key\\=\"value\""));
   }
 }
