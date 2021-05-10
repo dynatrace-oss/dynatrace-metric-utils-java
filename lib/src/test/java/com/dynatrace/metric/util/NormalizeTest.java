@@ -64,8 +64,8 @@ public class NormalizeTest {
     assertEquals(expected, actual);
   }
 
-  private static String createNonsenseStringOfLength(int n) {
-    return new String(new char[n]).replace("\0", "a");
+  private static String repeatStringNTimes(String s, int n) {
+    return new String(new char[n]).replace("\0", s);
   }
 
   private static Stream<Arguments> provideMetricKeys() {
@@ -126,8 +126,8 @@ public class NormalizeTest {
         Arguments.of("invalid example 5", "meträääääÖÖÖc", "metr_c"),
         Arguments.of(
             "invalid truncate key too long",
-            createNonsenseStringOfLength(270),
-            createNonsenseStringOfLength(250)));
+            repeatStringNTimes("a", 270),
+            repeatStringNTimes("a", 250)));
   }
 
   private static Stream<Arguments> provideDimensionKeys() {
@@ -189,8 +189,8 @@ public class NormalizeTest {
         Arguments.of("invalid example 7", "Bla___", "bla___"),
         Arguments.of(
             "invalid truncate key too long",
-            createNonsenseStringOfLength(120),
-            createNonsenseStringOfLength(100)));
+            repeatStringNTimes("a", 120),
+            repeatStringNTimes("a", 100)));
   }
 
   private static Stream<Arguments> provideDimensionValues() {
@@ -223,8 +223,8 @@ public class NormalizeTest {
         Arguments.of("invalid consecutive enclosed unicode NUL", "a\u0000\u0007\u0000b", "a_b"),
         Arguments.of(
             "invalid truncate value too long",
-            createNonsenseStringOfLength(270),
-            createNonsenseStringOfLength(250)));
+            repeatStringNTimes("a", 270),
+            repeatStringNTimes("a", 250)));
   }
 
   private static Stream<Arguments> provideToEscapeValues() {
@@ -236,6 +236,12 @@ public class NormalizeTest {
         Arguments.of("escape multiple special chars", " ,=\\", "\\ \\,\\=\\\\"),
         Arguments.of(
             "escape consecutive special chars", "  ,,==\\\\", "\\ \\ \\,\\,\\=\\=\\\\\\\\"),
-        Arguments.of("escape key-value pair", "key=\"value\"", "key\\=\"value\""));
+        Arguments.of("escape key-value pair", "key=\"value\"", "key\\=\"value\""),
+        Arguments.of(
+            "escape too long string", repeatStringNTimes("=", 250), repeatStringNTimes("\\=", 125)),
+        Arguments.of(
+            "trailing backslash not included",
+            repeatStringNTimes("a", 249) + "=",
+            repeatStringNTimes("a", 249)));
   }
 }
