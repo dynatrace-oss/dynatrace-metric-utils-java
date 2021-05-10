@@ -249,7 +249,9 @@ public class NormalizeTest {
             repeatStringNTimes("a", 248) + "\\="),
         Arguments.of(
             "escape sequence not broken apart 3",
+            // 3 trailing backslashes before escaping
             repeatStringNTimes("a", 247) + "\\\\\\",
+            // 1 escaped trailing backslash
             repeatStringNTimes("a", 247) + "\\\\"));
   }
 }
