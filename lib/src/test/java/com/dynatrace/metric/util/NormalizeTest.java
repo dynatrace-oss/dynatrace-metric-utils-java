@@ -13,15 +13,14 @@
  */
 package com.dynatrace.metric.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.time.Instant;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.time.Instant;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NormalizeTest {
 
@@ -240,15 +239,15 @@ public class NormalizeTest {
         Arguments.of("escape key-value pair", "key=\"value\"", "key\\=\"value\""),
         Arguments.of(
             "escape too long string", repeatStringNTimes("=", 250), repeatStringNTimes("\\=", 125)),
-            Arguments.of(
-                    "escape sequence not broken apart 1",
-                    repeatStringNTimes("a", 249) + "=",
-                    repeatStringNTimes("a", 249)),
-            Arguments.of(
-                    "escape sequence not broken apart 2",
-                    repeatStringNTimes("a", 248) + "==",
-                    repeatStringNTimes("a", 248) + "\\="),
-    Arguments.of(
+        Arguments.of(
+            "escape sequence not broken apart 1",
+            repeatStringNTimes("a", 249) + "=",
+            repeatStringNTimes("a", 249)),
+        Arguments.of(
+            "escape sequence not broken apart 2",
+            repeatStringNTimes("a", 248) + "==",
+            repeatStringNTimes("a", 248) + "\\="),
+        Arguments.of(
             "escape sequence not broken apart 3",
             repeatStringNTimes("a", 247) + "\\\\\\",
             repeatStringNTimes("a", 247) + "\\\\"));
