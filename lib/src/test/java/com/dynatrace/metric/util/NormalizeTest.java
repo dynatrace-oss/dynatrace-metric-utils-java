@@ -252,6 +252,10 @@ public class NormalizeTest {
             // 3 trailing backslashes before escaping
             repeatStringNTimes("a", 247) + "\\\\\\",
             // 1 escaped trailing backslash
-            repeatStringNTimes("a", 247) + "\\\\"));
+            repeatStringNTimes("a", 247) + "\\\\"),
+        Arguments.of(
+            "dimension value of only backslashes",
+            repeatStringNTimes("\\", 260),
+            repeatStringNTimes("\\\\", 125)));
   }
 }
