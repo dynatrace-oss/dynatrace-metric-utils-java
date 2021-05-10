@@ -158,7 +158,7 @@ final class Normalize {
       if (matcher.find()) {
         // string has trailing backslashes. Since every backslash must be escaped, there must be an
         // even number of backslashes, otherwise the substring operation cut an escaped character
-        // in half: e.g.: "some_long_string\" -> escaped: "some_long_string\\" -> cut with substring
+        // in half: e.g.: "some_long_string," -> escaped: "some_long_string\," -> cut with substring
         // results in "some_long_string\" since the two slashes were on either side of the char
         // at which the string was cut using substring.
 
