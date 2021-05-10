@@ -242,6 +242,10 @@ public class NormalizeTest {
         Arguments.of(
             "trailing backslash not included",
             repeatStringNTimes("a", 249) + "=",
-            repeatStringNTimes("a", 249)));
+            repeatStringNTimes("a", 249)),
+        Arguments.of(
+            "trailing backslash not included",
+            repeatStringNTimes("a", 248) + "==",
+            repeatStringNTimes("a", 248) + "\\="));
   }
 }
