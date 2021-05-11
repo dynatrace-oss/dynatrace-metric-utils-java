@@ -54,6 +54,8 @@ final class Normalize {
   private static final Pattern re_dv_controlCharacters = Pattern.compile("[\\p{C}]+");
   private static final Pattern re_dv_controlCharactersStart = Pattern.compile("^[\\p{C}]+");
   private static final Pattern re_dv_controlCharactersEnd = Pattern.compile("[\\p{C}]+$");
+  // This regex checks if there is an odd number of trailing backslashes in the string. It can be
+  // read as: {not a slash}{any number of 2-slash pairs}{one slash}{end line}.
   private static final Pattern re_dv_hasOddNumberOfTrailingBackslashes =
       Pattern.compile("[^\\\\](?:\\\\\\\\)*\\\\$");
 
