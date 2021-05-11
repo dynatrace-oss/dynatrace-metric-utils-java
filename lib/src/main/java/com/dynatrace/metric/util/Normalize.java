@@ -54,7 +54,7 @@ final class Normalize {
   private static final Pattern re_dv_controlCharacters = Pattern.compile("[\\p{C}]+");
   private static final Pattern re_dv_controlCharactersStart = Pattern.compile("^[\\p{C}]+");
   private static final Pattern re_dv_controlCharactersEnd = Pattern.compile("[\\p{C}]+$");
-  private static final Pattern re_dv_trailingBackslashes =
+  private static final Pattern re_dv_hasOddNumberOfTrailingBackslashes =
       Pattern.compile("[^\\\\](?:\\\\\\\\)*\\\\$");
 
   // maximum string length of a dimension value.
@@ -154,7 +154,7 @@ final class Normalize {
     String escaped = re_dv_charactersToEscape.matcher(val).replaceAll("\\\\$1");
     if (escaped.length() > dv_max_length) {
       escaped = escaped.substring(0, dv_max_length);
-      if (re_dv_trailingBackslashes.matcher(escaped).find()) {
+      if (re_dv_hasOddNumberOfTrailingBackslashes.matcher(escaped).find()) {
         // string has trailing backslashes. Since every backslash must be escaped, there must be an
         // even number of backslashes, otherwise the substring operation cut an escaped character
         // in half: e.g.: "some_long_string," -> escaped: "some_long_string\," -> cut with substring
