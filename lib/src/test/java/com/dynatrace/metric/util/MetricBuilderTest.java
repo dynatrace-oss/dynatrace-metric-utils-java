@@ -304,6 +304,7 @@ class MetricBuilderTest {
             .setPrefix("prefix")
             .setLongCounterValueTotal(1)
             .setDefaultDimensions(DimensionList.fromCollection(dimensions));
+
     MetricException me = assertThrows(MetricException.class, metricBuilder::serialize);
 
     String expectedMessage =
