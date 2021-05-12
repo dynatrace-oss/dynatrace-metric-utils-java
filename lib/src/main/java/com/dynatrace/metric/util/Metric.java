@@ -27,6 +27,9 @@ public final class Metric {
   /** Builder class for {@link Metric Metrics}. */
   public static final class Builder {
     private static final Logger logger = Logger.getLogger(Builder.class.getName());
+
+    private static final int METRIC_LINE_MAX_LENGTH = 2000;
+
     // The timestamp warning is rate-limited to log only once every time this factor is reached by
     // the timestampWarningCounter.
     private static final int TIMESTAMP_WARNING_THROTTLE_FACTOR = 1000;
@@ -300,6 +303,13 @@ public final class Metric {
       if (this.time != null) {
         builder.append(" ");
         builder.append(time.toEpochMilli());
+      }
+
+      if (builder.length() > METRIC_LINE_MAX_LENGTH) {
+        throw new MetricException(
+            String.format(
+                "Line exceeds threshold of %d characters and cannot be ingested into Dynatrace:\n%s",
+                    METRIC_LINE_MAX_LENGTH, builder.toString()));
       }
 
       return builder.toString();
