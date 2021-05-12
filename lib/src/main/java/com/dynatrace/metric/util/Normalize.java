@@ -54,6 +54,10 @@ final class Normalize {
   private static final Pattern re_dv_controlCharacters = Pattern.compile("[\\p{C}]+");
   private static final Pattern re_dv_controlCharactersStart = Pattern.compile("^[\\p{C}]+");
   private static final Pattern re_dv_controlCharactersEnd = Pattern.compile("[\\p{C}]+$");
+  // This regex checks if there is an odd number of trailing backslashes in the string. It can be
+  // read as: {not a slash}{any number of 2-slash pairs}{one slash}{end line}.
+  private static final Pattern re_dv_hasOddNumberOfTrailingBackslashes =
+      Pattern.compile("[^\\\\](?:\\\\\\\\)*\\\\$");
 
   // maximum string length of a dimension value.
   private static final int dv_max_length = 250;
@@ -144,10 +148,26 @@ final class Normalize {
     value = re_dv_controlCharactersEnd.matcher(value).replaceAll("");
     value = re_dv_controlCharacters.matcher(value).replaceAll("_");
 
-    // escape characters matched by regex with backslash. $1 inserts the matched character.
-    value = re_dv_charactersToEscape.matcher(value).replaceAll("\\\\$1");
-
     return value;
+  }
+
+  static String escapeDimensionValue(String val) {
+    // escape characters matched by regex with backslash. $1 inserts the matched character.
+    String escaped = re_dv_charactersToEscape.matcher(val).replaceAll("\\\\$1");
+    if (escaped.length() > dv_max_length) {
+      escaped = escaped.substring(0, dv_max_length);
+      if (re_dv_hasOddNumberOfTrailingBackslashes.matcher(escaped).find()) {
+        // string has trailing backslashes. Since every backslash must be escaped, there must be an
+        // even number of backslashes, otherwise the substring operation cut an escaped character
+        // in half: e.g.: "some_long_string," -> escaped: "some_long_string\," -> cut with substring
+        // results in "some_long_string\" since the two slashes were on either side of the char
+        // at which the string was cut using substring. If this is the case, trim the last
+        // backslash character, resulting in a properly escaped string.
+        escaped = escaped.substring(0, dv_max_length - 1);
+      }
+    }
+
+    return escaped;
   }
 
   static String metricKey(String key) {

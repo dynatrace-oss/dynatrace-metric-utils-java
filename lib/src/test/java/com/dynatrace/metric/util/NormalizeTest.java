@@ -15,7 +15,9 @@ package com.dynatrace.metric.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.Instant;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -40,8 +42,30 @@ public class NormalizeTest {
     assertEquals(expected, Normalize.metricKey(input));
   }
 
-  private static String createNonsenseStringOfLength(int n) {
-    return new String(new char[n]).replace("\0", "a");
+  @ParameterizedTest(name = "{index}: {0}, input: {1}, expected: {2}")
+  @MethodSource("provideToEscapeValues")
+  public void testEscapeDimensionValues(String name, String input, String expected) {
+    assertEquals(expected, Normalize.escapeDimensionValue(input));
+  }
+
+  @Test
+  public void testDimensionValuesEscapedOnlyOnce() throws MetricException {
+    MetricBuilderFactory metricBuilderFactory = MetricBuilderFactory.builder().build();
+    String expected = "metric1,key=\\ \\,\\=\\\\ count,123 1620392690261";
+
+    String actual =
+        metricBuilderFactory
+            .newMetricBuilder("metric1")
+            .setDimensions(DimensionList.create(Dimension.create("key", " ,=\\")))
+            .setLongCounterValueTotal(123)
+            .setTimestamp(Instant.ofEpochMilli(1620392690261L))
+            .serialize();
+
+    assertEquals(expected, actual);
+  }
+
+  private static String repeatStringNTimes(String s, int n) {
+    return new String(new char[n]).replace("\0", s);
   }
 
   private static Stream<Arguments> provideMetricKeys() {
@@ -102,8 +126,8 @@ public class NormalizeTest {
         Arguments.of("invalid example 5", "meträääääÖÖÖc", "metr_c"),
         Arguments.of(
             "invalid truncate key too long",
-            createNonsenseStringOfLength(270),
-            createNonsenseStringOfLength(250)));
+            repeatStringNTimes("a", 270),
+            repeatStringNTimes("a", 250)));
   }
 
   private static Stream<Arguments> provideDimensionKeys() {
@@ -165,8 +189,8 @@ public class NormalizeTest {
         Arguments.of("invalid example 7", "Bla___", "bla___"),
         Arguments.of(
             "invalid truncate key too long",
-            createNonsenseStringOfLength(120),
-            createNonsenseStringOfLength(100)));
+            repeatStringNTimes("a", 120),
+            repeatStringNTimes("a", 100)));
   }
 
   private static Stream<Arguments> provideDimensionValues() {
@@ -177,12 +201,12 @@ public class NormalizeTest {
         Arguments.of("valid uppercase", "VALUE", "VALUE"),
         Arguments.of("valid colon", "a:3", "a:3"),
         Arguments.of("valid value 2", "~@#ä", "~@#ä"),
-        Arguments.of("escape spaces", "a b", "a\\ b"),
-        Arguments.of("escape comma", "a,b", "a\\,b"),
-        Arguments.of("escape equals", "a=b", "a\\=b"),
-        Arguments.of("escape backslash", "a\\b", "a\\\\b"),
-        Arguments.of("escape multiple invalids", " ,=\\", "\\ \\,\\=\\\\"),
-        Arguments.of("escape key-value pair", "key=\"value\"", "key\\=\"value\""),
+        Arguments.of("valid spaces", "a b", "a b"),
+        Arguments.of("valid comma", "a,b", "a,b"),
+        Arguments.of("valid equals", "a=b", "a=b"),
+        Arguments.of("valid backslash", "a\\b", "a\\b"),
+        Arguments.of("valid multiple special chars", " ,=\\", " ,=\\"),
+        Arguments.of("valid key-value pair", "key=\"value\"", "key=\"value\""),
         //     \u0000 NUL character, \u0007 bell character
         Arguments.of("invalid unicode", "\u0000a\u0007", "a"),
         Arguments.of("invalid unicode space", "a\u0001b", "a_b"),
@@ -199,7 +223,39 @@ public class NormalizeTest {
         Arguments.of("invalid consecutive enclosed unicode NUL", "a\u0000\u0007\u0000b", "a_b"),
         Arguments.of(
             "invalid truncate value too long",
-            createNonsenseStringOfLength(270),
-            createNonsenseStringOfLength(250)));
+            repeatStringNTimes("a", 270),
+            repeatStringNTimes("a", 250)));
+  }
+
+  private static Stream<Arguments> provideToEscapeValues() {
+    return Stream.of(
+        Arguments.of("escape spaces", "a b", "a\\ b"),
+        Arguments.of("escape comma", "a,b", "a\\,b"),
+        Arguments.of("escape equals", "a=b", "a\\=b"),
+        Arguments.of("escape backslash", "a\\b", "a\\\\b"),
+        Arguments.of("escape multiple special chars", " ,=\\", "\\ \\,\\=\\\\"),
+        Arguments.of(
+            "escape consecutive special chars", "  ,,==\\\\", "\\ \\ \\,\\,\\=\\=\\\\\\\\"),
+        Arguments.of("escape key-value pair", "key=\"value\"", "key\\=\"value\""),
+        Arguments.of(
+            "escape too long string", repeatStringNTimes("=", 250), repeatStringNTimes("\\=", 125)),
+        Arguments.of(
+            "escape sequence not broken apart 1",
+            repeatStringNTimes("a", 249) + "=",
+            repeatStringNTimes("a", 249)),
+        Arguments.of(
+            "escape sequence not broken apart 2",
+            repeatStringNTimes("a", 248) + "==",
+            repeatStringNTimes("a", 248) + "\\="),
+        Arguments.of(
+            "escape sequence not broken apart 3",
+            // 3 trailing backslashes before escaping
+            repeatStringNTimes("a", 247) + "\\\\\\",
+            // 1 escaped trailing backslash
+            repeatStringNTimes("a", 247) + "\\\\"),
+        Arguments.of(
+            "dimension value of only backslashes",
+            repeatStringNTimes("\\", 260),
+            repeatStringNTimes("\\\\", 125)));
   }
 }
