@@ -28,6 +28,8 @@ public final class Metric {
   public static final class Builder {
     private static final Logger logger = Logger.getLogger(Builder.class.getName());
 
+    // The maximum number of characters per serialized line. Lines exceeding this threshold should
+    // be dropped.
     private static final int METRIC_LINE_MAX_LENGTH = 2000;
 
     // The timestamp warning is rate-limited to log only once every time this factor is reached by
@@ -267,7 +269,7 @@ public final class Metric {
      * @throws MetricException If no value is set or if the prefix/metric key combination evaluates
      *     to an invalid/empty metric key after normalization. Will also throw a {@link
      *     MetricException} when the line length after serialization exceeds the maximum line length
-     *     (2000 characters).
+     *     accepted by the ingest API.
      */
     public String serialize() throws MetricException {
       String normalizedKeyString = makeNormalizedMetricKey();
@@ -310,7 +312,7 @@ public final class Metric {
       if (builder.length() > METRIC_LINE_MAX_LENGTH) {
         throw new MetricException(
             String.format(
-                "Line exceeds threshold of %d characters and cannot be ingested into Dynatrace:\n%s",
+                "Serialized line exceeds limit of %d characters accepted by the ingest API:%n%s",
                 METRIC_LINE_MAX_LENGTH, builder.toString()));
       }
 

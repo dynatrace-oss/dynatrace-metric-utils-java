@@ -13,14 +13,13 @@
  */
 package com.dynatrace.metric.util;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class MetricBuilderTest {
   private void assertListsEqualIgnoreOrder(List<String> expected, List<String> actual) {
@@ -312,7 +311,7 @@ class MetricBuilderTest {
                     .serialize());
 
     String expectedMessage =
-        "Line exceeds threshold of 2000 characters and cannot be ingested into Dynatrace";
+        "Serialized line exceeds limit of 2000 characters accepted by the ingest API:";
 
     // the serialized method will have the dimensions in a shuffled manner (due to the duplicate
     // elimination using a map), so we assert that certain dimensions are included, but not the
