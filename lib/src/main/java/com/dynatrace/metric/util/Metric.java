@@ -265,7 +265,9 @@ public final class Metric {
      * @return A {@link String} containing all properties set on the {@link Metric.Builder} in an
      *     ingestion-ready format.
      * @throws MetricException If no value is set or if the prefix/metric key combination evaluates
-     *     to an invalid/empty metric key after normalization.
+     *     to an invalid/empty metric key after normalization. Will also throw a {@link
+     *     MetricException} when the line length after serialization exceeds the maximum line length
+     *     (2000 characters).
      */
     public String serialize() throws MetricException {
       String normalizedKeyString = makeNormalizedMetricKey();
