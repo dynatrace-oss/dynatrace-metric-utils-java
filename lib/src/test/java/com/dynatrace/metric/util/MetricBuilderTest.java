@@ -291,7 +291,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testThrowsOnLineTooLong() {
+  public void testThrowsOnLineTooLong() throws MetricException {
     int numDimensions = 250;
     List<Dimension> dimensions = new ArrayList<>(numDimensions);
     for (int i = 0; i < numDimensions; i++) {
@@ -299,16 +299,12 @@ class MetricBuilderTest {
       String val = String.format("val%d", i);
       dimensions.add(Dimension.create(key, val));
     }
-
-    MetricException me =
-        assertThrows(
-            MetricException.class,
-            () ->
-                Metric.builder("name")
-                    .setPrefix("prefix")
-                    .setLongCounterValueTotal(1)
-                    .setDefaultDimensions(DimensionList.fromCollection(dimensions))
-                    .serialize());
+    Metric.Builder metricBuilder =
+        Metric.builder("name")
+            .setPrefix("prefix")
+            .setLongCounterValueTotal(1)
+            .setDefaultDimensions(DimensionList.fromCollection(dimensions));
+    MetricException me = assertThrows(MetricException.class, metricBuilder::serialize);
 
     String expectedMessage =
         "Serialized line exceeds limit of 2000 characters accepted by the ingest API:";

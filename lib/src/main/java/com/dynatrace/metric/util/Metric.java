@@ -28,8 +28,8 @@ public final class Metric {
   public static final class Builder {
     private static final Logger logger = Logger.getLogger(Builder.class.getName());
 
-    // The maximum number of characters per serialized line. Lines exceeding this threshold should
-    // be dropped.
+    // The maximum number of characters per serialized line accepted by the ingest API.
+    // Lines exceeding this threshold should be dropped.
     private static final int METRIC_LINE_MAX_LENGTH = 2000;
 
     // The timestamp warning is rate-limited to log only once every time this factor is reached by
