@@ -309,7 +309,7 @@ public final class Metric {
         throw new MetricException(
             String.format(
                 "Line exceeds threshold of %d characters and cannot be ingested into Dynatrace:\n%s",
-                    METRIC_LINE_MAX_LENGTH, builder.toString()));
+                METRIC_LINE_MAX_LENGTH, builder.toString()));
       }
 
       return builder.toString();
