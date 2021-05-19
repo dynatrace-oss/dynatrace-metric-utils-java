@@ -64,7 +64,7 @@ public class NormalizeTest {
     assertEquals(expected, actual);
   }
 
-  private static String repeatStringNTimes(String s, int n) {
+  static String repeatStringNTimes(String s, int n) {
     return new String(new char[n]).replace("\0", s);
   }
 

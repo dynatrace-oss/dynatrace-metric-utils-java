@@ -27,6 +27,11 @@ public final class Metric {
   /** Builder class for {@link Metric Metrics}. */
   public static final class Builder {
     private static final Logger logger = Logger.getLogger(Builder.class.getName());
+
+    // The maximum number of characters per serialized line accepted by the ingest API.
+    // Lines exceeding this threshold should be dropped.
+    private static final int METRIC_LINE_MAX_LENGTH = 2000;
+
     // The timestamp warning is rate-limited to log only once every time this factor is reached by
     // the timestampWarningCounter.
     private static final int TIMESTAMP_WARNING_THROTTLE_FACTOR = 1000;
@@ -262,7 +267,9 @@ public final class Metric {
      * @return A {@link String} containing all properties set on the {@link Metric.Builder} in an
      *     ingestion-ready format.
      * @throws MetricException If no value is set or if the prefix/metric key combination evaluates
-     *     to an invalid/empty metric key after normalization.
+     *     to an invalid/empty metric key after normalization. Will also throw a {@link
+     *     MetricException} when the line length after serialization exceeds the maximum line length
+     *     accepted by the ingest API.
      */
     public String serialize() throws MetricException {
       String normalizedKeyString = makeNormalizedMetricKey();
@@ -300,6 +307,13 @@ public final class Metric {
       if (this.time != null) {
         builder.append(" ");
         builder.append(time.toEpochMilli());
+      }
+
+      if (builder.length() > METRIC_LINE_MAX_LENGTH) {
+        throw new MetricException(
+            String.format(
+                "Serialized line exceeds limit of %d characters accepted by the ingest API:%n%s",
+                METRIC_LINE_MAX_LENGTH, builder.toString()));
       }
 
       return builder.toString();
