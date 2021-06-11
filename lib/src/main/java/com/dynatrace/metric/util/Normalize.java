@@ -130,7 +130,7 @@ final class Normalize {
     if (value.length() > dv_max_length) {
       value = value.substring(0, dv_max_length);
     }
-    // collapse contained control chars to an "_"
+    // collapse contained control chars to an underscore
     value = re_dv_controlCharacters.matcher(value).replaceAll("_");
 
     return value;
