@@ -181,6 +181,9 @@ final class Normalize {
               String.format(
                   "first metric key section is empty. discarding metric with key %s...", key));
           return null;
+        } else {
+          // skip empty sections.
+          continue;
         }
       }
 
