@@ -108,7 +108,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testInvalidName() throws MetricException {
+  public void testNameContainsInvalidChars() throws MetricException {
     String expected = "_ count,1";
     String actual = Metric.builder("~@#$").setLongCounterValueTotal(1).serialize();
     assertEquals(expected, actual);
@@ -124,7 +124,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testInvalidPrefix() throws MetricException {
+  public void testPrefixContainsInvalidChars() throws MetricException {
     String expected = "_.name count,1";
     String actual =
         Metric.builder("name").setPrefix("~@#$").setLongCounterValueTotal(1).serialize();
@@ -132,7 +132,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testInvalidPrefixAndName() throws MetricException {
+  public void testPrefixAndNameContainInvalidChars() throws MetricException {
     String expected = "_._ count,1";
     String actual = Metric.builder("~@#$").setPrefix("!@#").setLongCounterValueTotal(1).serialize();
     assertEquals(expected, actual);

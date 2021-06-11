@@ -56,12 +56,12 @@ class DimensionListTest {
   @Test
   void createWithNormalization() {
     Dimension[] dimensions = {
-      Dimension.create("INVALID!@#", "value1"), Dimension.create("~!@invalid2", "value2")
+      Dimension.create("~!@LEADING", "value1"), Dimension.create("TRAILING!@#", "value2")
     };
 
     Collection<Dimension> expected =
         Arrays.asList(
-            Dimension.create("invalid_", "value1"), Dimension.create("_invalid2", "value2"));
+            Dimension.create("_leading", "value1"), Dimension.create("trailing_", "value2"));
 
     Collection<Dimension> actual = DimensionList.create(dimensions).getDimensions();
 
