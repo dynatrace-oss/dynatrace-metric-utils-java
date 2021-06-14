@@ -124,6 +124,15 @@ class MetricBuilderTest {
   }
 
   @Test
+  public void testPrefixWithTrailingDot() throws MetricException {
+    String expected = "prefix.name count,1";
+    String actual =
+        Metric.builder("name").setPrefix("prefix.").setLongCounterValueTotal(1).serialize();
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
   public void testPrefixContainsInvalidChars() throws MetricException {
     String expected = "_.name count,1";
     String actual =
