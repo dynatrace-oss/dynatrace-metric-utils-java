@@ -13,14 +13,15 @@
  */
 package com.dynatrace.metric.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.time.Instant;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.time.Instant;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NormalizeTest {
 
@@ -107,7 +108,6 @@ public class NormalizeTest {
         Arguments.of("invalid enclosing dots", ".a.", null),
         Arguments.of("valid consecutive leading underscores", "___a", "___a"),
         Arguments.of("valid consecutive trailing underscores", "a___", "a___"),
-        Arguments.of("invalid trailing invalid chars", "a$%@", "a_"),
         Arguments.of("invalid trailing invalid chars groups", "a.b$%@.c#@", "a.b_.c_"),
         Arguments.of("valid consecutive enclosed underscores", "a___b", "a___b"),
         Arguments.of("invalid mixture dots underscores", "._._._a_._._.", null),
@@ -150,7 +150,6 @@ public class NormalizeTest {
         Arguments.of("invalid leading hyphen", "-dim", "_dim"),
         Arguments.of("valid trailing hyphen", "dim-", "dim-"),
         Arguments.of("valid trailing hyphens", "dim---", "dim---"),
-        Arguments.of("invalid leading multiple", "~0#dim", "_dim"),
         Arguments.of("invalid leading multiple hyphens", "---dim", "_dim"),
         Arguments.of("invalid leading colon", ":dim", "_dim"),
         Arguments.of("invalid chars", "~@#ä", "_"),
