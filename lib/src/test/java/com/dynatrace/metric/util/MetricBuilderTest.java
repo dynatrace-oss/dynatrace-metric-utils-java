@@ -108,10 +108,10 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testInvalidName() {
-    assertThrows(
-        MetricException.class,
-        () -> Metric.builder("~@#$").setLongCounterValueTotal(1).serialize());
+  public void testNameContainsInvalidChars() throws MetricException {
+    String expected = "_ count,1";
+    String actual = Metric.builder("~@#$").setLongCounterValueTotal(1).serialize();
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -124,17 +124,27 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testInvalidPrefix() {
-    assertThrows(
-        MetricException.class,
-        () -> Metric.builder("name").setPrefix("~@#$").setLongCounterValueTotal(1).serialize());
+  public void testPrefixWithTrailingDot() throws MetricException {
+    String expected = "prefix.name count,1";
+    String actual =
+        Metric.builder("name").setPrefix("prefix.").setLongCounterValueTotal(1).serialize();
+
+    assertEquals(expected, actual);
   }
 
   @Test
-  public void testInvalidPrefixAndName() {
-    assertThrows(
-        MetricException.class,
-        () -> Metric.builder("~@#$").setPrefix("!@#").setLongCounterValueTotal(1).serialize());
+  public void testPrefixContainsInvalidChars() throws MetricException {
+    String expected = "_.name count,1";
+    String actual =
+        Metric.builder("name").setPrefix("~@#$").setLongCounterValueTotal(1).serialize();
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testPrefixAndNameContainInvalidChars() throws MetricException {
+    String expected = "_._ count,1";
+    String actual = Metric.builder("~@#$").setPrefix("!@#").setLongCounterValueTotal(1).serialize();
+    assertEquals(expected, actual);
   }
 
   @Test

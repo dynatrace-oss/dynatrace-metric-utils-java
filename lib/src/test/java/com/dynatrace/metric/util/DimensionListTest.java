@@ -56,12 +56,12 @@ class DimensionListTest {
   @Test
   void createWithNormalization() {
     Dimension[] dimensions = {
-      Dimension.create("INVALID!@#", "value1"), Dimension.create("~!@invalid2", "value2")
+      Dimension.create("~!@LEADING", "value1"), Dimension.create("TRAILING!@#", "value2")
     };
 
     Collection<Dimension> expected =
         Arrays.asList(
-            Dimension.create("invalid", "value1"), Dimension.create("invalid2", "value2"));
+            Dimension.create("_leading", "value1"), Dimension.create("trailing_", "value2"));
 
     Collection<Dimension> actual = DimensionList.create(dimensions).getDimensions();
 
@@ -73,11 +73,13 @@ class DimensionListTest {
   void createWithNormalizationRemoveInvalidKey() {
     Collection<Dimension> expected =
         Arrays.asList(
-            Dimension.create("valid", "value"), Dimension.create("another_valid", "value"));
+            Dimension.create("valid", "value"),
+            Dimension.create("_", "underscore"),
+            Dimension.create("another_valid", "value"));
 
     Dimension[] dimensions = {
       Dimension.create("valid", "value"),
-      Dimension.create("!@3@$", "invalid"),
+      Dimension.create("!@3@$", "underscore"),
       Dimension.create("another_valid", "value")
     };
 
@@ -244,7 +246,7 @@ class DimensionListTest {
             Dimension.create("key1", "value1"),
             Dimension.create("~@#$", "value2"),
             Dimension.create("key3", "value3"));
-    String expected = "key1=value1,key3=value3";
+    String expected = "key1=value1,_=value2,key3=value3";
     String actual = dl.serialize();
     assertEquals(expected, actual);
   }

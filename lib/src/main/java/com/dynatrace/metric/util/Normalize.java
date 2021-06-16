@@ -29,8 +29,6 @@ final class Normalize {
   // characters not valid as leading characters in subsequent subsections.
   private static final Pattern re_mk_subsequentIdentifierSectionStart =
       Pattern.compile("^[^a-zA-Z0-9_]+");
-  // chars that are invalid as trailing characters
-  private static final Pattern re_mk_identifierSectionEnd = Pattern.compile("[^a-zA-Z0-9_\\-]+$");
   // invalid characters for the rest of the key.
   private static final Pattern re_mk_invalidCharacters = Pattern.compile("[^a-zA-Z0-9_\\-]+");
 
@@ -40,8 +38,6 @@ final class Normalize {
   // Dimension keys (dk)
   // Dimension keys start with a lowercase letter or an underscore.
   private static final Pattern re_dk_sectionStart = Pattern.compile("^[^a-z_]+");
-  // trailing characters not in this character class are trimmed off.
-  private static final Pattern re_dk_sectionEnd = Pattern.compile("[^a-z0-9_\\-:]+$");
   // invalid characters in the rest of the dimension key
   private static final Pattern re_dk_invalidCharacters = Pattern.compile("[^a-z0-9_\\-:]+");
 
@@ -52,8 +48,7 @@ final class Normalize {
   // Characters that need to be escaped in dimension values
   private static final Pattern re_dv_charactersToEscape = Pattern.compile("([= ,\\\\])");
   private static final Pattern re_dv_controlCharacters = Pattern.compile("[\\p{C}]+");
-  private static final Pattern re_dv_controlCharactersStart = Pattern.compile("^[\\p{C}]+");
-  private static final Pattern re_dv_controlCharactersEnd = Pattern.compile("[\\p{C}]+$");
+
   // This regex checks if there is an odd number of trailing backslashes in the string. It can be
   // read as: {not a slash}{any number of 2-slash pairs}{one slash}{end line}.
   private static final Pattern re_dv_hasOddNumberOfTrailingBackslashes =
@@ -110,27 +105,19 @@ final class Normalize {
       if (!section.isEmpty()) {
         // move to lowercase
         String normalizedSection = section.toLowerCase(Locale.ROOT);
-        // trim leading and trailing invalid characters.
-        normalizedSection = re_dk_sectionStart.matcher(normalizedSection).replaceAll("");
-        normalizedSection = re_dk_sectionEnd.matcher(normalizedSection).replaceAll("");
+        // replace consecutive leading invalid characters with an underscore.
+        normalizedSection = re_dk_sectionStart.matcher(normalizedSection).replaceAll("_");
         // replace consecutive invalid characters within the section with one underscore:
         normalizedSection = re_dk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
 
-        if (normalizedSection.isEmpty()) {
-          // section is empty after normalization and will be discarded.
-          logger.info(
-              String.format(
-                  "normalization of section '%s' lead to empty section, discarding...", section));
+        // re-concatenate the split sections separated with dots.
+        if (!firstSection) {
+          normalizedKeyBuilder.append(".");
         } else {
-          // re-concatenate the split sections separated with dots.
-          if (!firstSection) {
-            normalizedKeyBuilder.append(".");
-          } else {
-            firstSection = false;
-          }
-
-          normalizedKeyBuilder.append(normalizedSection);
+          firstSection = false;
         }
+
+        normalizedKeyBuilder.append(normalizedSection);
       }
     }
     return normalizedKeyBuilder.toString();
@@ -143,9 +130,7 @@ final class Normalize {
     if (value.length() > dv_max_length) {
       value = value.substring(0, dv_max_length);
     }
-    // trim leading and trailing control characters and collapse contained control chars to an "_"
-    value = re_dv_controlCharactersStart.matcher(value).replaceAll("");
-    value = re_dv_controlCharactersEnd.matcher(value).replaceAll("");
+    // collapse contained control chars to an underscore
     value = re_dv_controlCharacters.matcher(value).replaceAll("_");
 
     return value;
@@ -188,42 +173,39 @@ final class Normalize {
     StringBuilder normalizedKeyBuilder = new StringBuilder();
 
     for (String section : sections) {
+      // can check if is empty at the very beginning, because if it is not empty it will always be
+      // at least one underscore.
+      if (section.isEmpty()) {
+        if (firstSection) {
+          logger.warning(
+              String.format(
+                  "first metric key section is empty. discarding metric with key %s...", key));
+          return null;
+        } else {
+          // skip empty sections.
+          continue;
+        }
+      }
+
       String normalizedSection;
       // first key section cannot start with a number while subsequent sections can.
       if (firstSection) {
-        normalizedSection = re_mk_firstIdentifierSectionStart.matcher(section).replaceAll("");
+        normalizedSection = re_mk_firstIdentifierSectionStart.matcher(section).replaceAll("_");
       } else {
-        normalizedSection = re_mk_subsequentIdentifierSectionStart.matcher(section).replaceAll("");
+        normalizedSection = re_mk_subsequentIdentifierSectionStart.matcher(section).replaceAll("_");
       }
-
-      // trim trailing invalid chars
-      normalizedSection = re_mk_identifierSectionEnd.matcher(normalizedSection).replaceAll("");
 
       // replace invalid chars with an underscore
       normalizedSection = re_mk_invalidCharacters.matcher(normalizedSection).replaceAll("_");
 
-      if (normalizedSection.isEmpty()) {
-        if (firstSection) {
-          logger.warning(
-              String.format(
-                  "first metric key section empty while normalizing '%s', discarding...", key));
-          return null;
-        }
-        // section is empty after normalization and will be discarded.
-        logger.info(
-            String.format(
-                "normalization of section '%s' in '%s' leads to empty section, discarding section...",
-                section, key));
+      // re-concatenate the split sections separated with dots.
+      if (!firstSection) {
+        normalizedKeyBuilder.append(".");
       } else {
-        // re-concatenate the split sections separated with dots.
-        if (!firstSection) {
-          normalizedKeyBuilder.append(".");
-        } else {
-          firstSection = false;
-        }
-
-        normalizedKeyBuilder.append(normalizedSection);
+        firstSection = false;
       }
+
+      normalizedKeyBuilder.append(normalizedSection);
     }
 
     return normalizedKeyBuilder.toString();
