@@ -183,7 +183,7 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.alternativeMetadataFileExists(
+                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
                       Mockito.eq(nonExistentAlternativeFile)))
           .thenCallRealMethod();
       mockEnricher
@@ -211,7 +211,7 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.alternativeMetadataFileExists(
+                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
                       Mockito.eq("src/test/resources/indirection_target.txt")))
           .thenCallRealMethod();
       mockEnricher
@@ -250,7 +250,7 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.alternativeMetadataFileExists(
+                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
                       Mockito.eq(nonExistentAlternativeFile)))
           .thenCallRealMethod();
       mockEnricher
@@ -278,7 +278,7 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.alternativeMetadataFileExists(
+                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
                       Mockito.eq("src/test/resources/indirection_target.txt")))
           .thenCallRealMethod();
       mockEnricher
@@ -317,7 +317,7 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.alternativeMetadataFileExists(
+                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
                       Mockito.eq(nonExistentAlternativeFile)))
           .thenCallRealMethod();
       mockEnricher
@@ -345,7 +345,7 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.alternativeMetadataFileExists(
+                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
                       Mockito.eq("src/test/resources/indirection_target.txt")))
           .thenCallRealMethod();
       mockEnricher
@@ -381,7 +381,7 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.alternativeMetadataFileExists(
+                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
                       Mockito.eq("src/test/resources/indirection_target.txt")))
           .thenCallRealMethod();
       mockEnricher
@@ -467,5 +467,19 @@ public class DynatraceMetadataEnricherTest {
               "src/test/resources/mock_target.properties", alternativeFileName);
       assertEquals(Collections.<String>emptyList(), result);
     }
+  }
+
+  @Test
+  public void testFileExistsAndIsReadable() {
+    assertFalse(DynatraceMetadataEnricher.fileExistsAndIsReadable(null));
+    assertFalse(DynatraceMetadataEnricher.fileExistsAndIsReadable(""));
+    assertFalse(DynatraceMetadataEnricher.fileExistsAndIsReadable(generateNonExistentFilename()));
+
+    assertTrue(
+        DynatraceMetadataEnricher.fileExistsAndIsReadable(
+            "src/test/resources/mock_target.properties"));
+    assertTrue(
+        DynatraceMetadataEnricher.fileExistsAndIsReadable(
+            "src/test/resources/indirection_target.txt"));
   }
 }

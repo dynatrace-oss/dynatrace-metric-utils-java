@@ -14,6 +14,7 @@
 package com.dynatrace.metric.util;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -122,8 +123,22 @@ public class DynatraceMetadataEnricher {
     }
   }
 
-  static boolean alternativeMetadataFileExists(String alternativeMetadataFileName) {
-    return new File(alternativeMetadataFileName).exists();
+  /**
+   * A helper function that returns whether file exists.
+   *
+   * @param alternativeMetadataFileName The file name.
+   * @return true if the file exists and is readable and false otherwise.
+   */
+  static boolean fileExistsAndIsReadable(String alternativeMetadataFileName) {
+    try {
+      File file = new File(alternativeMetadataFileName);
+      if (file.exists() && Files.isReadable(file.toPath())) {
+        return true;
+      }
+    } catch (Throwable ignored) {
+      // something went wrong, but at this point we don't care what it was.
+    }
+    return false;
   }
 
   /**
@@ -149,7 +164,7 @@ public class DynatraceMetadataEnricher {
     }
 
     if (metadataFileName == null || metadataFileName.isEmpty()) {
-      if (DynatraceMetadataEnricher.alternativeMetadataFileExists(alternativeMetadataFilename)) {
+      if (DynatraceMetadataEnricher.fileExistsAndIsReadable(alternativeMetadataFilename)) {
         // alternative file exists, use it for metadata enrichment
         logger.info(
             String.format(
