@@ -16,14 +16,14 @@ It shows how to create metrics lines that can be sent to a [Dynatrace metrics in
 
 The standard workflow consists of creating a `MetricBuilderFactory` and using it to create `MetricBuilder` objects that can be serialized to a `String`.
 Upon creation of a `MetricBuilderFactory`, it is possible to set default dimensions, and a prefix that will be added to all metrics created by the factory.
-Furthermore, it is possible to enable OneAgent metadata enrichment in this step.
+Furthermore, it is possible to enable Dynatrace metadata enrichment in this step.
 With this setting enabled, the library will connect to the Dynatrace OneAgent, if installed, and retrieve process and host identifiers that are added as dimensions on all metrics to correlate them accordingly.
 
 ```java
 MetricBuilderFactory metricBuilderFactory =
     MetricBuilderFactory.builder()
         .withDefaultDimensions(defaultDims)
-        .withOneAgentMetadata()
+        .withDynatraceMetadata()
         .withPrefix("prefix")
         .build();
 ```
@@ -60,10 +60,10 @@ Timestamps and dimensions are optional.
 
 #### Dimension precedence
 
-Since there are multiple levels of dimensions (default, dynamic, OneAgent) and duplicate keys are not allowed, there is a specified precedence in dimension keys.
-Default dimensions will be overwritten by dynamic dimensions, and all dimensions will be overwritten by OneAgent dimensions if they share the same key after normalization.
+Since there are multiple levels of dimensions (default, dynamic, Dynatrace metadata) and duplicate keys are not allowed, there is a specified precedence in dimension keys.
+Default dimensions will be overwritten by dynamic dimensions, and all dimensions will be overwritten by Dynatrace metadata dimensions if they share the same key after normalization.
 Note that the OneAgent dimensions will only contain [dimension keys reserved by Dynatrace](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/metric-ingestion-protocol/#syntax).
-If the `.withOneAgentMetadata()` method is not called on the `MetricBuilderFactory`, OneAgent metadata will not be queried and added.
+If the `.withDynatraceMetadata()` method is not called on the `MetricBuilderFactory`, Dynatrace metadata will not be queried and added.
 
 ### Common constants
 

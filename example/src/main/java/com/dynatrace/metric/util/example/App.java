@@ -34,7 +34,7 @@ public class App {
     MetricBuilderFactory metricBuilderFactory =
         MetricBuilderFactory.builder()
             .withDefaultDimensions(defaultDims)
-            .withOneAgentMetadata()
+            .withDynatraceMetadata()
             .withPrefix("prefix")
             .build();
 
@@ -68,7 +68,7 @@ public class App {
     // Version 2: using the Metrics.Builder directly
     // =============================================================================================
     // this approach leaves reading and merging the dimensions to the user.
-    DimensionList oneAgentDimensions = DimensionList.fromOneAgentMetadata();
+    DimensionList oneAgentDimensions = DimensionList.fromDynatraceMetadata();
 
     try {
       String metricLine1 =
