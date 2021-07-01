@@ -20,7 +20,7 @@ plugins {
 }
 
 group 'com.dynatrace.metric.util'
-version = '1.0.0'
+version = '1.1.0'
 
 repositories {
     mavenCentral()
