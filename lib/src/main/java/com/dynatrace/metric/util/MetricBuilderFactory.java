@@ -55,7 +55,7 @@ public class MetricBuilderFactory {
   /** Builder class for {@link MetricBuilderFactory} objects. */
   public static class MetricBuilderFactoryBuilder {
     private DimensionList defaultDimensions;
-    private boolean enrichWithOneAgentData;
+    private boolean enrichWithDynatraceMetadata;
     private String prefix;
 
     private MetricBuilderFactoryBuilder() {}
@@ -77,10 +77,25 @@ public class MetricBuilderFactory {
      * metadata will automatically be pulled in and added to all {@link Metric.Builder} objects
      * created by the factory. If this method is not called, the setting will default to false.
      *
+     * <p>Forwarding to {@link #withDynatraceMetadata()}.
+     *
+     * @return this
+     * @deprecated Use {@link #withDynatraceMetadata()} instead.
+     */
+    @Deprecated
+    public MetricBuilderFactoryBuilder withOneAgentMetadata() {
+      return withDynatraceMetadata();
+    }
+
+    /**
+     * If this method is called upon building the {@link MetricBuilderFactory} object, OneAgent
+     * metadata will automatically be pulled in and added to all {@link Metric.Builder} objects
+     * created by the factory. If this method is not called, the setting will default to false.
+     *
      * @return this
      */
-    public MetricBuilderFactoryBuilder withOneAgentMetadata() {
-      this.enrichWithOneAgentData = true;
+    public MetricBuilderFactoryBuilder withDynatraceMetadata() {
+      this.enrichWithDynatraceMetadata = true;
       return this;
     }
 
@@ -104,13 +119,14 @@ public class MetricBuilderFactory {
      *     objects.
      */
     public MetricBuilderFactory build() {
-      DimensionList localOneAgentDimensions = null;
+      DimensionList localDynatraceMetadataDimensions = null;
 
-      if (this.enrichWithOneAgentData) {
-        localOneAgentDimensions = DimensionList.fromOneAgentMetadata();
+      if (this.enrichWithDynatraceMetadata) {
+        localDynatraceMetadataDimensions = DimensionList.fromDynatraceMetadata();
       }
 
-      return new MetricBuilderFactory(this.defaultDimensions, localOneAgentDimensions, this.prefix);
+      return new MetricBuilderFactory(
+          this.defaultDimensions, localDynatraceMetadataDimensions, this.prefix);
     }
   }
 }

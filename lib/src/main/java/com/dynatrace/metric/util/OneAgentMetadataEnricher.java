@@ -18,11 +18,15 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+/** @deprecated Use {@link DynatraceMetadataEnricher} instead. */
+@Deprecated
 final class OneAgentMetadataEnricher {
   private static final Logger logger = Logger.getLogger(OneAgentMetadataEnricher.class.getName());
   private static final String INDIRECTION_FILE_NAME =
       "dt_metadata_e617c525669e072eebe3d0f08212e8f2.properties";
 
+  /** @deprecated Use {@link DynatraceMetadataEnricher#getDynatraceMetadata()} instead. */
+  @Deprecated
   public static List<Dimension> getDimensionsFromOneAgentMetadata() {
     return parseOneAgentMetadata(getMetadataFileContentWithRedirection(INDIRECTION_FILE_NAME));
   }
