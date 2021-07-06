@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class DynatraceMetadataEnricher {
+class DynatraceMetadataEnricher {
   private static final Logger logger = Logger.getLogger(DynatraceMetadataEnricher.class.getName());
 
   private static final String INDIRECTION_FILE_NAME =
@@ -38,7 +38,7 @@ public class DynatraceMetadataEnricher {
    * @return A list of not yet normalized {@link Dimension} objects. Items with no equal sign, or
    *     with empty key or value are discarded.
    */
-  public static List<Dimension> getDynatraceMetadata() {
+  static List<Dimension> getDynatraceMetadata() {
     return parseDynatraceMetadata(
         getMetadataFileContentWithRedirection(
             INDIRECTION_FILE_NAME, ALTERNATIVE_METADATA_FILENAME));

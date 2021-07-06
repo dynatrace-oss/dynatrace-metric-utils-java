@@ -18,7 +18,7 @@ The standard workflow consists of creating a `MetricBuilderFactory` and using it
 Upon creation of a `MetricBuilderFactory`, it is possible to set default dimensions, and a prefix that will be added to all metrics created by the factory.
 Furthermore, it is possible to enable Dynatrace metadata enrichment in this step.
 With this setting enabled, the library will connect to the Dynatrace OneAgent, if installed, and retrieve process and host identifiers that are added as dimensions on all metrics to correlate them accordingly.
-If running in a containerized environment monitored with a Dynatrace operator present, additional metadata about the container environment will be added.
+If running in a containerized environment with a Dynatrace operator present, additional metadata about the container environment will be added.
 
 ```java
 MetricBuilderFactory metricBuilderFactory =
