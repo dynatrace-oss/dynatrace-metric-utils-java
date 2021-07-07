@@ -61,7 +61,7 @@ class DynatraceMetadataEnricher {
 
     // iterate all lines from metadata file.
     for (String line : lines) {
-      logger.info(String.format("parsing Dynatrace metadata: %s", line));
+      logger.fine(String.format("parsing Dynatrace metadata: %s", line));
       // if there are more than one '=' in the line, split only at the first one.
       String[] split = line.split("=", 2);
 
@@ -166,7 +166,7 @@ class DynatraceMetadataEnricher {
         // alternative file exists, use it for metadata enrichment
         logger.info(
             String.format(
-                "Alternate metadata file exists, attempting to read from %s.",
+                "Alternative metadata file exists, attempting to read from %s.",
                 alternativeMetadataFilename));
         metadataFileName = alternativeMetadataFilename;
       } else {
