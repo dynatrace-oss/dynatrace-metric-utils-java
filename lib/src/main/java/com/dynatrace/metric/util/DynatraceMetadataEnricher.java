@@ -124,18 +124,18 @@ class DynatraceMetadataEnricher {
   }
 
   /**
-   * A helper function that returns whether file exists.
+   * A helper function that returns whether file exists and is readable.
    *
-   * @param alternativeMetadataFileName The file name.
+   * @param filePath The path to the file.
    * @return true if the file exists and is readable and false otherwise.
    */
-  static boolean fileExistsAndIsReadable(String alternativeMetadataFileName) {
+  static boolean fileExistsAndIsReadable(String filePath) {
     try {
-      File file = new File(alternativeMetadataFileName);
+      File file = new File(filePath);
       if (file.exists() && Files.isReadable(file.toPath())) {
         return true;
       }
-    } catch (Throwable ignored) {
+    } catch (Exception ignored) {
       // something went wrong, but at this point we don't care what it was.
     }
     return false;
@@ -156,11 +156,9 @@ class DynatraceMetadataEnricher {
       metadataFileName = getMetadataFileName(indirectionFileReader);
     } catch (FileNotFoundException e) {
       logger.info("Indirection file not found. This is normal if OneAgent is not installed.");
-    } catch (IOException e) {
+    } catch (Exception e) {
       logger.info(
-          String.format(
-              "Error while trying to read contents of OneAgent indirection file: %s",
-              e.getMessage()));
+          String.format("Error while trying to read contents of OneAgent indirection file: %s", e));
     }
 
     if (metadataFileName == null || metadataFileName.isEmpty()) {
@@ -182,10 +180,9 @@ class DynatraceMetadataEnricher {
       properties = getDynatraceMetadataFileContents(metadataFileReader);
     } catch (FileNotFoundException e) {
       logger.warning("Failed to read properties file: File not found");
-    } catch (IOException e) {
+    } catch (Exception e) {
       logger.info(
-          String.format(
-              "Error while trying to read contents of OneAgent metadata file: %s", e.getMessage()));
+          String.format("Error while trying to read contents of Dynatrace metadata file: %s", e));
     }
     return properties;
   }

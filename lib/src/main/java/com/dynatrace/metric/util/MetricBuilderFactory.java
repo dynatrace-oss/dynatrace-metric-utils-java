@@ -73,7 +73,7 @@ public class MetricBuilderFactory {
     }
 
     /**
-     * If this method is called upon building the {@link MetricBuilderFactory} object, OneAgent
+     * If this method is called upon building the {@link MetricBuilderFactory} object, Dynatrace
      * metadata will automatically be pulled in and added to all {@link Metric.Builder} objects
      * created by the factory. If this method is not called, the setting will default to false.
      *
