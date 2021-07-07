@@ -26,6 +26,21 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 public class DynatraceMetadataEnricherTest {
+  private static String generateNonExistentFilename() {
+    File f;
+    Random r = new Random();
+    // generate random filenames until we find one that does not exist:
+    do {
+      byte[] array = new byte[7];
+      r.nextBytes(array);
+      String filename =
+          "src/test/resources/" + new String(array, StandardCharsets.UTF_8) + ".properties";
+
+      f = new File(filename);
+    } while (f.exists());
+    return f.getAbsolutePath();
+  }
+
   @Test
   public void validMetrics() {
     ArrayList<Dimension> entries =
@@ -132,21 +147,6 @@ public class DynatraceMetadataEnricherTest {
     assertNotSame(expected, results);
   }
 
-  private String generateNonExistentFilename() {
-    File f;
-    Random r = new Random();
-    // generate random filenames until we find one that does not exist:
-    do {
-      byte[] array = new byte[7];
-      r.nextBytes(array);
-      String filename =
-          "src/test/resources/" + new String(array, StandardCharsets.UTF_8) + ".properties";
-
-      f = new File(filename);
-    } while (f.exists());
-    return f.getAbsolutePath();
-  }
-
   @Test
   public void
       testGetMetadataFileContentWithRedirection_IndirectionFileDoesNotExistAlternativeDoesNotExist() {
@@ -166,7 +166,7 @@ public class DynatraceMetadataEnricherTest {
 
     List<String> result =
         DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
-            filename, "src/test/resources/indirection_target.txt");
+            filename, "src/test/resources/metadata_file.properties");
     List<String> expected = Arrays.asList("key1=value1", "key2=value2", "key3=value3");
     assertEquals(expected, result);
   }
@@ -212,7 +212,7 @@ public class DynatraceMetadataEnricherTest {
           .when(
               () ->
                   DynatraceMetadataEnricher.fileExistsAndIsReadable(
-                      Mockito.eq("src/test/resources/indirection_target.txt")))
+                      Mockito.eq("src/test/resources/metadata_file.properties")))
           .thenCallRealMethod();
       mockEnricher
           .when(
@@ -230,7 +230,7 @@ public class DynatraceMetadataEnricherTest {
       List<String> result =
           DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
               "src/test/resources/mock_target.properties",
-              "src/test/resources/indirection_target.txt");
+              "src/test/resources/metadata_file.properties");
       List<String> expected = Arrays.asList("key1=value1", "key2=value2", "key3=value3");
       assertEquals(expected, result);
     }
@@ -279,7 +279,7 @@ public class DynatraceMetadataEnricherTest {
           .when(
               () ->
                   DynatraceMetadataEnricher.fileExistsAndIsReadable(
-                      Mockito.eq("src/test/resources/indirection_target.txt")))
+                      Mockito.eq("src/test/resources/metadata_file.properties")))
           .thenCallRealMethod();
       mockEnricher
           .when(
@@ -297,7 +297,7 @@ public class DynatraceMetadataEnricherTest {
       List<String> result =
           DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
               "src/test/resources/mock_target.properties",
-              "src/test/resources/indirection_target.txt");
+              "src/test/resources/metadata_file.properties");
       List<String> expected = Arrays.asList("key1=value1", "key2=value2", "key3=value3");
       assertEquals(expected, result);
     }
@@ -346,7 +346,7 @@ public class DynatraceMetadataEnricherTest {
           .when(
               () ->
                   DynatraceMetadataEnricher.fileExistsAndIsReadable(
-                      Mockito.eq("src/test/resources/indirection_target.txt")))
+                      Mockito.eq("src/test/resources/metadata_file.properties")))
           .thenCallRealMethod();
       mockEnricher
           .when(
@@ -364,7 +364,7 @@ public class DynatraceMetadataEnricherTest {
       List<String> result =
           DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
               "src/test/resources/mock_target.properties",
-              "src/test/resources/indirection_target.txt");
+              "src/test/resources/metadata_file.properties");
       List<String> expected = Arrays.asList("key1=value1", "key2=value2", "key3=value3");
       assertEquals(expected, result);
     }
@@ -382,7 +382,7 @@ public class DynatraceMetadataEnricherTest {
           .when(
               () ->
                   DynatraceMetadataEnricher.fileExistsAndIsReadable(
-                      Mockito.eq("src/test/resources/indirection_target.txt")))
+                      Mockito.eq("src/test/resources/metadata_file.properties")))
           .thenCallRealMethod();
       mockEnricher
           .when(
@@ -403,7 +403,7 @@ public class DynatraceMetadataEnricherTest {
       List<String> result =
           DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
               "src/test/resources/mock_target.properties",
-              "src/test/resources/indirection_target.txt");
+              "src/test/resources/metadata_file.properties");
 
       assertEquals(Collections.<String>emptyList(), result);
     }
@@ -480,6 +480,6 @@ public class DynatraceMetadataEnricherTest {
             "src/test/resources/mock_target.properties"));
     assertTrue(
         DynatraceMetadataEnricher.fileExistsAndIsReadable(
-            "src/test/resources/indirection_target.txt"));
+            "src/test/resources/metadata_file.properties"));
   }
 }
