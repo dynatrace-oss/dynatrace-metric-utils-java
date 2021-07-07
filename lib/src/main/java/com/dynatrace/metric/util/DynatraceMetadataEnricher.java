@@ -96,15 +96,15 @@ class DynatraceMetadataEnricher {
       throw new IOException("passed Reader cannot be null.");
     }
 
-    String oneAgentMetadataFileName = null;
+    String metadataFileName = null;
 
     try (BufferedReader reader = new BufferedReader(fileContents)) {
       String line = reader.readLine();
       if (line != null && !line.isEmpty()) {
-        oneAgentMetadataFileName = line;
+        metadataFileName = line;
       }
     }
-    return oneAgentMetadataFileName;
+    return metadataFileName;
   }
 
   /**

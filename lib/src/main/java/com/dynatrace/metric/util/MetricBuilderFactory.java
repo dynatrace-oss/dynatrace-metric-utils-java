@@ -15,13 +15,13 @@ package com.dynatrace.metric.util;
 
 /** A factory that creates {@link Metric.Builder} objects with presets. */
 public class MetricBuilderFactory {
-  private final DimensionList oneAgentDimensions;
+  private final DimensionList dynatraceMetadataDimensions;
   private final DimensionList defaultDimensions;
   private final String prefix;
 
   private MetricBuilderFactory(
-      DimensionList defaultDimensions, DimensionList oneAgentDimensions, String prefix) {
-    this.oneAgentDimensions = oneAgentDimensions;
+      DimensionList defaultDimensions, DimensionList dynatraceMetadataDimensions, String prefix) {
+    this.dynatraceMetadataDimensions = dynatraceMetadataDimensions;
     this.defaultDimensions = defaultDimensions;
     this.prefix = prefix;
   }
@@ -38,17 +38,17 @@ public class MetricBuilderFactory {
 
   /**
    * Get a new {@link Metric.Builder} object that can be used to create metric lines. Prefix,
-   * default dimensions and OneAgent dimensions set on the {@link MetricBuilderFactory} are already
-   * set on the {@link Metric.Builder} object.
+   * default dimensions and Dynatrace metadata dimensions set on the {@link MetricBuilderFactory}
+   * are already set on the {@link Metric.Builder} object.
    *
    * @param metricKey the metric key (not including the prefix) for the new metric.
-   * @return An instance of class {@link Metric.Builder} with default and OneAgent dimensions and
-   *     the prefix set if set in the factory.
+   * @return An instance of class {@link Metric.Builder} with default and Dynatrace metadata
+   *     dimensions and the prefix set if set in the factory.
    */
   public Metric.Builder newMetricBuilder(String metricKey) {
     return Metric.builder(metricKey)
         .setDefaultDimensions(defaultDimensions)
-        .setOneAgentDimensions(oneAgentDimensions)
+        .setDynatraceMetadataDimensions(dynatraceMetadataDimensions)
         .setPrefix(prefix);
   }
 
@@ -88,7 +88,7 @@ public class MetricBuilderFactory {
     }
 
     /**
-     * If this method is called upon building the {@link MetricBuilderFactory} object, OneAgent
+     * If this method is called upon building the {@link MetricBuilderFactory} object, Dynatrace
      * metadata will automatically be pulled in and added to all {@link Metric.Builder} objects
      * created by the factory. If this method is not called, the setting will default to false.
      *
