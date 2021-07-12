@@ -29,7 +29,7 @@ class DynatraceMetadataEnricher {
       "dt_metadata_e617c525669e072eebe3d0f08212e8f2.properties";
 
   private static final String ALTERNATIVE_METADATA_FILENAME =
-      "/var/lib/dynatrace/enrichment/dt_metadata_e617c525669e072eebe3d0f08212e8f2.properties";
+      "/var/lib/dynatrace/enrichment/dt_metadata.properties";
 
   /**
    * Retrieve Dynatrace metadata. Attempts to read from the indirection file, and falls back to the
