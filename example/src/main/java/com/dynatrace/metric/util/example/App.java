@@ -34,7 +34,7 @@ public class App {
     MetricBuilderFactory metricBuilderFactory =
         MetricBuilderFactory.builder()
             .withDefaultDimensions(defaultDims)
-            .withOneAgentMetadata()
+            .withDynatraceMetadata()
             .withPrefix("prefix")
             .build();
 
@@ -68,13 +68,14 @@ public class App {
     // Version 2: using the Metrics.Builder directly
     // =============================================================================================
     // this approach leaves reading and merging the dimensions to the user.
-    DimensionList oneAgentDimensions = DimensionList.fromOneAgentMetadata();
+    DimensionList dynatraceMetadataDimensions = DimensionList.fromDynatraceMetadata();
 
     try {
       String metricLine1 =
           Metric.builder("metric1")
               .setPrefix("prefix")
-              .setDimensions(DimensionList.merge(defaultDims, dimensions, oneAgentDimensions))
+              .setDimensions(
+                  DimensionList.merge(defaultDims, dimensions, dynatraceMetadataDimensions))
               .setLongCounterValueTotal(123)
               .setCurrentTime()
               .serialize();
@@ -83,7 +84,8 @@ public class App {
           Metric.builder("metric2")
               .setPrefix("prefix")
               .setDimensions(
-                  DimensionList.merge(defaultDims, differentDimensions, oneAgentDimensions))
+                  DimensionList.merge(
+                      defaultDims, differentDimensions, dynatraceMetadataDimensions))
               .setLongCounterValueTotal(321)
               .setCurrentTime()
               .serialize();

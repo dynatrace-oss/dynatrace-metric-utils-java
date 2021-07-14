@@ -16,14 +16,15 @@ It shows how to create metrics lines that can be sent to a [Dynatrace metrics in
 
 The standard workflow consists of creating a `MetricBuilderFactory` and using it to create `MetricBuilder` objects that can be serialized to a `String`.
 Upon creation of a `MetricBuilderFactory`, it is possible to set default dimensions, and a prefix that will be added to all metrics created by the factory.
-Furthermore, it is possible to enable OneAgent metadata enrichment in this step.
+Furthermore, it is possible to enable Dynatrace metadata enrichment in this step.
 With this setting enabled, the library will connect to the Dynatrace OneAgent, if installed, and retrieve process and host identifiers that are added as dimensions on all metrics to correlate them accordingly.
+If running in a containerized environment with a Dynatrace operator present, additional metadata about the container environment will be added.
 
 ```java
 MetricBuilderFactory metricBuilderFactory =
     MetricBuilderFactory.builder()
         .withDefaultDimensions(defaultDims)
-        .withOneAgentMetadata()
+        .withDynatraceMetadata()
         .withPrefix("prefix")
         .build();
 ```
@@ -45,9 +46,9 @@ metricBuilderFactory
 * `setPrefix`: sets a prefix that will be prepended to the metric key.
 * `setDimensions`:
   * When creating the `Metric.Builder` using the `MetricBuilderFactory`: sets the dimensions specific to this metric.
-    Default and OneAgent dimensions will be merged in (see [information on precedence](#dimension-precedence) below).
+    Default and metadata dimensions will be merged in (see [information on precedence](#dimension-precedence) below).
   * When using the `Metric.Builder` directly without the factory, either sets a single `DimensionList` on this method, or call `DimensionList.merge` on multiple lists before passing it.
-    Merge will be called on the passed list in the serialize function, so if passing a single list it does not have to be de-duplicated.
+    Merge will be called on the passed list in the serialize method, so if passing a single list it does not have to be de-duplicated.
 * `setLongCounterValueTotal` / `setDoubleCounterValueTotal`: sets a single value that is serialized as `count,<value>`.
 * `setLongCounterValueDelta` / `setDoubleCounterValueDelta`: sets a single value that is serialized as `count,delta=<value>`.
 * `setLongGaugeValue` / `setDoubleGaugeValue`: sets a single value that is serialized as `gauge,<value>`.
@@ -60,10 +61,10 @@ Timestamps and dimensions are optional.
 
 #### Dimension precedence
 
-Since there are multiple levels of dimensions (default, dynamic, OneAgent) and duplicate keys are not allowed, there is a specified precedence in dimension keys.
-Default dimensions will be overwritten by dynamic dimensions, and all dimensions will be overwritten by OneAgent dimensions if they share the same key after normalization.
-Note that the OneAgent dimensions will only contain [dimension keys reserved by Dynatrace](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/metric-ingestion-protocol/#syntax).
-If the `.withOneAgentMetadata()` method is not called on the `MetricBuilderFactory`, OneAgent metadata will not be queried and added.
+Since there are multiple levels of dimensions (default, dynamic, Dynatrace metadata) and duplicate keys are not allowed, there is a specified precedence in dimension keys.
+Default dimensions will be overwritten by dynamic dimensions, and all dimensions will be overwritten by Dynatrace metadata dimensions if they share the same key after normalization.
+Note that the Dynatrace metadata dimensions will only contain [dimension keys reserved by Dynatrace](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/metric-ingestion-protocol/#syntax).
+If the `.withDynatraceMetadata()` method is not called on the `MetricBuilderFactory`, Dynatrace metadata will not be queried and added.
 
 ### Common constants
 

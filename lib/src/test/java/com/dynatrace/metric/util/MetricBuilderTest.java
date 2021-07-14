@@ -251,10 +251,10 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testSetDefaultAndDynamicAndOneAgentDimensions() throws MetricException {
+  public void testSetDefaultAndDynamicAndMetadataDimensions() throws MetricException {
     String expectedBase = "prefix.name count,1";
     List<String> expectedDims =
-        Arrays.asList("defaultdim1=defaultVal1", "dim1=val1", "oneagentdim1=oneAgentVal1");
+        Arrays.asList("defaultdim1=defaultVal1", "dim1=val1", "metadatadim1=metadataVal1");
     String actual =
         Metric.builder("name")
             .setPrefix("prefix")
@@ -263,8 +263,8 @@ class MetricBuilderTest {
             .setDefaultDimensions(
                 DimensionList.create(Dimension.create("defaultDim1", "defaultVal1")))
             // only available in package.
-            .setOneAgentDimensions(
-                DimensionList.create(Dimension.create("oneAgentDim1", "oneAgentVal1")))
+            .setDynatraceMetadataDimensions(
+                DimensionList.create(Dimension.create("metadataDim1", "metadataVal1")))
             .serialize();
     String actualBase = actual.split(",", 2)[0] + " " + actual.split(" ")[1];
     List<String> actualDims = Arrays.asList(actual.split(",", 2)[1].split(" ")[0].split(","));
@@ -277,7 +277,7 @@ class MetricBuilderTest {
   public void testOverwriting() throws MetricException {
     String expectedBase = "prefix.name count,1";
     List<String> expectedDims =
-        Arrays.asList("dim1=defaultVal1", "dim2=dynamicVal2", "dim3=oneAgentVal3");
+        Arrays.asList("dim1=defaultVal1", "dim2=dynamicVal2", "dim3=metadataVal3");
     String actual =
         Metric.builder("name")
             .setPrefix("prefix")
@@ -291,7 +291,8 @@ class MetricBuilderTest {
                 DimensionList.create(
                     Dimension.create("dim2", "dynamicVal2"),
                     Dimension.create("dim3", "dynamicVal3")))
-            .setOneAgentDimensions(DimensionList.create(Dimension.create("dim3", "oneAgentVal3")))
+            .setDynatraceMetadataDimensions(
+                DimensionList.create(Dimension.create("dim3", "metadataVal3")))
             .serialize();
     String actualBase = actual.split(",", 2)[0] + " " + actual.split(" ")[1];
     List<String> actualDims = Arrays.asList(actual.split(",", 2)[1].split(" ")[0].split(","));

@@ -42,7 +42,7 @@ public final class Metric {
     private Instant time;
     private DimensionList dimensions;
     private DimensionList defaultDimensions;
-    private DimensionList oneAgentDimensions;
+    private DimensionList dynatraceMetadataDimensions;
 
     private Builder(String metricKey) {
       this.metricKey = metricKey;
@@ -53,8 +53,8 @@ public final class Metric {
       return this;
     }
 
-    Builder setOneAgentDimensions(DimensionList oneAgentDimensions) {
-      this.oneAgentDimensions = oneAgentDimensions;
+    Builder setDynatraceMetadataDimensions(DimensionList dynatraceMetadataDimensions) {
+      this.dynatraceMetadataDimensions = dynatraceMetadataDimensions;
       return this;
     }
 
@@ -201,8 +201,8 @@ public final class Metric {
      * (Optional) Set the {@link DimensionList} to be serialized. Either a single list of dimensions
      * or a merged list obtained from {@link DimensionList#merge} can be passed. When called
      * multiple times, this will overwrite previously added dimensions. If the builder was created
-     * by the metric builder factory, default and OneAgent dimensions will be added to the passed
-     * dimensions without having to manually merge them first.
+     * by the metric builder factory, default and Dynatrace metadata dimensions will be added to the
+     * passed dimensions without having to manually merge them first.
      *
      * @param dimensions the {@link DimensionList} to be serialized
      * @return this
@@ -285,9 +285,11 @@ public final class Metric {
       // the metric line here.
       StringBuilder builder = new StringBuilder(normalizedKeyString);
 
-      // combine default dimensions, dynamic dimensions and OneAgent dimensions into one list.
+      // combine default dimensions, dynamic dimensions and Dynatrace metadata dimensions into one
+      // list.
       DimensionList allDimensions =
-          DimensionList.merge(this.defaultDimensions, this.dimensions, this.oneAgentDimensions);
+          DimensionList.merge(
+              this.defaultDimensions, this.dimensions, this.dynatraceMetadataDimensions);
       String dimensionsString = null;
       if (!allDimensions.isEmpty()) {
         dimensionsString = allDimensions.serialize();

@@ -55,13 +55,27 @@ public final class DimensionList {
   /**
    * Create a {@link DimensionList} from OneAgent metadata. The metadata is read automatically,
    * normalized, and stored in the resulting {@link DimensionList}. Use the returned list in a
-   * {@link #merge} function or a {@link MetricBuilderFactory}.
+   * {@link #merge} method or a {@link MetricBuilderFactory}.
    *
-   * @return A list of normalized OneAgent dimensions.
+   * <p>Forwarding to {@link DimensionList#fromDynatraceMetadata()}.
+   *
+   * @return The result of {@link DimensionList#fromDynatraceMetadata()}.
+   * @deprecated Use {@link DimensionList#fromDynatraceMetadata()} instead.
    */
+  @Deprecated
   public static DimensionList fromOneAgentMetadata() {
-    return DimensionList.fromCollection(
-        OneAgentMetadataEnricher.getDimensionsFromOneAgentMetadata());
+    return fromDynatraceMetadata();
+  }
+
+  /**
+   * Create a {@link DimensionList} from Dynatrace metadata. The metadata is read automatically,
+   * normalized, and stored in the resulting {@link DimensionList}. Use the returned list in a
+   * {@link #merge} method or a {@link MetricBuilderFactory}.
+   *
+   * @return A list of normalized Dynatrace metadata dimensions.
+   */
+  public static DimensionList fromDynatraceMetadata() {
+    return DimensionList.fromCollection(DynatraceMetadataEnricher.getDynatraceMetadata());
   }
 
   /**
