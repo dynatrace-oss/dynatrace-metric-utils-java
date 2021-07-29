@@ -14,11 +14,17 @@ It shows how to create metrics lines that can be sent to a [Dynatrace metrics in
 
 ### Metric line creation
 
+#### MetricBuilderFactory
+
 The standard workflow consists of creating a `MetricBuilderFactory` and using it to create `MetricBuilder` objects that can be serialized to a `String`.
-Upon creation of a `MetricBuilderFactory`, it is possible to set default dimensions, and a prefix that will be added to all metrics created by the factory.
-Furthermore, it is possible to enable Dynatrace metadata enrichment in this step.
-With this setting enabled, the library will connect to the Dynatrace OneAgent, if installed, and retrieve process and host identifiers that are added as dimensions on all metrics to correlate them accordingly.
-If running in a containerized environment with a Dynatrace operator present, additional metadata about the container environment will be added.
+
+The following options can be set on upon creation of a `MetricBuilderFactory`:
+
+* `withPrefix`: A prefix that is prepended to each metric key (separated by a `.`).
+* `withDefaultDimensions`: These dimensions willl be added to all metrics created by the factory (see [information on precedence](#dimension-precedence) below).
+* `withDynatraceMetadata`: With this setting enabled, the library will connect to the Dynatrace OneAgent, if installed, and retrieve process and host identifiers that are added as dimensions on all metrics to correlate them accordingly. More information on the underlying feature that is used by the library can be found in the
+[Dynatrace documentation](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/enrich-metrics/).
+If running in a containerized environment with a compatible Dynatrace operator present, additional metadata about the container environment will be added.
 
 ```java
 MetricBuilderFactory metricBuilderFactory =
