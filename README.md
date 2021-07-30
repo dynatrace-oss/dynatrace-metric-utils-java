@@ -21,10 +21,12 @@ The standard workflow consists of creating a `MetricBuilderFactory` and using it
 The following options can be set on upon creation of a `MetricBuilderFactory`:
 
 * `withPrefix`: A prefix that is prepended to each metric key (separated by a `.`).
-* `withDefaultDimensions`: These dimensions willl be added to all metrics created by the factory (see [information on precedence](#dimension-precedence) below).
-* `withDynatraceMetadata`: With this setting enabled, the library will connect to the Dynatrace OneAgent, if installed, and retrieve process and host identifiers that are added as dimensions on all metrics to correlate them accordingly. More information on the underlying feature that is used by the library can be found in the
-[Dynatrace documentation](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/enrich-metrics/).
-If running in a containerized environment with a compatible Dynatrace operator present, additional metadata about the container environment will be added.
+* `withDefaultDimensions`: These dimensions will be added to all metrics created by the factory (see [the section on dimension precedence](#dimension-precedence) below).
+* `withDynatraceMetadata`: With this setting enabled, the library will connect to the Dynatrace OneAgent, if installed,
+  and retrieve process and host identifiers that are added as dimensions on all metrics to correlate them accordingly.
+  More information on the underlying feature that is used by the library can be found in the
+  [Dynatrace documentation](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/enrich-metrics/).
+  If running in a containerized environment with a compatible Dynatrace operator present, additional metadata about the container environment will be added.
 
 ```java
 MetricBuilderFactory metricBuilderFactory =
@@ -52,7 +54,7 @@ metricBuilderFactory
 * `setPrefix`: sets a prefix that will be prepended to the metric key.
 * `setDimensions`:
   * When creating the `Metric.Builder` using the `MetricBuilderFactory`: sets the dimensions specific to this metric.
-    Default and metadata dimensions will be merged in (see [information on precedence](#dimension-precedence) below).
+    Default and metadata dimensions will be merged in (see [the section on dimension precedence](#dimension-precedence) below).
   * When using the `Metric.Builder` directly without the factory, either sets a single `DimensionList` on this method, or call `DimensionList.merge` on multiple lists before passing it.
     Merge will be called on the passed list in the serialize method, so if passing a single list it does not have to be de-duplicated.
 * `setLongCounterValueTotal` / `setDoubleCounterValueTotal`: sets a single value that is serialized as `count,<value>`.
