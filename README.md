@@ -43,7 +43,7 @@ To create metric lines from data points, use a pattern like the following:
 ```java
 metricBuilderFactory
     .newMetricBuilder("my_metric_key")  // the metric key is required.
-    .setLongCounterValue(123)           // metric key and value are the only required fields.
+    .setLongGaugeValue(123)             // metric key and value are the only required fields.
     .setDimensions(dimensions)          // set dynamic dimensions that are specific to the current metric.
     .setCurrentTime()                   // set the current time as timestamp for the data point.
     .serialize()                        // create a String from the information set above.
@@ -57,7 +57,6 @@ metricBuilderFactory
     Default and metadata dimensions will be merged in (see [the section on dimension precedence](#dimension-precedence) below).
   * When using the `Metric.Builder` directly without the factory, either sets a single `DimensionList` on this method, or call `DimensionList.merge` on multiple lists before passing it.
     Merge will be called on the passed list in the serialize method, so if passing a single list it does not have to be de-duplicated.
-* `setLongCounterValueTotal` / `setDoubleCounterValueTotal`: sets a single value that is serialized as `count,<value>`.
 * `setLongCounterValueDelta` / `setDoubleCounterValueDelta`: sets a single value that is serialized as `count,delta=<value>`.
 * `setLongGaugeValue` / `setDoubleGaugeValue`: sets a single value that is serialized as `gauge,<value>`.
 * `setLongSummaryValue` / `setDoubleSummaryValue`: sets min, max, sum and count values that are serialized as `gauge,min=<min>,max=<max>,sum=<sum>,count=<count>`.
