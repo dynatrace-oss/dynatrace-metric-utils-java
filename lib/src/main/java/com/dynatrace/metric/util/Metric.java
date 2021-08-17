@@ -82,9 +82,9 @@ public final class Metric {
      * @param value the value to be serialized. Only positive counter values are accepted.
      * @return this
      * @throws MetricException if a value has already been set on the metric.
-     * @deprecated Counters should be ingested to the Dynatrace API as deltas. Therefore, the
-     * total counter API will be removed in future versions. Use
-     * {@link #setDoubleCounterValueDelta} instead.
+     * @deprecated Counters should be ingested to the Dynatrace API as deltas. Therefore, the total
+     *     counter API will be removed in future versions. Use {@link #setDoubleCounterValueDelta}
+     *     instead.
      */
     @Deprecated
     public Builder setLongCounterValueTotal(long value) throws MetricException {
@@ -147,9 +147,9 @@ public final class Metric {
      * @param value the value to be serialized. Only positive counter values are accepted.
      * @return this
      * @throws MetricException if a value has already been set on the metric.
-     * @deprecated Counters should be ingested to the Dynatrace API as deltas. Therefore, the
-     * total counter API will be removed in future versions. Use
-     * {@link #setDoubleCounterValueDelta} instead.
+     * @deprecated Counters should be ingested to the Dynatrace API as deltas. Therefore, the total
+     *     counter API will be removed in future versions. Use {@link #setDoubleCounterValueDelta}
+     *     instead.
      */
     @Deprecated
     public Builder setDoubleCounterValueTotal(double value) throws MetricException {
