@@ -45,7 +45,7 @@ public class App {
           metricBuilderFactory
               .newMetricBuilder("metric1")
               .setDimensions(dimensions)
-              .setLongCounterValueTotal(123)
+              .setLongGaugeValue(123)
               .setCurrentTime()
               .serialize();
 
@@ -53,7 +53,7 @@ public class App {
           metricBuilderFactory
               .newMetricBuilder("metric2")
               .setDimensions(differentDimensions)
-              .setLongCounterValueTotal(321)
+              .setLongGaugeValue(321)
               .setCurrentTime()
               .serialize();
 
@@ -76,7 +76,7 @@ public class App {
               .setPrefix("prefix")
               .setDimensions(
                   DimensionList.merge(defaultDims, dimensions, dynatraceMetadataDimensions))
-              .setLongCounterValueTotal(123)
+              .setLongGaugeValue(123)
               .setCurrentTime()
               .serialize();
 
@@ -86,7 +86,7 @@ public class App {
               .setDimensions(
                   DimensionList.merge(
                       defaultDims, differentDimensions, dynatraceMetadataDimensions))
-              .setLongCounterValueTotal(321)
+              .setLongGaugeValue(321)
               .setCurrentTime()
               .serialize();
 
