@@ -48,7 +48,7 @@ class DynatraceFileBasedConfigurationProviderTest {
                 ("DT_METRICS_INGEST_URL = original_url\n" +
                         "DT_METRICS_INGEST_API_TOKEN = original_token").getBytes());
         // wait for the nonblocking io to finish writing.
-        Thread.sleep(1);
+        Thread.sleep(10);
         DynatraceFileBasedConfigurationProvider.setupSingleton(tempfile.toString());
         final DynatraceFileBasedConfigurationProvider instance = DynatraceFileBasedConfigurationProvider.getInstance();
 
@@ -59,7 +59,7 @@ class DynatraceFileBasedConfigurationProviderTest {
                 ("DT_METRICS_INGEST_URL = new_url\n" +
                         "DT_METRICS_INGEST_API_TOKEN = new_token").getBytes());
         // wait for nonblocking IO
-        Thread.sleep(1);
+        Thread.sleep(10);
 
         assertEquals("new_url", instance.getEndpoint());
         assertEquals("new_token", instance.getToken());

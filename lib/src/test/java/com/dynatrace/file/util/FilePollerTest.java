@@ -38,7 +38,7 @@ class FilePollerTest {
 
         Files.write(tempFile, "test file content".getBytes());
         // wait for non-blocking IO
-        Thread.sleep(1);
+        Thread.sleep(10);
 
         assertTrue(poller.fileContentsUpdated());
         assertFalse(poller.fileContentsUpdated());
@@ -59,7 +59,7 @@ class FilePollerTest {
         // move the second file into position.
         Files.move(tempFile2, tempFile1, REPLACE_EXISTING);
         // wait for non-blocking io to be finished.
-        Thread.sleep(1);
+        Thread.sleep(10);
 
         assertTrue(poller.fileContentsUpdated());
         assertFalse(poller.fileContentsUpdated());
@@ -77,7 +77,7 @@ class FilePollerTest {
 
         Files.copy(tempFile2, tempFile1, REPLACE_EXISTING);
         // wait for non-blocking io
-        Thread.sleep(1);
+        Thread.sleep(10);
 
         assertTrue(poller.fileContentsUpdated());
         assertFalse(poller.fileContentsUpdated());
