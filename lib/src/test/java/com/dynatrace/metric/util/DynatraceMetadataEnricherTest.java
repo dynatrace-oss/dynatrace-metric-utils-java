@@ -13,33 +13,22 @@
  */
 package com.dynatrace.metric.util;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-public class DynatraceMetadataEnricherTest {
-  private static String generateNonExistentFilename() {
-    File f;
-    Random r = new Random();
-    // generate random filenames until we find one that does not exist:
-    do {
-      byte[] array = new byte[7];
-      r.nextBytes(array);
-      String filename =
-          "src/test/resources/" + new String(array, StandardCharsets.UTF_8) + ".properties";
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-      f = new File(filename);
-    } while (f.exists());
-    return f.getAbsolutePath();
-  }
+import static com.dynatrace.testutils.TestUtils.generateNonExistentFilename;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class DynatraceMetadataEnricherTest {
 
   @Test
   public void validMetrics() {
