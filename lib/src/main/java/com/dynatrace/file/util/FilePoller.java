@@ -70,7 +70,7 @@ class FilePoller {
         watchKey.reset();
         return watchEvents;
     }
-    
+
     public String getWatchedFilePath() {
         return absoluteFilename.toString();
     }

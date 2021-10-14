@@ -44,9 +44,9 @@ class DynatraceFileBasedConfigurationProviderTest {
     @Test
     void testConfigIsUpdatedIfFileChanges() throws IOException, InterruptedException {
         final Path tempfile = Files.createTempFile("tempfile", ".properties");
-        Files.writeString(tempfile,
-                "DT_METRICS_INGEST_URL = original_url\n" +
-                        "DT_METRICS_INGEST_API_TOKEN = original_token");
+        Files.write(tempfile,
+                ("DT_METRICS_INGEST_URL = original_url\n" +
+                        "DT_METRICS_INGEST_API_TOKEN = original_token").getBytes());
         // wait for the nonblocking io to finish writing.
         Thread.sleep(1);
         DynatraceFileBasedConfigurationProvider.setupSingleton(tempfile.toString());
@@ -55,9 +55,9 @@ class DynatraceFileBasedConfigurationProviderTest {
         assertEquals("original_url", instance.getEndpoint());
         assertEquals("original_token", instance.getToken());
 
-        Files.writeString(tempfile,
-                "DT_METRICS_INGEST_URL = new_url\n" +
-                        "DT_METRICS_INGEST_API_TOKEN = new_token");
+        Files.write(tempfile,
+                ("DT_METRICS_INGEST_URL = new_url\n" +
+                        "DT_METRICS_INGEST_API_TOKEN = new_token").getBytes());
         // wait for nonblocking IO
         Thread.sleep(1);
 

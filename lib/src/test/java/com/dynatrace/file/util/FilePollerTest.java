@@ -36,7 +36,7 @@ class FilePollerTest {
         final FilePoller poller = new FilePoller(tempFile.toString());
         assertFalse(poller.fileContentsUpdated());
 
-        Files.writeString(tempFile, "test file content");
+        Files.write(tempFile, "test file content".getBytes());
         // wait for non-blocking IO
         Thread.sleep(1);
 
@@ -51,7 +51,7 @@ class FilePollerTest {
 
         final FilePoller poller = new FilePoller(tempFile1.toString());
         // set up the second file
-        Files.writeString(tempFile2, "test file content for tempFile2");
+        Files.write(tempFile2, "test file content for tempFile2".getBytes());
 
         // no changes to the first file yet
         assertFalse(poller.fileContentsUpdated());
@@ -71,7 +71,7 @@ class FilePollerTest {
         final Path tempFile2 = Files.createTempFile("tempfile", ".txt");
 
         final FilePoller poller = new FilePoller(tempFile1.toString());
-        Files.writeString(tempFile2, "test file content for tempFile2");
+        Files.write(tempFile2, "test file content for tempFile2".getBytes());
 
         assertFalse(poller.fileContentsUpdated());
 
