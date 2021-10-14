@@ -13,9 +13,8 @@
  */
 package com.dynatrace.metric.util;
 
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
+import static com.dynatrace.testutils.TestUtils.generateNonExistentFilename;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -24,9 +23,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static com.dynatrace.testutils.TestUtils.generateNonExistentFilename;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 public class DynatraceMetadataEnricherTest {
 

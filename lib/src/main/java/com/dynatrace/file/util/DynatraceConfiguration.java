@@ -3,22 +3,22 @@ package com.dynatrace.file.util;
 import com.dynatrace.metric.util.DynatraceMetricApiConstants;
 
 class DynatraceConfiguration {
-    private String endpoint = DynatraceMetricApiConstants.getDefaultOneAgentEndpoint();
-    private String token = "";
+  private String endpoint = DynatraceMetricApiConstants.getDefaultOneAgentEndpoint();
+  private String token = "";
 
-    public String getToken() {
-        return token;
-    }
+  public String getToken() {
+    return token;
+  }
 
-    void setToken(String token) {
-        this.token = token;
-    }
+  void setToken(String token) {
+    this.token = token;
+  }
 
-    public String getEndpoint() {
-        return endpoint;
-    }
+  public String getEndpoint() {
+    return endpoint;
+  }
 
-    void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-    }
+  void setEndpoint(String endpoint) {
+    this.endpoint = endpoint;
+  }
 }
