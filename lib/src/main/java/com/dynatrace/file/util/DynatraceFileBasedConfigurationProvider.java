@@ -42,9 +42,9 @@ public class DynatraceFileBasedConfigurationProvider {
                 logger.warning(String.format("WatchService could not be initialized: %s",
                         e.getMessage()));
             }
-            // try to read from file
         }
         filePoller = poller;
+        // try to read from file
         updateConfigFromFile(fileName);
     }
 
