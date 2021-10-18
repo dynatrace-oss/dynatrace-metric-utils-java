@@ -92,11 +92,11 @@ public class DynatraceFileBasedConfigurationProvider {
     final String newToken = props.getProperty("DT_METRICS_INGEST_API_TOKEN");
     if (newToken == null) {
       logger.warning("Could not read property with key 'DT_METRICS_INGEST_API_TOKEN'.");
-    } else {
-      if (!newToken.equals(config.getToken())) {
-        logger.info("API Token refreshed.");
-        return newToken;
-      }
+      return null;
+    }
+    if (!newToken.equals(config.getToken())) {
+      logger.info("API Token refreshed.");
+      return newToken;
     }
     return null;
   }
@@ -111,11 +111,11 @@ public class DynatraceFileBasedConfigurationProvider {
     final String newEndpoint = props.getProperty("DT_METRICS_INGEST_URL");
     if (newEndpoint == null) {
       logger.fine("Could not read property with key 'DT_METRICS_INGEST_URL'.");
-    } else {
-      if (!newEndpoint.equals(config.getEndpoint())) {
-        logger.info(String.format("Read new endpoint: %s", newEndpoint));
-        return newEndpoint;
-      }
+      return null;
+    }
+    if (!newEndpoint.equals(config.getEndpoint())) {
+      logger.info(String.format("Read new endpoint: %s", newEndpoint));
+      return newEndpoint;
     }
     return null;
   }
