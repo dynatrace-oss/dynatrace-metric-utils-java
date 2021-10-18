@@ -6,16 +6,14 @@ on:
   pull_request:
 
 jobs:
-  build:
-
+  build-ubuntu:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        java-version: [ 8, 11, 15 ]
+        java-version: [ 8, 11, 17 ]
       fail-fast: false
 
-    name: Java ${{ matrix.java-version }}
+    name: Java ${{ matrix.java-version }} on ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -40,3 +38,21 @@ jobs:
         with:
           name: unit-tests-results (JDK ${{ matrix.java-version }})
           path: lib/build/reports/tests/test/
+
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        java-version: [ 8, 11, 17 ]
+      fail-fast: false
+
+    name: Java ${{ matrix.java-version }} on windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Test
+        run: .\gradlew check
