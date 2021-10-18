@@ -23,7 +23,7 @@ class FilePoller {
     }
 
     if (Files.isDirectory(path)) {
-      throw new IllegalArgumentException(path.toString() + " is a directory, a file is required.");
+      throw new IllegalArgumentException(path.toString() + " is a directory, a file is expected.");
     }
 
     this.folder = folder;

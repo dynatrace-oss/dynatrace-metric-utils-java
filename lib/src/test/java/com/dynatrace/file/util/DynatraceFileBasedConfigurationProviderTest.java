@@ -10,12 +10,14 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 class DynatraceFileBasedConfigurationProviderTest {
+  // We rely on the fact that JUnit runs tests in series, not parallel.
+
   @Test
   void testNonExistentFileReturnsDefaults() {
-    // this method is only used in testing
-    DynatraceFileBasedConfigurationProvider.setupSingleton(TestUtils.generateNonExistentFilename());
     final DynatraceFileBasedConfigurationProvider instance =
         DynatraceFileBasedConfigurationProvider.getInstance();
+    // Set up test
+    instance.forceOverwriteConfig(TestUtils.generateNonExistentFilename());
 
     assertEquals(DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(), instance.getEndpoint());
     assertEquals("", instance.getToken());
@@ -23,10 +25,10 @@ class DynatraceFileBasedConfigurationProviderTest {
 
   @Test
   void testFileExistsButDoesNotContainRequiredProps_shouldReturnDefault() {
-    DynatraceFileBasedConfigurationProvider.setupSingleton(
-        "src/test/resources/config_invalid.properties");
     final DynatraceFileBasedConfigurationProvider instance =
         DynatraceFileBasedConfigurationProvider.getInstance();
+    // Set up test
+    instance.forceOverwriteConfig("src/test/resources/config_invalid.properties");
 
     assertEquals(DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(), instance.getEndpoint());
     assertEquals("", instance.getToken());
@@ -34,10 +36,10 @@ class DynatraceFileBasedConfigurationProviderTest {
 
   @Test
   void testFileExistsAndContainsValidProps() {
-    DynatraceFileBasedConfigurationProvider.setupSingleton(
-        "src/test/resources/config_valid.properties");
     final DynatraceFileBasedConfigurationProvider instance =
         DynatraceFileBasedConfigurationProvider.getInstance();
+    // Set up test
+    instance.forceOverwriteConfig("src/test/resources/config_valid.properties");
 
     assertEquals("https://your-dynatrace-ingest-url/api/v2/metrics/ingest", instance.getEndpoint());
     assertEquals("YOUR.DYNATRACE.TOKEN", instance.getToken());
@@ -52,9 +54,11 @@ class DynatraceFileBasedConfigurationProviderTest {
             .getBytes());
     // wait for the nonblocking io to finish writing.
     Thread.sleep(10);
-    DynatraceFileBasedConfigurationProvider.setupSingleton(tempfile.toString());
+
     final DynatraceFileBasedConfigurationProvider instance =
         DynatraceFileBasedConfigurationProvider.getInstance();
+    // Set up test
+    instance.forceOverwriteConfig(tempfile.toString());
 
     assertEquals("original_url", instance.getEndpoint());
     assertEquals("original_token", instance.getToken());
