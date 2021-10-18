@@ -41,7 +41,8 @@ public class DynatraceFileBasedConfigurationProvider {
         try {
           poller = new FilePoller(fileName);
         } catch (IOException | IllegalArgumentException e) {
-          logger.warning(String.format("WatchService could not be initialized: %s", e.getMessage()));
+          logger.warning(
+              String.format("WatchService could not be initialized: %s", e.getMessage()));
         }
       }
     } catch (InvalidPathException e) {
