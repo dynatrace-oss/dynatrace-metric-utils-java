@@ -1,8 +1,8 @@
 package com.dynatrace.testutils;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.Random;
+import java.util.UUID;
 
 public class TestUtils {
   public static String generateNonExistentFilename() {
@@ -10,10 +10,8 @@ public class TestUtils {
     Random r = new Random();
     // generate random filenames until we find one that does not exist:
     do {
-      byte[] array = new byte[7];
-      r.nextBytes(array);
       String filename =
-          "src/test/resources/" + new String(array, StandardCharsets.UTF_8) + ".properties";
+          "src/test/resources/" + UUID.randomUUID() + ".properties";
 
       f = new File(filename);
     } while (f.exists());
