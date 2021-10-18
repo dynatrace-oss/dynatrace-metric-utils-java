@@ -2,6 +2,7 @@ package com.dynatrace.file.util;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -33,14 +34,18 @@ public class DynatraceFileBasedConfigurationProvider {
   public DynatraceFileBasedConfigurationProvider(String fileName) {
     config = new DynatraceConfiguration();
     FilePoller poller = null;
-    if (!Files.exists(Paths.get(fileName))) {
-      logger.warning("File based configuration does not exist, serving default config.");
-    } else {
-      try {
-        poller = new FilePoller(fileName);
-      } catch (IOException | IllegalArgumentException e) {
-        logger.warning(String.format("WatchService could not be initialized: %s", e.getMessage()));
+    try {
+      if (!Files.exists(Paths.get(fileName))) {
+        logger.warning("File based configuration does not exist, serving default config.");
+      } else {
+        try {
+          poller = new FilePoller(fileName);
+        } catch (IOException | IllegalArgumentException e) {
+          logger.warning(String.format("WatchService could not be initialized: %s", e.getMessage()));
+        }
       }
+    } catch (InvalidPathException e) {
+      logger.warning(String.format("%s is not a valid file path (%s).", fileName, e.getMessage()));
     }
     filePoller = poller;
     // try to read from file
