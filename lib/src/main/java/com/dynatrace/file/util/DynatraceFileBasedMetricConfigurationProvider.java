@@ -41,9 +41,11 @@ public class DynatraceFileBasedMetricConfigurationProvider {
         poller = new FilePoller(fileName);
       }
     } catch (InvalidPathException e) {
-      logger.warning(() -> String.format("%s is not a valid file path (%s).", fileName, e.getMessage()));
+      logger.warning(
+          () -> String.format("%s is not a valid file path (%s).", fileName, e.getMessage()));
     } catch (IOException | IllegalArgumentException e) {
-      logger.warning(() -> String.format("WatchService could not be initialized: %s", e.getMessage()));
+      logger.warning(
+          () -> String.format("WatchService could not be initialized: %s", e.getMessage()));
     }
     filePoller = poller;
     // try to read from file

@@ -19,7 +19,9 @@ class DynatraceFileBasedMetricConfigurationProviderTest {
     // Set up test
     instance.forceOverwriteConfig(TestUtils.generateNonExistentFilename());
 
-    assertEquals(DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(), instance.getMetricIngestEndpoint());
+    assertEquals(
+        DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(),
+        instance.getMetricIngestEndpoint());
     assertEquals("", instance.getMetricIngestToken());
   }
 
@@ -30,7 +32,9 @@ class DynatraceFileBasedMetricConfigurationProviderTest {
     // Set up test
     instance.forceOverwriteConfig("src/test/resources/config_invalid.properties");
 
-    assertEquals(DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(), instance.getMetricIngestEndpoint());
+    assertEquals(
+        DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(),
+        instance.getMetricIngestEndpoint());
     assertEquals("", instance.getMetricIngestToken());
   }
 
@@ -41,7 +45,9 @@ class DynatraceFileBasedMetricConfigurationProviderTest {
     // Set up test
     instance.forceOverwriteConfig("src/test/resources/config_valid.properties");
 
-    assertEquals("https://your-dynatrace-ingest-url/api/v2/metrics/ingest", instance.getMetricIngestEndpoint());
+    assertEquals(
+        "https://your-dynatrace-ingest-url/api/v2/metrics/ingest",
+        instance.getMetricIngestEndpoint());
     assertEquals("YOUR.DYNATRACE.TOKEN", instance.getMetricIngestToken());
   }
 
