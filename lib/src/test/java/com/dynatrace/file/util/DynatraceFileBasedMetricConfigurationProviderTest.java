@@ -9,40 +9,40 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
-class DynatraceFileBasedConfigurationProviderTest {
+class DynatraceFileBasedMetricConfigurationProviderTest {
   // We rely on the fact that JUnit runs tests in series, not parallel.
 
   @Test
   void testNonExistentFileReturnsDefaults() {
-    final DynatraceFileBasedConfigurationProvider instance =
-        DynatraceFileBasedConfigurationProvider.getInstance();
+    final DynatraceFileBasedMetricConfigurationProvider instance =
+        DynatraceFileBasedMetricConfigurationProvider.getInstance();
     // Set up test
     instance.forceOverwriteConfig(TestUtils.generateNonExistentFilename());
 
-    assertEquals(DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(), instance.getEndpoint());
-    assertEquals("", instance.getToken());
+    assertEquals(DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(), instance.getMetricIngestEndpoint());
+    assertEquals("", instance.getMetricIngestToken());
   }
 
   @Test
   void testFileExistsButDoesNotContainRequiredProps_shouldReturnDefault() {
-    final DynatraceFileBasedConfigurationProvider instance =
-        DynatraceFileBasedConfigurationProvider.getInstance();
+    final DynatraceFileBasedMetricConfigurationProvider instance =
+        DynatraceFileBasedMetricConfigurationProvider.getInstance();
     // Set up test
     instance.forceOverwriteConfig("src/test/resources/config_invalid.properties");
 
-    assertEquals(DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(), instance.getEndpoint());
-    assertEquals("", instance.getToken());
+    assertEquals(DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(), instance.getMetricIngestEndpoint());
+    assertEquals("", instance.getMetricIngestToken());
   }
 
   @Test
   void testFileExistsAndContainsValidProps() {
-    final DynatraceFileBasedConfigurationProvider instance =
-        DynatraceFileBasedConfigurationProvider.getInstance();
+    final DynatraceFileBasedMetricConfigurationProvider instance =
+        DynatraceFileBasedMetricConfigurationProvider.getInstance();
     // Set up test
     instance.forceOverwriteConfig("src/test/resources/config_valid.properties");
 
-    assertEquals("https://your-dynatrace-ingest-url/api/v2/metrics/ingest", instance.getEndpoint());
-    assertEquals("YOUR.DYNATRACE.TOKEN", instance.getToken());
+    assertEquals("https://your-dynatrace-ingest-url/api/v2/metrics/ingest", instance.getMetricIngestEndpoint());
+    assertEquals("YOUR.DYNATRACE.TOKEN", instance.getMetricIngestToken());
   }
 
   @Test
@@ -55,13 +55,13 @@ class DynatraceFileBasedConfigurationProviderTest {
     // wait for the nonblocking io to finish writing.
     Thread.sleep(10);
 
-    final DynatraceFileBasedConfigurationProvider instance =
-        DynatraceFileBasedConfigurationProvider.getInstance();
+    final DynatraceFileBasedMetricConfigurationProvider instance =
+        DynatraceFileBasedMetricConfigurationProvider.getInstance();
     // Set up test
     instance.forceOverwriteConfig(tempfile.toString());
 
-    assertEquals("original_url", instance.getEndpoint());
-    assertEquals("original_token", instance.getToken());
+    assertEquals("original_url", instance.getMetricIngestEndpoint());
+    assertEquals("original_token", instance.getMetricIngestToken());
 
     Files.write(
         tempfile,
@@ -70,7 +70,7 @@ class DynatraceFileBasedConfigurationProviderTest {
     // wait for nonblocking IO
     Thread.sleep(10);
 
-    assertEquals("new_url", instance.getEndpoint());
-    assertEquals("new_token", instance.getToken());
+    assertEquals("new_url", instance.getMetricIngestEndpoint());
+    assertEquals("new_token", instance.getMetricIngestToken());
   }
 }

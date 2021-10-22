@@ -7,32 +7,32 @@ import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-public class DynatraceFileBasedConfigurationProvider {
+public class DynatraceFileBasedMetricConfigurationProvider {
   // Lazy loading singleton instance.
   private static class ProviderHolder {
-    private static final DynatraceFileBasedConfigurationProvider INSTANCE =
-        new DynatraceFileBasedConfigurationProvider(PROPERTIES_FILENAME);
+    private static final DynatraceFileBasedMetricConfigurationProvider INSTANCE =
+        new DynatraceFileBasedMetricConfigurationProvider(PROPERTIES_FILENAME);
   }
 
-  private DynatraceFileBasedConfigurationProvider(String fileName) {
+  private DynatraceFileBasedMetricConfigurationProvider(String fileName) {
     setUp(fileName);
   }
 
   private static final Logger logger =
-      Logger.getLogger(DynatraceFileBasedConfigurationProvider.class.getName());
+      Logger.getLogger(DynatraceFileBasedMetricConfigurationProvider.class.getName());
 
   private static final String PROPERTIES_FILENAME =
       "/var/lib/dynatrace/enrichment/endpoint/endpoint.properties";
 
   private FilePoller filePoller;
-  private DynatraceConfiguration config;
+  private DynatraceMetricsConfiguration config;
 
-  public static DynatraceFileBasedConfigurationProvider getInstance() {
+  public static DynatraceFileBasedMetricConfigurationProvider getInstance() {
     return ProviderHolder.INSTANCE;
   }
 
   private void setUp(String fileName) {
-    config = new DynatraceConfiguration();
+    config = new DynatraceMetricsConfiguration();
     FilePoller poller = null;
     try {
       if (!Files.exists(Paths.get(fileName))) {
@@ -41,9 +41,9 @@ public class DynatraceFileBasedConfigurationProvider {
         poller = new FilePoller(fileName);
       }
     } catch (InvalidPathException e) {
-      logger.warning(String.format("%s is not a valid file path (%s).", fileName, e.getMessage()));
+      logger.warning(() -> String.format("%s is not a valid file path (%s).", fileName, e.getMessage()));
     } catch (IOException | IllegalArgumentException e) {
-      logger.warning(String.format("WatchService could not be initialized: %s", e.getMessage()));
+      logger.warning(() -> String.format("WatchService could not be initialized: %s", e.getMessage()));
     }
     filePoller = poller;
     // try to read from file
@@ -68,14 +68,14 @@ public class DynatraceFileBasedConfigurationProvider {
       Properties props = new Properties();
       props.load(inputStream);
 
-      final String newEndpoint = tryGetEndpoint(props);
+      final String newEndpoint = tryGetMetricsEndpoint(props);
       if (newEndpoint != null) {
-        config.setEndpoint(newEndpoint);
+        config.setMetricIngestEndpoint(newEndpoint);
       }
 
       final String newToken = tryGetToken(props);
       if (newToken != null) {
-        config.setToken(newToken);
+        config.setMetricIngestToken(newToken);
       }
 
     } catch (IOException e) {
@@ -94,7 +94,7 @@ public class DynatraceFileBasedConfigurationProvider {
       logger.warning("Could not read property with key 'DT_METRICS_INGEST_API_TOKEN'.");
       return null;
     }
-    if (!newToken.equals(config.getToken())) {
+    if (!newToken.equals(config.getMetricIngestToken())) {
       logger.info("API Token refreshed.");
       return newToken;
     }
@@ -107,14 +107,14 @@ public class DynatraceFileBasedConfigurationProvider {
    * @return The new endpoint if it is available and different to the previous one, and null
    *     otherwise.
    */
-  private String tryGetEndpoint(Properties props) {
+  private String tryGetMetricsEndpoint(Properties props) {
     final String newEndpoint = props.getProperty("DT_METRICS_INGEST_URL");
     if (newEndpoint == null) {
       logger.fine("Could not read property with key 'DT_METRICS_INGEST_URL'.");
       return null;
     }
-    if (!newEndpoint.equals(config.getEndpoint())) {
-      logger.info(String.format("Read new endpoint: %s", newEndpoint));
+    if (!newEndpoint.equals(config.getMetricIngestEndpoint())) {
+      logger.info(() -> String.format("Read new endpoint: %s", newEndpoint));
       return newEndpoint;
     }
     return null;
@@ -126,13 +126,13 @@ public class DynatraceFileBasedConfigurationProvider {
     }
   }
 
-  public String getEndpoint() {
+  public String getMetricIngestEndpoint() {
     updateConfigIfChanged();
-    return config.getEndpoint();
+    return config.getMetricIngestEndpoint();
   }
 
-  public String getToken() {
+  public String getMetricIngestToken() {
     updateConfigIfChanged();
-    return config.getToken();
+    return config.getMetricIngestToken();
   }
 }
