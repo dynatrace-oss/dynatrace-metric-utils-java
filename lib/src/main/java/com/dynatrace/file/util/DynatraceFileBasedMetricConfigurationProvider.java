@@ -41,7 +41,8 @@ public class DynatraceFileBasedMetricConfigurationProvider {
         poller = new FilePoller(fileName);
       }
     } catch (InvalidPathException e) {
-      logger.warning(
+      // This happens on windows, when the linux filepath is not valid.
+      logger.info(
           () -> String.format("%s is not a valid file path (%s).", fileName, e.getMessage()));
     } catch (IOException | IllegalArgumentException e) {
       logger.warning(
@@ -62,7 +63,7 @@ public class DynatraceFileBasedMetricConfigurationProvider {
   private void updateConfigFromFile(String fileName) {
     if (filePoller == null) {
       // nothing to do, as no watch service is set up.
-      logger.finest("Config is up to date.");
+      logger.finest("No file watch set up, serving default values.");
       return;
     }
     // read the properties from the file
