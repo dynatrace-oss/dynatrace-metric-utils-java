@@ -46,7 +46,7 @@ final class Normalize {
 
   // Dimension values (dv)
   // Characters that need to be escaped in dimension values
-  private static final Pattern re_dv_charactersToEscape = Pattern.compile("([= ,\\\\])");
+  private static final Pattern re_dv_charactersToEscape = Pattern.compile("([= ,\\\\/])");
   private static final Pattern re_dv_controlCharacters = Pattern.compile("[\\p{C}]+");
 
   // This regex checks if there is an odd number of trailing backslashes in the string. It can be
