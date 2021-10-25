@@ -19,7 +19,7 @@ jobs:
         os: [ 
           ubuntu-latest,
           windows-latest,
-          ]
+        ]
     
     name: Java ${{ matrix.java-version }} on ${{ matrix.os }}
 
@@ -37,12 +37,6 @@ jobs:
       - name: Test
         run: ./gradlew check
 
-      - name: Upload unit test results
-        uses: actions/upload-artifact@v2
-        with:
-            name: unit-tests-results (JDK ${{ matrix.java-version }} on ${{ matrix.os }})
-            path: lib/build/reports/tests/test/
-
       - name: Upload JAR
         # only run this action on ubuntu, since the jar should be the same
         # for Windows and Linux, and therefore needs not be uploaded twice.
@@ -52,3 +46,9 @@ jobs:
           name: jar (JDK ${{ matrix.java-version }})
           path: lib/build/libs/*.jar
           if-no-files-found: error
+
+      - name: Upload unit test results
+        uses: actions/upload-artifact@v2
+        with:
+            name: unit-tests-results (JDK ${{ matrix.java-version }} on ${{ matrix.os }})
+            path: lib/build/reports/tests/test/
