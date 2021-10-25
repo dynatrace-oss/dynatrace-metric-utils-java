@@ -23,24 +23,35 @@ jobs:
       with:
         java-version: ${{ matrix.java-version }}
 
-    - name: Test if only on certain OS works
-      run: |
-            if [ "$RUNNER_OS" == "Linux" ]; then
-              echo "Running on Linux"
-            elif [ "$RUNNER_OS" == "Windows" ]; then
-              echo "Running on Windows"
-            else
-              echo "$RUNNER_OS not supported."
-            fi
-      shell: bash
-
-      
     - name: Compile
       run: ./gradlew assemble
     - name: Test
       run: ./gradlew check
 
+    - name: Upload unit test results
+      uses: actions/upload-artifact@v2
+      with:
+          name: unit-tests-results (JDK ${{ matrix.java-version }} on ${{ matrix.os }})
+          path: lib/build/reports/tests/test/
 
+    - name: Upload JAR
+      if: ${{ matrix.os == "ubuntu-latest" }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: jar (JDK ${{ matrix.java-version }})
+        path: lib/build/libs/*.jar
+        if-no-files-found: error
+
+    # - name: Test if only on certain OS works
+    #   run: |
+    #         if [ "$RUNNER_OS" == "Linux" ]; then
+    #           echo "Running on Linux"
+    #         elif [ "$RUNNER_OS" == "Windows" ]; then
+    #           echo "Running on Windows"
+    #         else
+    #           echo "$RUNNER_OS not supported."
+    #         fi
+    #   shell: bash
   # build-ubuntu:
   #   runs-on: ubuntu-latest
   #   strategy:
