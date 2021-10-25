@@ -18,6 +18,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up JDK ${{ matrix.java-version }}
       uses: actions/setup-java@v1
       with:
@@ -25,6 +26,7 @@ jobs:
 
     - name: Compile
       run: ./gradlew assemble
+
     - name: Test
       run: ./gradlew check
 
@@ -35,6 +37,8 @@ jobs:
           path: lib/build/reports/tests/test/
 
     - name: Upload JAR
+    # only run this action on ubuntu, since the jar should be the same ]
+    # for Windows and Linux, and therefore needs not be uploaded twice.
       if: ${{ matrix.os == 'ubuntu-latest' }}
       uses: actions/upload-artifact@v2
       with:
