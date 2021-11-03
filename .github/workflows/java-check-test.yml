@@ -7,36 +7,48 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
+    runs-on: ${{ matrix.os }}
     strategy:
-      matrix:
-        java-version: [ 8, 11, 15 ]
       fail-fast: false
-
-    name: Java ${{ matrix.java-version }}
+      matrix:
+        java-version: [ 
+          8,
+          11,
+          15,
+        ]
+        os: [ 
+          ubuntu-latest,
+          windows-latest,
+        ]
+    
+    name: Java ${{ matrix.java-version }} on ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+
       - name: Compile
         run: ./gradlew assemble
+
       - name: Test
         run: ./gradlew check
+
       - name: Upload JAR
+        # only run this action on ubuntu, since the jar should be the same
+        # for Windows and Linux, and therefore needs not be uploaded twice.
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: actions/upload-artifact@v2
         with:
           name: jar (JDK ${{ matrix.java-version }})
           path: lib/build/libs/*.jar
           if-no-files-found: error
+
       - name: Upload unit test results
         uses: actions/upload-artifact@v2
         with:
-          name: unit-tests-results (JDK ${{ matrix.java-version }})
+          name: unit-tests-results (JDK ${{ matrix.java-version }} on ${{ matrix.os }})
           path: lib/build/reports/tests/test/
