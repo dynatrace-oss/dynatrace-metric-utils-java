@@ -14,6 +14,9 @@ public class DynatraceFileBasedConfigurationProvider {
         new DynatraceFileBasedConfigurationProvider(PROPERTIES_FILENAME);
   }
 
+  // this is used so on the initial read no logs will be printed
+  private boolean alreadyInitialized = false;
+
   private DynatraceFileBasedConfigurationProvider(String fileName) {
     setUp(fileName);
   }
@@ -32,6 +35,7 @@ public class DynatraceFileBasedConfigurationProvider {
   }
 
   private void setUp(String fileName) {
+    alreadyInitialized = false;
     config = new DynatraceConfiguration();
     FilePoller poller = null;
     try {
@@ -81,6 +85,7 @@ public class DynatraceFileBasedConfigurationProvider {
         config.setMetricIngestToken(newToken);
       }
 
+      alreadyInitialized = true;
     } catch (IOException e) {
       logger.info("Failed reading properties from file.");
     }
@@ -98,7 +103,9 @@ public class DynatraceFileBasedConfigurationProvider {
       return null;
     }
     if (!newToken.equals(config.getMetricIngestToken())) {
-      logger.info("API Token refreshed.");
+      if (alreadyInitialized) {
+        logger.info("API Token refreshed.");
+      }
       return newToken;
     }
     return null;
@@ -117,7 +124,9 @@ public class DynatraceFileBasedConfigurationProvider {
       return null;
     }
     if (!newEndpoint.equals(config.getMetricIngestEndpoint())) {
-      logger.info(() -> String.format("Read new endpoint: %s", newEndpoint));
+      if (alreadyInitialized) {
+        logger.info(() -> String.format("Read new endpoint: %s", newEndpoint));
+      }
       return newEndpoint;
     }
     return null;
