@@ -2,7 +2,7 @@ package com.dynatrace.file.util;
 
 import com.dynatrace.metric.util.DynatraceMetricApiConstants;
 
-class DynatraceMetricsConfiguration {
+class DynatraceConfiguration {
   private String metricIngestEndpoint = DynatraceMetricApiConstants.getDefaultOneAgentEndpoint();
   private String metricIngestToken = "";
 

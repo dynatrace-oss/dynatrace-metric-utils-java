@@ -9,13 +9,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
-class DynatraceFileBasedMetricConfigurationProviderTest {
+class DynatraceFileBasedConfigurationProviderTest {
   // We rely on the fact that JUnit runs tests in series, not parallel.
 
   @Test
   void testNonExistentFileReturnsDefaults() {
-    final DynatraceFileBasedMetricConfigurationProvider instance =
-        DynatraceFileBasedMetricConfigurationProvider.getInstance();
+    final DynatraceFileBasedConfigurationProvider instance =
+        DynatraceFileBasedConfigurationProvider.getInstance();
     // Set up test
     instance.forceOverwriteConfig(TestUtils.generateNonExistentFilename());
 
@@ -27,8 +27,8 @@ class DynatraceFileBasedMetricConfigurationProviderTest {
 
   @Test
   void testFileExistsButDoesNotContainRequiredProps_shouldReturnDefault() {
-    final DynatraceFileBasedMetricConfigurationProvider instance =
-        DynatraceFileBasedMetricConfigurationProvider.getInstance();
+    final DynatraceFileBasedConfigurationProvider instance =
+        DynatraceFileBasedConfigurationProvider.getInstance();
     // Set up test
     instance.forceOverwriteConfig("src/test/resources/config_invalid.properties");
 
@@ -40,8 +40,8 @@ class DynatraceFileBasedMetricConfigurationProviderTest {
 
   @Test
   void testFileExistsAndContainsValidProps() {
-    final DynatraceFileBasedMetricConfigurationProvider instance =
-        DynatraceFileBasedMetricConfigurationProvider.getInstance();
+    final DynatraceFileBasedConfigurationProvider instance =
+        DynatraceFileBasedConfigurationProvider.getInstance();
     // Set up test
     instance.forceOverwriteConfig("src/test/resources/config_valid.properties");
 
@@ -61,8 +61,8 @@ class DynatraceFileBasedMetricConfigurationProviderTest {
     // wait for the nonblocking io to finish writing.
     Thread.sleep(10);
 
-    final DynatraceFileBasedMetricConfigurationProvider instance =
-        DynatraceFileBasedMetricConfigurationProvider.getInstance();
+    final DynatraceFileBasedConfigurationProvider instance =
+        DynatraceFileBasedConfigurationProvider.getInstance();
     // Set up test
     instance.forceOverwriteConfig(tempfile.toString());
 
