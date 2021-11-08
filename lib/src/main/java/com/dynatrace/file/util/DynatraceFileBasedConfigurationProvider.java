@@ -14,7 +14,7 @@ public class DynatraceFileBasedConfigurationProvider {
         new DynatraceFileBasedConfigurationProvider(PROPERTIES_FILENAME);
   }
 
-  // this is used so on the initial read no logs will be printed
+  // avoid printing logs on the initial read
   private boolean alreadyInitialized = false;
 
   private DynatraceFileBasedConfigurationProvider(String fileName) {
