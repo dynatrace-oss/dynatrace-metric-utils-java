@@ -13,6 +13,7 @@
  */
 package com.dynatrace.metric.util.example;
 
+import com.dynatrace.file.util.DynatraceFileBasedConfigurationProvider;
 import com.dynatrace.metric.util.*;
 
 public class App {
@@ -95,6 +96,32 @@ public class App {
 
     } catch (MetricException me) {
       System.out.println(me);
+    }
+  }
+
+  // to try this out, create the endpoint.properties file, start the app, and then modify the
+  // contents of the file.
+  static void testFilePolling() {
+    // file is at /var/lib/dynatrace/enrichment/endpoint/endpoint.properties
+    final DynatraceFileBasedConfigurationProvider instance =
+        DynatraceFileBasedConfigurationProvider.getInstance();
+
+    int counter = 0;
+    while (true) {
+
+      String token = instance.getMetricIngestToken();
+      System.out.println(String.format("=============== %d ===============", counter++));
+      System.out.println("Endpoint: " + instance.getMetricIngestEndpoint());
+      System.out.println(
+          "Token:    "
+              + token.substring(
+                  0,
+                  Math.min(token.length(), 32))); // 32 chars = public portion only if actual token
+      try {
+        Thread.sleep(5000);
+      } catch (InterruptedException e) {
+        System.out.println("Exiting...");
+      }
     }
   }
 }

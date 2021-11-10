@@ -7,32 +7,36 @@ import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-public class DynatraceFileBasedMetricConfigurationProvider {
+public class DynatraceFileBasedConfigurationProvider {
   // Lazy loading singleton instance.
   private static class ProviderHolder {
-    private static final DynatraceFileBasedMetricConfigurationProvider INSTANCE =
-        new DynatraceFileBasedMetricConfigurationProvider(PROPERTIES_FILENAME);
+    private static final DynatraceFileBasedConfigurationProvider INSTANCE =
+        new DynatraceFileBasedConfigurationProvider(PROPERTIES_FILENAME);
   }
 
-  private DynatraceFileBasedMetricConfigurationProvider(String fileName) {
+  // avoid printing logs on the initial read
+  private boolean alreadyInitialized = false;
+
+  private DynatraceFileBasedConfigurationProvider(String fileName) {
     setUp(fileName);
   }
 
   private static final Logger logger =
-      Logger.getLogger(DynatraceFileBasedMetricConfigurationProvider.class.getName());
+      Logger.getLogger(DynatraceFileBasedConfigurationProvider.class.getName());
 
   private static final String PROPERTIES_FILENAME =
       "/var/lib/dynatrace/enrichment/endpoint/endpoint.properties";
 
   private FilePoller filePoller;
-  private DynatraceMetricsConfiguration config;
+  private DynatraceConfiguration config;
 
-  public static DynatraceFileBasedMetricConfigurationProvider getInstance() {
+  public static DynatraceFileBasedConfigurationProvider getInstance() {
     return ProviderHolder.INSTANCE;
   }
 
   private void setUp(String fileName) {
-    config = new DynatraceMetricsConfiguration();
+    alreadyInitialized = false;
+    config = new DynatraceConfiguration();
     FilePoller poller = null;
     try {
       if (!Files.exists(Paths.get(fileName))) {
@@ -81,6 +85,7 @@ public class DynatraceFileBasedMetricConfigurationProvider {
         config.setMetricIngestToken(newToken);
       }
 
+      alreadyInitialized = true;
     } catch (IOException e) {
       logger.info("Failed reading properties from file.");
     }
@@ -98,7 +103,9 @@ public class DynatraceFileBasedMetricConfigurationProvider {
       return null;
     }
     if (!newToken.equals(config.getMetricIngestToken())) {
-      logger.info("API Token refreshed.");
+      if (alreadyInitialized) {
+        logger.info("API Token refreshed.");
+      }
       return newToken;
     }
     return null;
@@ -117,7 +124,9 @@ public class DynatraceFileBasedMetricConfigurationProvider {
       return null;
     }
     if (!newEndpoint.equals(config.getMetricIngestEndpoint())) {
-      logger.info(() -> String.format("Read new endpoint: %s", newEndpoint));
+      if (alreadyInitialized) {
+        logger.info(() -> String.format("Read new endpoint: %s", newEndpoint));
+      }
       return newEndpoint;
     }
     return null;
