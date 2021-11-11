@@ -14,7 +14,7 @@
 
 plugins {
     id 'application'
-    id 'com.github.sherter.google-java-format' version '0.8'
+    id 'com.diffplug.spotless' version '6.0.0'
 }
 
 application {
@@ -28,4 +28,17 @@ dependencies {
 repositories {
     mavenCentral()
     jcenter()
+}
+
+spotless {
+    format 'misc', {
+        target '*.gradle', '*.md', '.gitignore'
+
+        trimTrailingWhitespace()
+        indentWithSpaces(4)
+        endWithNewline()
+    }
+    java {
+        googleJavaFormat()
+    }
 }
