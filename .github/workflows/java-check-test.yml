@@ -39,7 +39,7 @@ jobs:
       # on the google-java-format github page.
       # these settings will cause Java 8 to crash, so they are only applied to later versions.
       - name: Set up Gradle workaround for formatting and testing
-        if: ${{ matrix.java-version > 8 }}
+        if: ${{ matrix.java-version >= 16 }}
         run: |
           echo 'org.gradle.jvmargs=\
                   --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
