@@ -266,7 +266,9 @@ public class NormalizeTest {
         Arguments.of(
             "dimension value of only backslashes",
             repeatStringNTimes("\\", 260),
-            repeatStringNTimes("\\\\", 125)));
+            repeatStringNTimes("\\\\", 125)),
+        Arguments.of("Null must not fail", null, null),
+        Arguments.of("Empty must not fail", "", ""));
   }
 
   private static Stream<Arguments> provideNeedToEscapeDimensionValue() {

@@ -178,6 +178,11 @@ final class Normalize {
   }
 
   static String escapeDimensionValue(String val) {
+    if (isNullOrEmpty(val)) {
+      logger.warning("null or empty dimension value passed to normalization.");
+      return val;
+    }
+
     // Fast pass: Only escape if escaping is actually necessary
     if (!needToEscapeDimensionValue(val)) {
       return val;
