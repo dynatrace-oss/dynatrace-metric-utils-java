@@ -46,7 +46,21 @@ final class Normalize {
 
   // Dimension values (dv)
   // Characters that need to be escaped in dimension values
-  private static final Pattern re_dv_charactersToEscape = Pattern.compile("([= ,\\\\])");
+  private static final char dv_characterToEscape_quote = '"';
+  private static final char dv_characterToEscape_equals = '=';
+  private static final char dv_characterToEscape_blank = ' ';
+  private static final char dv_characterToEscape_comma = ',';
+  private static final char dv_characterToEscape_backslash = '\\';
+  private static final String dv_charactersToEscape =
+      new StringBuilder(5)
+          .append(dv_characterToEscape_quote)
+          .append(dv_characterToEscape_equals)
+          .append(dv_characterToEscape_blank)
+          .append(dv_characterToEscape_comma)
+          .append(dv_characterToEscape_backslash)
+          .toString();
+  private static final Pattern re_dv_charactersToEscape =
+      Pattern.compile("([" + Pattern.quote(dv_charactersToEscape) + "])");
   private static final Pattern re_dv_controlCharacters = Pattern.compile("[\\p{C}]+");
 
   // This regex checks if there is an odd number of trailing backslashes in the string. It can be
@@ -136,7 +150,44 @@ final class Normalize {
     return value;
   }
 
+  /**
+   * Fast check: Does the dimension value need to be escaped at all?
+   *
+   * @param dimensionValue The dimension value
+   * @return True if it contains characters that need to be escaped according to the Dynatrace
+   *     metrics ingestion protocol, false otherwise.
+   */
+  static boolean needToEscapeDimensionValue(String dimensionValue) {
+    int len = dimensionValue.length();
+    if (len > dv_max_length) {
+      return true;
+    }
+
+    for (int i = 0; i < len; i++) {
+      char c = dimensionValue.charAt(i);
+      if (c == dv_characterToEscape_quote
+          || c == dv_characterToEscape_equals
+          || c == dv_characterToEscape_blank
+          || c == dv_characterToEscape_comma
+          || c == dv_characterToEscape_backslash) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   static String escapeDimensionValue(String val) {
+    if (isNullOrEmpty(val)) {
+      logger.warning("null or empty dimension value passed to normalization.");
+      return val;
+    }
+
+    // Fast pass: Only escape if escaping is actually necessary
+    if (!needToEscapeDimensionValue(val)) {
+      return val;
+    }
+
     // escape characters matched by regex with backslash. $1 inserts the matched character.
     String escaped = re_dv_charactersToEscape.matcher(val).replaceAll("\\\\$1");
     if (escaped.length() > dv_max_length) {

@@ -48,6 +48,12 @@ public class NormalizeTest {
     assertEquals(expected, Normalize.escapeDimensionValue(input));
   }
 
+  @ParameterizedTest(name = "{index}: {0}, input: {1}, expected: {2}")
+  @MethodSource("provideNeedToEscapeDimensionValue")
+  public void testNeedToEscapeDimensionValue(String name, String input, boolean expected) {
+    assertEquals(expected, Normalize.needToEscapeDimensionValue(input));
+  }
+
   @Test
   public void testDimensionValuesEscapedOnlyOnce() throws MetricException {
     MetricBuilderFactory metricBuilderFactory = MetricBuilderFactory.builder().build();
@@ -232,14 +238,15 @@ public class NormalizeTest {
 
   private static Stream<Arguments> provideToEscapeValues() {
     return Stream.of(
+        Arguments.of("unescaped", "ab", "ab"),
         Arguments.of("escape spaces", "a b", "a\\ b"),
         Arguments.of("escape comma", "a,b", "a\\,b"),
         Arguments.of("escape equals", "a=b", "a\\=b"),
         Arguments.of("escape backslash", "a\\b", "a\\\\b"),
-        Arguments.of("escape multiple special chars", " ,=\\", "\\ \\,\\=\\\\"),
+        Arguments.of("escape multiple special chars", "\" ,=\\", "\\\"\\ \\,\\=\\\\"),
         Arguments.of(
             "escape consecutive special chars", "  ,,==\\\\", "\\ \\ \\,\\,\\=\\=\\\\\\\\"),
-        Arguments.of("escape key-value pair", "key=\"value\"", "key\\=\"value\""),
+        Arguments.of("escape key-value pair", "key=\"value\"", "key\\=\\\"value\\\""),
         Arguments.of(
             "escape too long string", repeatStringNTimes("=", 250), repeatStringNTimes("\\=", 125)),
         Arguments.of(
@@ -259,6 +266,23 @@ public class NormalizeTest {
         Arguments.of(
             "dimension value of only backslashes",
             repeatStringNTimes("\\", 260),
-            repeatStringNTimes("\\\\", 125)));
+            repeatStringNTimes("\\\\", 125)),
+        Arguments.of("Null must not fail", null, null),
+        Arguments.of("Empty must not fail", "", ""));
+  }
+
+  private static Stream<Arguments> provideNeedToEscapeDimensionValue() {
+    return Stream.of(
+        Arguments.of("quote", "a\"b", true),
+        Arguments.of("space", "a b", true),
+        Arguments.of("comma", "a,b", true),
+        Arguments.of("equals", "a=b", true),
+        Arguments.of("backslash", "a\\b", true),
+        Arguments.of("need to escape multiple", "a\"b c,d=e\\f", true),
+        Arguments.of(
+            "no need to escape: a-Z",
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            false),
+        Arguments.of("no need to escape: other", "_-", false));
   }
 }
