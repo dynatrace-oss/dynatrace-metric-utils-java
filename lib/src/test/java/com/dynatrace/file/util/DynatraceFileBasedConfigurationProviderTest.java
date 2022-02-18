@@ -78,7 +78,7 @@ class DynatraceFileBasedConfigurationProviderTest {
         "src/test/resources/config_valid.properties", Duration.ofMillis(50));
 
     await()
-        .atMost(150, TimeUnit.MILLISECONDS)
+        .atMost(500, TimeUnit.MILLISECONDS)
         .until(
             () ->
                 "https://your-dynatrace-ingest-url/api/v2/metrics/ingest"
@@ -115,7 +115,7 @@ class DynatraceFileBasedConfigurationProviderTest {
 
     // wait for nonblocking IO
     await()
-        .atMost(150, TimeUnit.MILLISECONDS)
+        .atMost(500, TimeUnit.MILLISECONDS)
         .until(() -> instance.getMetricIngestEndpoint().equals("new_url"));
     assertEquals("new_url", instance.getMetricIngestEndpoint());
     assertEquals("new_token", instance.getMetricIngestToken());
