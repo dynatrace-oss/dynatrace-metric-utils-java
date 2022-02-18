@@ -11,18 +11,16 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dynatrace.file.util;
 
-import com.sun.nio.file.SensitivityWatchEventModifier;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
+import com.sun.nio.file.SensitivityWatchEventModifier;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Collections;
 import java.util.List;
-
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 class WatchServiceBasedFilePoller extends AbstractFilePoller {
   private final Path folder;

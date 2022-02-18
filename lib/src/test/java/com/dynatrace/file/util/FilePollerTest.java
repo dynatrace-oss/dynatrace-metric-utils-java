@@ -11,14 +11,15 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dynatrace.file.util;
 
-import com.dynatrace.testutils.TestUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static com.dynatrace.file.util.FilePoller.FilePollerKind.POLL_BASED;
+import static com.dynatrace.file.util.FilePoller.FilePollerKind.WATCHSERVICE_BASED;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.*;
 
+import com.dynatrace.testutils.TestUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,12 +27,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.dynatrace.file.util.FilePoller.FilePollerKind.POLL_BASED;
-import static com.dynatrace.file.util.FilePoller.FilePollerKind.WATCHSERVICE_BASED;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class FilePollerTest {
   Path tempDir;
@@ -164,8 +162,7 @@ class FilePollerTest {
     final Path tempFile1 = tempFiles.get(0);
     final Path tempFile2 = tempFiles.get(1);
 
-    try (FilePoller poller =
-        new FilePoller(tempFile1.toString(), WATCHSERVICE_BASED, null)) {
+    try (FilePoller poller = new FilePoller(tempFile1.toString(), WATCHSERVICE_BASED, null)) {
       filePollerUpdatesOnFileMove(poller, tempFile1, tempFile2);
     }
   }
@@ -204,8 +201,7 @@ class FilePollerTest {
     final Path tempFile1 = tempFiles.get(0);
     final Path tempFile2 = tempFiles.get(1);
 
-    try (FilePoller poller =
-        new FilePoller(tempFile1.toString(), WATCHSERVICE_BASED, null)) {
+    try (FilePoller poller = new FilePoller(tempFile1.toString(), WATCHSERVICE_BASED, null)) {
       filePollerUpdatesOnFileCopy(poller, tempFile1, tempFile2);
     }
   }
