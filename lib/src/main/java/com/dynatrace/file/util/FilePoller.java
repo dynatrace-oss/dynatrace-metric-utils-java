@@ -51,6 +51,16 @@ class FilePoller implements Closeable {
     filePoller = createFilePoller(fileName, kind, pollInterval);
   }
 
+  /**
+   * Check if the file contents have changed since the last poll. Returns true only if the file has
+   * been modified (usually upon creation, including renaming a file to the watched location, or
+   * when the contents of the file change). Does not return true if the file was deleted. Also
+   * returns true, if a different file was moved to the watched location.
+   *
+   * @return true if the content of the file changed, or it was created. Will also return true, if
+   *     the file was overwritten with the same data as before. Return false if the file did not
+   *     change or the file was deleted.
+   */
   public boolean fileContentsUpdated() {
     return filePoller.fileContentsChanged();
   }
