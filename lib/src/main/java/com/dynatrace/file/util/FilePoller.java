@@ -1,75 +1,71 @@
 package com.dynatrace.file.util;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-
+import java.io.Closeable;
 import java.io.IOException;
-import java.nio.file.*;
-import java.util.Collections;
-import java.util.List;
+import java.nio.file.Paths;
+import java.time.Duration;
+import java.util.logging.Logger;
 
-class FilePoller {
-  private final Path folder;
-  private final Path absoluteFilename;
-  private final WatchService watchService;
+class FilePoller implements Closeable {
+  private final AbstractFilePoller filePoller;
+  private static final Logger logger = Logger.getLogger(FilePoller.class.getName());
+
+  private static AbstractFilePoller createFilePoller(
+      String fileName, FilePollerKind kind, Duration pollInterval) throws IOException {
+    if (kind == FilePollerKind.POLL_BASED) {
+      logger.info(
+          () ->
+              String.format(
+                  "Setting up poll-based FilePoller with poll interval %dms",
+                  pollInterval == null ? 0 : pollInterval.toMillis()));
+      return new PollBasedFilePoller(Paths.get(fileName), pollInterval);
+    }
+    logger.info("Setting up WatchService based FilePoller");
+    return new WatchServiceBasedFilePoller(Paths.get(fileName));
+  }
+
+  private static AbstractFilePoller provideFilePollerBasedOnOs(
+      String fileName, Duration pollInterval) throws IOException {
+    boolean isMacOs = System.getProperty("os.name").toLowerCase().contains("mac");
+    if (isMacOs) {
+      logger.info("Running on macOS");
+      return createFilePoller(fileName, FilePollerKind.POLL_BASED, pollInterval);
+    } else {
+      return createFilePoller(fileName, FilePollerKind.WATCHSERVICE_BASED, null);
+    }
+  }
 
   public FilePoller(String fileName) throws IOException {
-    Path path = Paths.get(fileName).toAbsolutePath();
-    Path folder = path.getParent();
-
-    // file needs to exist upon creation of the FilePoller.
-    if (!Files.exists(path)) {
-      throw new IllegalArgumentException(path.toString() + " does not exist.");
-    }
-
-    if (Files.isDirectory(path)) {
-      throw new IllegalArgumentException(path.toString() + " is a directory, a file is expected.");
-    }
-
-    this.folder = folder;
-    this.absoluteFilename = path;
-    this.watchService = FileSystems.getDefault().newWatchService();
-    // watch the enclosing folder for changes. It is only possible to watch directories, not
-    // just files.
-    folder.register(watchService, ENTRY_MODIFY, ENTRY_CREATE);
+    this(fileName, null);
   }
 
-  /**
-   * Check if the file contents have changed since the last poll. Returns true only if the file has
-   * been modified (usually upon creation, including renaming a file to the watched location, or
-   * when the contents of the file change). Does not return true if the file was deleted. Also
-   * returns true, if a different file was moved to the watched location.
-   *
-   * @return true if the content of the file changed, or it was created. Will also return true, if
-   *     the file was overwritten with the same data as before. Return false if the file did not
-   *     change or the file was deleted.
-   */
+  FilePoller(String fileName, Duration pollInterval) throws IOException {
+    if (pollInterval == null) {
+      pollInterval = Duration.ofSeconds(60);
+    }
+    filePoller = provideFilePollerBasedOnOs(fileName, pollInterval);
+  }
+
+  // VisibleForTesting
+  FilePoller(String fileName, FilePollerKind kind, Duration pollInterval) throws IOException {
+    filePoller = createFilePoller(fileName, kind, pollInterval);
+  }
+
   public boolean fileContentsUpdated() {
-    final List<WatchEvent<?>> watchEvents = poll();
-
-    // watch events will contain all events for the watched folder
-    for (WatchEvent<?> event : watchEvents) {
-      Path filename = folder.resolve((Path) event.context()).toAbsolutePath();
-      // only return true on the specific file that is watched.
-      if (filename.compareTo(absoluteFilename) == 0) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private List<WatchEvent<?>> poll() {
-    final WatchKey watchKey = watchService.poll();
-    if (watchKey == null) {
-      return Collections.emptyList();
-    }
-
-    final List<WatchEvent<?>> watchEvents = watchKey.pollEvents();
-    watchKey.reset();
-    return watchEvents;
+    return filePoller.fileContentsChanged();
   }
 
   public String getWatchedFilePath() {
-    return absoluteFilename.toString();
+    return filePoller.getWatchedFilePath();
+  }
+
+  @Override
+  public void close() throws IOException {
+    filePoller.close();
+  }
+
+  public enum FilePollerKind {
+    POLL_BASED,
+    WATCHSERVICE_BASED,
   }
 }

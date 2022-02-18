@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -18,7 +19,7 @@ public class DynatraceFileBasedConfigurationProvider {
   private boolean alreadyInitialized = false;
 
   private DynatraceFileBasedConfigurationProvider(String fileName) {
-    setUp(fileName);
+    setUp(fileName, null);
   }
 
   private static final Logger logger =
@@ -34,7 +35,7 @@ public class DynatraceFileBasedConfigurationProvider {
     return ProviderHolder.INSTANCE;
   }
 
-  private void setUp(String fileName) {
+  private void setUp(String fileName, Duration pollInterval) {
     alreadyInitialized = false;
     config = new DynatraceConfiguration();
     FilePoller poller = null;
@@ -42,7 +43,7 @@ public class DynatraceFileBasedConfigurationProvider {
       if (!Files.exists(Paths.get(fileName))) {
         logger.info("File based configuration does not exist, serving default config.");
       } else {
-        poller = new FilePoller(fileName);
+        poller = new FilePoller(fileName, pollInterval);
       }
     } catch (InvalidPathException e) {
       // This happens on windows, when the linux filepath is not valid.
@@ -59,9 +60,9 @@ public class DynatraceFileBasedConfigurationProvider {
 
   // This method should never be called by user code. It is only available for testing.
   // VisibleForTesting
-  void forceOverwriteConfig(String fileName) {
+  void forceOverwriteConfig(String fileName, Duration pollInterval) {
     logger.warning("Overwriting config. This should ONLY happen in testing.");
-    setUp(fileName);
+    setUp(fileName, pollInterval);
   }
 
   private void updateConfigFromFile(String fileName) {
