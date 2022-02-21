@@ -41,7 +41,7 @@ public class DynatraceFileBasedConfigurationProvider {
   private static final String PROPERTIES_FILENAME =
       "/var/lib/dynatrace/enrichment/endpoint/endpoint.properties";
 
-  private FilePoller filePoller;
+  private AbstractFilePoller filePoller;
   private DynatraceConfiguration config;
 
   public static DynatraceFileBasedConfigurationProvider getInstance() {
@@ -51,12 +51,12 @@ public class DynatraceFileBasedConfigurationProvider {
   private void setUp(String fileName, Duration pollInterval) {
     alreadyInitialized = false;
     config = new DynatraceConfiguration();
-    FilePoller poller = null;
+    AbstractFilePoller poller = null;
     try {
       if (!Files.exists(Paths.get(fileName))) {
         logger.info("File based configuration does not exist, serving default config.");
       } else {
-        poller = new FilePoller(fileName, pollInterval);
+        poller = FilePollerFactory.getDefault(fileName, pollInterval);
       }
     } catch (InvalidPathException e) {
       // This happens on windows, when the linux filepath is not valid.

@@ -13,11 +13,10 @@
  */
 package com.dynatrace.file.util;
 
-import static com.dynatrace.file.util.FilePoller.FilePollerKind.POLL_BASED;
-import static com.dynatrace.file.util.FilePoller.FilePollerKind.WATCHSERVICE_BASED;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.dynatrace.testutils.TestUtils;
 import java.io.IOException;
@@ -64,20 +63,18 @@ class FilePollerTest {
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> new FilePoller(nonExistentFile, POLL_BASED, Duration.ofMillis(50)));
+        () -> FilePollerFactory.getPollBased(nonExistentFile, Duration.ofMillis(50)));
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> new FilePoller(nonExistentFile, WATCHSERVICE_BASED, Duration.ofMillis(50)));
+        () -> FilePollerFactory.getWatchServiceBased(nonExistentFile));
   }
 
   @Test
   void constructorThrowsOnNullDurationForPollBased() {
     assertThrows(
         IllegalArgumentException.class,
-        () -> new FilePoller(tempFiles.get(0).toString(), POLL_BASED, null));
-    // ignored for WatchService based impl.
-    assertDoesNotThrow(() -> new FilePoller(tempFiles.get(0).toString(), WATCHSERVICE_BASED, null));
+        () -> FilePollerFactory.getPollBased(tempFiles.get(0).toString(), null));
   }
 
   @Test
@@ -86,13 +83,14 @@ class FilePollerTest {
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> new FilePoller(tempDir.toString(), POLL_BASED, Duration.ofMillis(50)));
+        () -> FilePollerFactory.getPollBased(tempDir.toString(), Duration.ofMillis(50)));
+
     assertThrows(
         IllegalArgumentException.class,
-        () -> new FilePoller(tempDir.toString(), WATCHSERVICE_BASED, Duration.ofMillis(50)));
+        () -> FilePollerFactory.getWatchServiceBased(tempDir.toString()));
   }
 
-  void filePollerUpdatesOnChange(FilePoller poller) throws IOException {
+  void filePollerUpdatesOnChange(AbstractFilePoller poller) throws IOException {
     final Path tempFile = tempFiles.get(0);
 
     assertFalse(poller.fileContentsUpdated());
@@ -106,10 +104,8 @@ class FilePollerTest {
 
   @Test
   void filePollerUpdatesOnChangePollBased() throws IOException {
-    try (FilePoller poller =
-        new FilePoller(tempFiles.get(0).toString(), POLL_BASED, Duration.ofMillis(50))) {
-      filePollerUpdatesOnChange(poller);
-    }
+    filePollerUpdatesOnChange(
+        FilePollerFactory.getPollBased(tempFiles.get(0).toString(), Duration.ofMillis(50)));
   }
 
   @Test
@@ -119,13 +115,10 @@ class FilePollerTest {
       return;
     }
 
-    try (FilePoller poller =
-        new FilePoller(tempFiles.get(0).toString(), WATCHSERVICE_BASED, null)) {
-      filePollerUpdatesOnChange(poller);
-    }
+    filePollerUpdatesOnChange(FilePollerFactory.getWatchServiceBased(tempFiles.get(0).toString()));
   }
 
-  void filePollerUpdatesOnFileMove(FilePoller poller, Path tempFile1, Path tempFile2)
+  void filePollerUpdatesOnFileMove(AbstractFilePoller poller, Path tempFile1, Path tempFile2)
       throws IOException {
     // set up the second file
     Files.write(tempFile2, "test file content for tempFile2".getBytes());
@@ -146,10 +139,10 @@ class FilePollerTest {
     final Path tempFile1 = tempFiles.get(0);
     final Path tempFile2 = tempFiles.get(1);
 
-    try (FilePoller poller =
-        new FilePoller(tempFile1.toString(), POLL_BASED, Duration.ofMillis(50))) {
-      filePollerUpdatesOnFileMove(poller, tempFile1, tempFile2);
-    }
+    filePollerUpdatesOnFileMove(
+        FilePollerFactory.getPollBased(tempFile1.toString(), Duration.ofMillis(50)),
+        tempFile1,
+        tempFile2);
   }
 
   @Test
@@ -162,12 +155,11 @@ class FilePollerTest {
     final Path tempFile1 = tempFiles.get(0);
     final Path tempFile2 = tempFiles.get(1);
 
-    try (FilePoller poller = new FilePoller(tempFile1.toString(), WATCHSERVICE_BASED, null)) {
-      filePollerUpdatesOnFileMove(poller, tempFile1, tempFile2);
-    }
+    filePollerUpdatesOnFileMove(
+        FilePollerFactory.getWatchServiceBased(tempFile1.toString()), tempFile1, tempFile2);
   }
 
-  void filePollerUpdatesOnFileCopy(FilePoller poller, Path tempFile1, Path tempFile2)
+  void filePollerUpdatesOnFileCopy(AbstractFilePoller poller, Path tempFile1, Path tempFile2)
       throws IOException {
     Files.write(tempFile2, "test file content for tempFile2".getBytes());
 
@@ -185,10 +177,10 @@ class FilePollerTest {
     final Path tempFile1 = tempFiles.get(0);
     final Path tempFile2 = tempFiles.get(1);
 
-    try (FilePoller poller =
-        new FilePoller(tempFile1.toString(), POLL_BASED, Duration.ofMillis(50))) {
-      filePollerUpdatesOnFileCopy(poller, tempFile1, tempFile2);
-    }
+    filePollerUpdatesOnFileCopy(
+        FilePollerFactory.getPollBased(tempFile1.toString(), Duration.ofMillis(50)),
+        tempFile1,
+        tempFile2);
   }
 
   @Test
@@ -201,8 +193,7 @@ class FilePollerTest {
     final Path tempFile1 = tempFiles.get(0);
     final Path tempFile2 = tempFiles.get(1);
 
-    try (FilePoller poller = new FilePoller(tempFile1.toString(), WATCHSERVICE_BASED, null)) {
-      filePollerUpdatesOnFileCopy(poller, tempFile1, tempFile2);
-    }
+    filePollerUpdatesOnFileCopy(
+        FilePollerFactory.getWatchServiceBased(tempFile1.toString()), tempFile1, tempFile2);
   }
 }

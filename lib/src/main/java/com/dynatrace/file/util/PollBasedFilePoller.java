@@ -22,9 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 class PollBasedFilePoller extends AbstractFilePoller {
   private final AtomicBoolean changedSinceLastPoll = new AtomicBoolean(false);
-  private final ScheduledExecutorService scheduledExecutorService;
   private volatile long lastUpdatedAt = 0;
-  private final ScheduledFuture<?> poller;
 
   protected PollBasedFilePoller(Path filePath, Duration pollInterval) {
     super(filePath);
@@ -32,7 +30,7 @@ class PollBasedFilePoller extends AbstractFilePoller {
       throw new IllegalArgumentException("Poll interval cannot be null");
     }
 
-    scheduledExecutorService =
+    ScheduledExecutorService scheduledExecutorService =
         Executors.newSingleThreadScheduledExecutor(
             new ThreadFactory() {
               @Override
@@ -42,9 +40,8 @@ class PollBasedFilePoller extends AbstractFilePoller {
                 return t;
               }
             });
-    poller =
-        scheduledExecutorService.scheduleAtFixedRate(
-            this::poll, pollInterval.toNanos(), pollInterval.toNanos(), TimeUnit.NANOSECONDS);
+    scheduledExecutorService.scheduleAtFixedRate(
+        this::poll, pollInterval.toNanos(), pollInterval.toNanos(), TimeUnit.NANOSECONDS);
 
     // poll once initially and synchronously to make sure that the atomic data stores are
     // initialized before the end of the constructor.
@@ -52,7 +49,7 @@ class PollBasedFilePoller extends AbstractFilePoller {
   }
 
   @Override
-  public boolean fileContentsChanged() {
+  public boolean fileContentsUpdated() {
     // get the current value and reset to false
     return changedSinceLastPoll.getAndSet(false);
   }
@@ -75,11 +72,5 @@ class PollBasedFilePoller extends AbstractFilePoller {
         changedSinceLastPoll.set(true);
       }
     }
-  }
-
-  @Override
-  public void close() {
-    poller.cancel(false);
-    scheduledExecutorService.shutdown();
   }
 }

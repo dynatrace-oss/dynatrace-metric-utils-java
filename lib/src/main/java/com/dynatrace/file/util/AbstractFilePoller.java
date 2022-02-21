@@ -13,11 +13,10 @@
  */
 package com.dynatrace.file.util;
 
-import java.io.Closeable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-abstract class AbstractFilePoller implements Closeable {
+abstract class AbstractFilePoller {
   protected final Path absoluteFilePath;
 
   protected AbstractFilePoller(Path filename) {
@@ -37,7 +36,7 @@ abstract class AbstractFilePoller implements Closeable {
     this.absoluteFilePath = absPath;
   }
 
-  public abstract boolean fileContentsChanged();
+  public abstract boolean fileContentsUpdated();
 
   public String getWatchedFilePath() {
     return absoluteFilePath.toString();

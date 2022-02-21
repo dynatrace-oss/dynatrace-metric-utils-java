@@ -38,7 +38,7 @@ class WatchServiceBasedFilePoller extends AbstractFilePoller {
   }
 
   @Override
-  public boolean fileContentsChanged() {
+  public boolean fileContentsUpdated() {
     final List<WatchEvent<?>> watchEvents = poll();
 
     // watch events will contain all events for the watched folder
@@ -61,10 +61,5 @@ class WatchServiceBasedFilePoller extends AbstractFilePoller {
     final List<WatchEvent<?>> watchEvents = watchKey.pollEvents();
     watchKey.reset();
     return watchEvents;
-  }
-
-  @Override
-  public void close() throws IOException {
-    watchService.close();
   }
 }
