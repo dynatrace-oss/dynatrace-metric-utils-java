@@ -59,7 +59,7 @@ public class DynatraceFileBasedConfigurationProvider {
         poller = FilePollerFactory.getDefault(fileName, pollInterval);
       }
     } catch (InvalidPathException e) {
-      // This happens on windows, when the linux filepath is not valid.
+      // This happens on Windows, when the *nix filepath is not valid.
       logger.info(
           () -> String.format("%s is not a valid file path (%s).", fileName, e.getMessage()));
     } catch (IOException | IllegalArgumentException e) {
