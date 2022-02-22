@@ -20,7 +20,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -34,53 +33,46 @@ class DynatraceMetadataEnricherTest {
     properties.setProperty("prop.b", "value.b");
 
     ArrayList<Dimension> entries =
-        new ArrayList<>(
-            DynatraceMetadataEnricher.createDimensionList(properties));
+        new ArrayList<>(DynatraceMetadataEnricher.createDimensionList(properties));
 
     // Has one entry with key "prop.a"
-    assertEquals(1, entries.stream()
-      .filter(entry -> entry.getKey().equals("prop.a"))
-      .count());
+    assertEquals(1, entries.stream().filter(entry -> entry.getKey().equals("prop.a")).count());
 
     // Entry with key "prop.a" has value "value.a"
-    assertEquals("value.a", entries.stream()
-      .filter(entry -> entry.getKey().equals("prop.a"))
-      .findFirst()
-      .get()
-      .getValue());
+    assertEquals(
+        "value.a",
+        entries.stream()
+            .filter(entry -> entry.getKey().equals("prop.a"))
+            .findFirst()
+            .get()
+            .getValue());
 
     // Has one entry with key "prop.p"
-    assertEquals(1, entries
-      .stream()
-      .filter(entry -> entry.getKey().equals("prop.b"))
-      .count());
+    assertEquals(1, entries.stream().filter(entry -> entry.getKey().equals("prop.b")).count());
 
     // Entry with key "prop.b" has value "value.b"
-    assertEquals("value.b", entries.stream()
-      .filter(entry -> entry.getKey().equals("prop.b"))
-      .findFirst()
-      .get()
-      .getValue());
+    assertEquals(
+        "value.b",
+        entries.stream()
+            .filter(entry -> entry.getKey().equals("prop.b"))
+            .findFirst()
+            .get()
+            .getValue());
   }
 
   @Test
   void invalidProperties() {
     Properties noValueProperties = new Properties();
     noValueProperties.setProperty("key_no_value", "");
-    assertTrue(
-      DynatraceMetadataEnricher.createDimensionList(noValueProperties)
-        .isEmpty());
+    assertTrue(DynatraceMetadataEnricher.createDimensionList(noValueProperties).isEmpty());
 
     Properties noKeyProperties = new Properties();
     noKeyProperties.setProperty("", "value_no_key");
-    assertTrue(
-      DynatraceMetadataEnricher.createDimensionList(noKeyProperties)
-        .isEmpty());
+    assertTrue(DynatraceMetadataEnricher.createDimensionList(noKeyProperties).isEmpty());
 
     Properties noKeyAndValueProperties = new Properties();
-    noKeyAndValueProperties.setProperty("","");
-    assertTrue(
-      DynatraceMetadataEnricher.createDimensionList(noKeyAndValueProperties).isEmpty());
+    noKeyAndValueProperties.setProperty("", "");
+    assertTrue(DynatraceMetadataEnricher.createDimensionList(noKeyAndValueProperties).isEmpty());
   }
 
   @Test
@@ -114,7 +106,6 @@ class DynatraceMetadataEnricherTest {
     expected.setProperty("key2", "value2");
     expected.setProperty("key3", "value3");
 
-
     Properties results =
         DynatraceMetadataEnricher.getPropertiesWithIndirection(
             "src/test/resources/indirection.properties", nonExistentAlternativeFilename);
@@ -128,8 +119,7 @@ class DynatraceMetadataEnricherTest {
     String alternativeFilename = generateNonExistentFilename();
 
     Properties result =
-        DynatraceMetadataEnricher.getPropertiesWithIndirection(
-            filename, alternativeFilename);
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(filename, alternativeFilename);
     assertEquals(new Properties(), result);
   }
 

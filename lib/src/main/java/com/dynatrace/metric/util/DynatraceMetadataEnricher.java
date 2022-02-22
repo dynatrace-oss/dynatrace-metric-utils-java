@@ -11,7 +11,6 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dynatrace.metric.util;
 
 import java.io.*;
@@ -24,22 +23,21 @@ class DynatraceMetadataEnricher {
   private static final Logger logger = Logger.getLogger(DynatraceMetadataEnricher.class.getName());
 
   private static final String INDIRECTION_FILE_NAME =
-    "dt_metadata_e617c525669e072eebe3d0f08212e8f2.properties";
+      "dt_metadata_e617c525669e072eebe3d0f08212e8f2.properties";
 
   private static final String ALTERNATIVE_METADATA_FILENAME =
-    "/var/lib/dynatrace/enrichment/dt_metadata.properties";
+      "/var/lib/dynatrace/enrichment/dt_metadata.properties";
 
   /**
    * Retrieve Dynatrace metadata. Attempts to read from the indirection file, and falls back to the
    * alternative metadata file if the primary source is not available.
    *
    * @return A list of not yet normalized {@link Dimension} objects. Items with no equal sign, or
-   * with empty key or value are discarded.
+   *     with empty key or value are discarded.
    */
   static List<Dimension> getDynatraceMetadata() {
     return createDimensionList(
-      getPropertiesWithIndirection(
-        INDIRECTION_FILE_NAME, ALTERNATIVE_METADATA_FILENAME));
+        getPropertiesWithIndirection(INDIRECTION_FILE_NAME, ALTERNATIVE_METADATA_FILENAME));
   }
 
   /**
@@ -47,8 +45,8 @@ class DynatraceMetadataEnricher {
    *
    * @param properties {@link Properties} to transform
    * @return A {@link List} of {@link Dimension dimensions} mapping {@link String} to {@link
-   * String}. These represent the property entries, where empty keys or values were omitted.
-   * Dimensions are not normalized.
+   *     String}. These represent the property entries, where empty keys or values were omitted.
+   *     Dimensions are not normalized.
    */
   static List<Dimension> createDimensionList(Properties properties) {
     ArrayList<Dimension> entries = new ArrayList<>();
@@ -58,7 +56,7 @@ class DynatraceMetadataEnricher {
       String value = entry.getValue().toString();
 
       // skip if either key or value are empty
-      if (key.isEmpty() || value.isEmpty()){
+      if (key.isEmpty() || value.isEmpty()) {
         logger.log(Level.WARNING, () -> String.format("dropped settings %s=%s", key, value));
         continue;
       }
@@ -111,13 +109,13 @@ class DynatraceMetadataEnricher {
   }
 
   /**
-   * Gets the {@link Properties} contained in the metadata file from the indirection file
-   * If the indirection file does not exist, falls back to the alternative metadata file.
+   * Gets the {@link Properties} contained in the metadata file from the indirection file If the
+   * indirection file does not exist, falls back to the alternative metadata file.
    *
    * @return The {@link Properties} contained in the Dynatrace metadata file.
    */
   static Properties getPropertiesWithIndirection(
-    String indirectionFileName, String alternativeMetadataFilename) {
+      String indirectionFileName, String alternativeMetadataFilename) {
     String metadataFileName = null;
     Properties props = new Properties();
 
@@ -127,15 +125,18 @@ class DynatraceMetadataEnricher {
       logger.info("Indirection file not found. This is normal if OneAgent is not installed.");
     } catch (Exception e) {
       logger.info(
-        String.format("Error while trying to read contents of OneAgent indirection file: %s", e));
+          String.format("Error while trying to read contents of OneAgent indirection file: %s", e));
     }
 
     if (metadataFileName == null || metadataFileName.isEmpty()) {
       if (DynatraceMetadataEnricher.fileExistsAndIsReadable(alternativeMetadataFilename)) {
         // alternative file exists, use it for metadata enrichment
-        logger.log(Level.INFO, () -> String.format(
-          "Alternative metadata file exists, attempting to read from %s.",
-          alternativeMetadataFilename));
+        logger.log(
+            Level.INFO,
+            () ->
+                String.format(
+                    "Alternative metadata file exists, attempting to read from %s.",
+                    alternativeMetadataFilename));
         metadataFileName = alternativeMetadataFilename;
       } else {
         // no alternative file exists, return empty properties.
@@ -149,7 +150,7 @@ class DynatraceMetadataEnricher {
       logger.warning("Failed to read properties file: File not found");
     } catch (Exception e) {
       logger.info(
-        String.format("Error while trying to read contents of Dynatrace metadata file: %s", e));
+          String.format("Error while trying to read contents of Dynatrace metadata file: %s", e));
     }
 
     return props;
