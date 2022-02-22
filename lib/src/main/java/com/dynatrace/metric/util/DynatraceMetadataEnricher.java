@@ -48,6 +48,7 @@ class DynatraceMetadataEnricher {
    * @param properties {@link Properties} to transform
    * @return A {@link List} of {@link Dimension dimensions} mapping {@link String} to {@link
    * String}. These represent the property entries, where empty keys or values were omitted.
+   * Dimensions are not normalized.
    */
   static List<Dimension> createDimensionList(Properties properties) {
     ArrayList<Dimension> entries = new ArrayList<>();
@@ -56,7 +57,7 @@ class DynatraceMetadataEnricher {
       String key = entry.getKey().toString();
       String value = entry.getValue().toString();
 
-      // make sure key and value are set to non-empty values
+      // skip if either key or value are empty
       if (key.isEmpty() || value.isEmpty()){
         logger.log(Level.WARNING, () -> String.format("dropped settings %s=%s", key, value));
         continue;
