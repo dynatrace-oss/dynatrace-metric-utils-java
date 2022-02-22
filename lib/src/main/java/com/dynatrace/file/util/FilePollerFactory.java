@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 public class FilePollerFactory {
   private static final Logger logger = Logger.getLogger(FilePollerFactory.class.getName());
   private static final boolean isMacOs =
-      System.getProperty("os.name").toLowerCase().contains("mac");
+      System.getProperty("os.name", "").toLowerCase().contains("mac");
 
   /**
    * See {@link FilePollerFactory#getDefault(String, Duration) getDefault} for details. It calls
