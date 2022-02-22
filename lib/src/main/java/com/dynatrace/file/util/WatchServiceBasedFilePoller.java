@@ -16,7 +16,6 @@ package com.dynatrace.file.util;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
-import com.sun.nio.file.SensitivityWatchEventModifier;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Collections;
@@ -31,10 +30,7 @@ class WatchServiceBasedFilePoller extends AbstractFilePoller {
     folder = absoluteFilename.getParent();
 
     watchService = FileSystems.getDefault().newWatchService();
-    folder.register(
-        watchService,
-        new WatchEvent.Kind[] {ENTRY_MODIFY, ENTRY_CREATE},
-        SensitivityWatchEventModifier.HIGH);
+    folder.register(watchService, ENTRY_MODIFY, ENTRY_CREATE);
   }
 
   @Override

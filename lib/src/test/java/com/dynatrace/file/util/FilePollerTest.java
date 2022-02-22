@@ -99,7 +99,8 @@ class FilePollerTest {
   @Test
   void filePollerUpdatesOnChangeWatchServiceBased() throws IOException {
     if (isMacOs) {
-      System.out.println("macOS does not support WatchService based pollers, skipping this test...");
+      System.out.println(
+          "macOS does not support WatchService based pollers, skipping this test...");
       return;
     }
 
