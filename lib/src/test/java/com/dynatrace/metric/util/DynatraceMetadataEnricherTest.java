@@ -105,7 +105,7 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetMetadataFileContentWithRedirection_Valid() {
+  void testGetPropertiesWithIndirection_Valid() {
     // this should not be used. If it is, it will not exist and throw an exception, breaking the
     // test.
     String nonExistentAlternativeFilename = generateNonExistentFilename();
@@ -123,7 +123,7 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetMetadataFileContentWithRedirection_IndirectionFileDoesNotExistAlternativeDoesNotExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileDoesNotExistAlternativeDoesNotExist() {
     String filename = generateNonExistentFilename();
     String alternativeFilename = generateNonExistentFilename();
 
@@ -134,7 +134,7 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetMetadataFileContentWithRedirection_IndirectionFileDoesNotExistAlternativeExists() {
+  void testGetPropertiesWithIndirection_IndirectionFileDoesNotExistAlternativeExists() {
     String filename = generateNonExistentFilename();
 
     Properties result =
@@ -151,7 +151,7 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetMetadataFileContentWithRedirection_IndirectionFileReturnsNullAndAlternativeDoesNotExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileReturnsNullAndAlternativeDoesNotExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       mockEnricher
@@ -179,7 +179,7 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetMetadataFileContentWithRedirection_IndirectionFileReturnsNullAndAlternativeDoesExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileReturnsNullAndAlternativeDoesExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       mockEnricher
@@ -212,7 +212,7 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetMetadataFileContentWithRedirection_IndirectionFileReturnsEmptyAndAlternativeDoesNotExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileReturnsEmptyAndAlternativeDoesNotExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       // ignore the return value of the testfile and mock the return value of the
@@ -242,7 +242,7 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetMetadataFileContentWithRedirection_IndirectionFileReturnsEmptyAndAlternativeDoesExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileReturnsEmptyAndAlternativeDoesExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       mockEnricher
@@ -274,7 +274,7 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetMetadataFileContentWithRedirection_IndirectionFileThrowsAndAlternativeDoesNotExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileThrowsAndAlternativeDoesNotExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       // ignore the return value of the testfile and mock the return value of the
@@ -304,7 +304,7 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetMetadataFileContentWithRedirection_IndirectionFileThrowsAndAlternativeDoesExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileThrowsAndAlternativeDoesExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       mockEnricher
@@ -337,7 +337,7 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetMetadataFileContentWithRedirection_MetadataFileDoesNotExist() {
+  void testGetPropertiesWithIndirection_MetadataFileDoesNotExist() {
     String metadataFilename = generateNonExistentFilename();
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
@@ -370,7 +370,7 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetMetadataFileContentWithRedirection_EmptyMetadataFile() {
+  void testGetPropertiesWithIndirection_EmptyMetadataFile() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       mockEnricher
