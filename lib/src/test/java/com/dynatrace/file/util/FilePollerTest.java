@@ -34,7 +34,7 @@ class FilePollerTest {
   Path tempDir;
   List<Path> tempFiles = new ArrayList<>();
 
-  boolean isMacOs = System.getProperty("os.name").toLowerCase().contains("mac");
+  boolean isMacOs = System.getProperty("os.name", "").toLowerCase().contains("mac");
 
   @BeforeEach
   void setUp() throws IOException {
