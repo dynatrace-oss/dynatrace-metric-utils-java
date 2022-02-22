@@ -90,18 +90,6 @@ class FilePollerTest {
         () -> FilePollerFactory.getWatchServiceBased(tempDir.toString()));
   }
 
-  void filePollerUpdatesOnChange(AbstractFilePoller poller) throws IOException {
-    final Path tempFile = tempFiles.get(0);
-
-    assertFalse(poller.fileContentsUpdated());
-
-    Files.write(tempFile, "test file content".getBytes());
-
-    // wait for non-blocking IO
-    await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
-    assertFalse(poller.fileContentsUpdated());
-  }
-
   @Test
   void filePollerUpdatesOnChangePollBased() throws IOException {
     filePollerUpdatesOnChange(
@@ -116,22 +104,6 @@ class FilePollerTest {
     }
 
     filePollerUpdatesOnChange(FilePollerFactory.getWatchServiceBased(tempFiles.get(0).toString()));
-  }
-
-  void filePollerUpdatesOnFileMove(AbstractFilePoller poller, Path tempFile1, Path tempFile2)
-      throws IOException {
-    // set up the second file
-    Files.write(tempFile2, "test file content for tempFile2".getBytes());
-
-    // no changes to the first file yet
-    assertFalse(poller.fileContentsUpdated());
-
-    // move the second file into position.
-    Files.move(tempFile2, tempFile1, REPLACE_EXISTING);
-
-    // wait for non-blocking io to be finished.
-    await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
-    assertFalse(poller.fileContentsUpdated());
   }
 
   @Test
@@ -159,19 +131,6 @@ class FilePollerTest {
         FilePollerFactory.getWatchServiceBased(tempFile1.toString()), tempFile1, tempFile2);
   }
 
-  void filePollerUpdatesOnFileCopy(AbstractFilePoller poller, Path tempFile1, Path tempFile2)
-      throws IOException {
-    Files.write(tempFile2, "test file content for tempFile2".getBytes());
-
-    assertFalse(poller.fileContentsUpdated());
-
-    Files.copy(tempFile2, tempFile1, REPLACE_EXISTING);
-
-    // wait for non-blocking IO
-    await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
-    assertFalse(poller.fileContentsUpdated());
-  }
-
   @Test
   void filePollerUpdatesOnFileCopyPollBased() throws IOException {
     final Path tempFile1 = tempFiles.get(0);
@@ -195,5 +154,48 @@ class FilePollerTest {
 
     filePollerUpdatesOnFileCopy(
         FilePollerFactory.getWatchServiceBased(tempFile1.toString()), tempFile1, tempFile2);
+  }
+
+  void filePollerUpdatesOnChange(AbstractFilePoller poller) throws IOException {
+    final Path tempFile = tempFiles.get(0);
+
+    assertFalse(poller.fileContentsUpdated());
+
+    Files.write(tempFile, "test file content".getBytes());
+
+    // wait for non-blocking IO
+    await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
+    assertFalse(poller.fileContentsUpdated());
+  }
+
+  // **** TEST HELPERS ****
+
+  void filePollerUpdatesOnFileMove(AbstractFilePoller poller, Path tempFile1, Path tempFile2)
+      throws IOException {
+    // set up the second file
+    Files.write(tempFile2, "test file content for tempFile2".getBytes());
+
+    // no changes to the first file yet
+    assertFalse(poller.fileContentsUpdated());
+
+    // move the second file into position.
+    Files.move(tempFile2, tempFile1, REPLACE_EXISTING);
+
+    // wait for non-blocking io to be finished.
+    await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
+    assertFalse(poller.fileContentsUpdated());
+  }
+
+  void filePollerUpdatesOnFileCopy(AbstractFilePoller poller, Path tempFile1, Path tempFile2)
+      throws IOException {
+    Files.write(tempFile2, "test file content for tempFile2".getBytes());
+
+    assertFalse(poller.fileContentsUpdated());
+
+    Files.copy(tempFile2, tempFile1, REPLACE_EXISTING);
+
+    // wait for non-blocking IO
+    await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
+    assertFalse(poller.fileContentsUpdated());
   }
 }

@@ -3,10 +3,13 @@ package com.dynatrace.file.util;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FilePollerFactory {
   private static final Logger logger = Logger.getLogger(FilePollerFactory.class.getName());
+  private static final boolean isMacOs =
+      System.getProperty("os.name").toLowerCase().contains("mac");
 
   /**
    * See {@link FilePollerFactory#getDefault(String, Duration) getDefault} for details. It calls
@@ -22,11 +25,11 @@ public class FilePollerFactory {
   }
 
   /**
-   * Creates the default {@link AbstractFilePoller} based on the current OS. For Linux and Windows
-   * based OS's, uses a {@link java.nio.file.WatchService WatchService} based approach. For macOS,
+   * Creates the default {@link AbstractFilePoller} based on the current OS. On Linux and Windows,
+   * the poll mechanism is based on the {@link java.nio.file.WatchService WatchService}. For macOS,
    * where there is no native implementation for the {@link java.nio.file.WatchService WatchService}
-   * bindings this method provides a {@link PollBasedFilePoller}, which polls the file of interest
-   * periodically (according to the pollInterval).
+   * bindings, this method provides a {@link PollBasedFilePoller}, which polls the file of interest
+   * periodically (according to the {@code pollInterval}).
    *
    * @param fileName The name of the file to be watched.
    * @param pollInterval The interval in which the {@link PollBasedFilePoller} polls for changes.
@@ -37,7 +40,6 @@ public class FilePollerFactory {
    */
   public static AbstractFilePoller getDefault(String fileName, Duration pollInterval)
       throws IOException {
-    boolean isMacOs = System.getProperty("os.name").toLowerCase().contains("mac");
     if (isMacOs) {
       logger.info("Running on macOS");
       return getPollBased(fileName, pollInterval);
@@ -47,11 +49,11 @@ public class FilePollerFactory {
   }
 
   static PollBasedFilePoller getPollBased(String fileName, Duration pollInterval) {
-    logger.info(
-        () ->
-            String.format(
-                "Setting up poll-based FilePoller with poll interval %dms",
-                pollInterval == null ? 0 : pollInterval.toMillis()));
+    if (logger.isLoggable(Level.INFO) && pollInterval != null) {
+      logger.info(
+          String.format(
+              "Setting up poll-based FilePoller with poll interval %dms", pollInterval.toMillis()));
+    }
     return new PollBasedFilePoller(Paths.get(fileName), pollInterval);
   }
 
