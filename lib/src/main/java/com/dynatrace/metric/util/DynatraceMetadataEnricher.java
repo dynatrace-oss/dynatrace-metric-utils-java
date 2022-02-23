@@ -109,7 +109,7 @@ class DynatraceMetadataEnricher {
   }
 
   /**
-   * Gets the {@link Properties} contained in the metadata file from the indirection file If the
+   * Gets the {@link Properties} contained in the metadata file from the indirection file. If the
    * indirection file does not exist, falls back to the alternative metadata file.
    *
    * @return The {@link Properties} contained in the Dynatrace metadata file.

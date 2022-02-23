@@ -131,7 +131,6 @@ class DynatraceMetadataEnricherTest {
         DynatraceMetadataEnricher.getPropertiesWithIndirection(
             filename, "src/test/resources/metadata_file.properties");
 
-    String nonExistentAlternativeFilename = generateNonExistentFilename();
     Properties expected = new Properties();
     expected.setProperty("key1", "value1");
     expected.setProperty("key2", "value2");
