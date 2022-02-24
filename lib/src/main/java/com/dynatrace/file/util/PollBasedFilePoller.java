@@ -73,7 +73,10 @@ class PollBasedFilePoller extends AbstractFilePoller {
         // One possible reason for this is that no read permissions exist on the file, in
         // which case the user should (try to) read his file anyway and handle any errors then.
         changedSinceLastPoll.set(true);
-        logger.warning(() -> String.format("Failed to read file %s; Error: %s", absoluteFilePath, e.getMessage()));
+        logger.warning(
+            () ->
+                String.format(
+                    "Failed to read file %s; Error: %s", absoluteFilePath, e.getMessage()));
       }
     }
   }
