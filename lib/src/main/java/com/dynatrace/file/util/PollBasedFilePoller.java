@@ -19,9 +19,11 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 class PollBasedFilePoller extends AbstractFilePoller {
   private final AtomicBoolean changedSinceLastPoll = new AtomicBoolean(false);
+  private static final Logger logger = Logger.getLogger(PollBasedFilePoller.class.getName());
   private volatile long lastUpdatedAt = 0;
 
   protected PollBasedFilePoller(Path filePath, Duration pollInterval) {
@@ -40,6 +42,7 @@ class PollBasedFilePoller extends AbstractFilePoller {
                 return t;
               }
             });
+    logger.finer(() -> String.format("Polling every %dms", pollInterval.toMillis()));
     scheduledExecutorService.scheduleAtFixedRate(
         this::poll, pollInterval.toNanos(), pollInterval.toNanos(), TimeUnit.NANOSECONDS);
 
@@ -70,6 +73,7 @@ class PollBasedFilePoller extends AbstractFilePoller {
         // One possible reason for this is that no read permissions exist on the file, in
         // which case the user should (try to) read his file anyway and handle any errors then.
         changedSinceLastPoll.set(true);
+        logger.warning(() -> String.format("Failed to read file %s; Error: %s", absoluteFilePath, e.getMessage()));
       }
     }
   }
