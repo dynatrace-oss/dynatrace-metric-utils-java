@@ -49,7 +49,7 @@ class DynatraceMetadataEnricher {
    *     Dimensions are not normalized.
    */
   static List<Dimension> createDimensionList(Properties properties) {
-    ArrayList<Dimension> entries = new ArrayList<>();
+    ArrayList<Dimension> dimensions = new ArrayList<>(properties.size());
 
     for (Map.Entry<Object, Object> entry : properties.entrySet()) {
       String key = entry.getKey().toString();
@@ -57,14 +57,18 @@ class DynatraceMetadataEnricher {
 
       // skip if either key or value are empty
       if (key.isEmpty() || value.isEmpty()) {
-        logger.log(Level.WARNING, () -> String.format("dropped settings %s=%s", key, value));
+        logger.log(
+            Level.WARNING,
+            () ->
+                String.format(
+                    "dropped settings '%s=%s' due to empty key and/or value", key, value));
         continue;
       }
 
-      entries.add(Dimension.create(entry.getKey().toString(), entry.getValue().toString()));
+      dimensions.add(Dimension.create(entry.getKey().toString(), entry.getValue().toString()));
     }
 
-    return entries;
+    return dimensions;
   }
 
   /**

@@ -120,21 +120,21 @@ class DynatraceMetadataEnricherTest {
 
     Properties result =
         DynatraceMetadataEnricher.getPropertiesWithIndirection(filename, alternativeFilename);
-    assertEquals(new Properties(), result);
+    assertTrue(result.isEmpty());
   }
 
   @Test
   void testGetPropertiesWithIndirection_IndirectionFileDoesNotExistAlternativeExists() {
     String filename = generateNonExistentFilename();
 
-    Properties result =
-        DynatraceMetadataEnricher.getPropertiesWithIndirection(
-            filename, "src/test/resources/metadata_file.properties");
-
     Properties expected = new Properties();
     expected.setProperty("key1", "value1");
     expected.setProperty("key2", "value2");
     expected.setProperty("key3", "value3");
+
+    Properties result =
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(
+            filename, "src/test/resources/metadata_file.properties");
 
     assertEquals(expected, result);
   }
@@ -163,7 +163,7 @@ class DynatraceMetadataEnricherTest {
       Properties result =
           DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties", nonExistentAlternativeFile);
-      assertEquals(new Properties(), result);
+      assertTrue(result.isEmpty());
     }
   }
 
@@ -187,15 +187,16 @@ class DynatraceMetadataEnricherTest {
                       Mockito.anyString(), Mockito.anyString()))
           .thenCallRealMethod();
 
+      Properties expected = new Properties();
+      expected.setProperty("key1", "value1");
+      expected.setProperty("key2", "value2");
+      expected.setProperty("key3", "value3");
+
       Properties result =
           DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties",
               "src/test/resources/metadata_file.properties");
 
-      Properties expected = new Properties();
-      expected.setProperty("key1", "value1");
-      expected.setProperty("key2", "value2");
-      expected.setProperty("key3", "value3");
       assertEquals(expected, result);
     }
   }
@@ -226,7 +227,7 @@ class DynatraceMetadataEnricherTest {
       Properties result =
           DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties", nonExistentAlternativeFile);
-      assertEquals(new Properties(), result);
+      assertTrue(result.isEmpty());
     }
   }
 
@@ -250,14 +251,16 @@ class DynatraceMetadataEnricherTest {
                       Mockito.anyString(), Mockito.anyString()))
           .thenCallRealMethod();
 
-      Properties result =
-          DynatraceMetadataEnricher.getPropertiesWithIndirection(
-              "src/test/resources/mock_target.properties",
-              "src/test/resources/metadata_file.properties");
       Properties expected = new Properties();
       expected.setProperty("key1", "value1");
       expected.setProperty("key2", "value2");
       expected.setProperty("key3", "value3");
+
+      Properties result =
+          DynatraceMetadataEnricher.getPropertiesWithIndirection(
+              "src/test/resources/mock_target.properties",
+              "src/test/resources/metadata_file.properties");
+
       assertEquals(expected, result);
     }
   }
@@ -288,7 +291,7 @@ class DynatraceMetadataEnricherTest {
       Properties result =
           DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties", nonExistentAlternativeFile);
-      assertEquals(new Properties(), result);
+      assertTrue(result.isEmpty());
     }
   }
 
@@ -312,15 +315,16 @@ class DynatraceMetadataEnricherTest {
                       Mockito.anyString(), Mockito.anyString()))
           .thenCallRealMethod();
 
+      Properties expected = new Properties();
+      expected.setProperty("key1", "value1");
+      expected.setProperty("key2", "value2");
+      expected.setProperty("key3", "value3");
+
       Properties result =
           DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties",
               "src/test/resources/metadata_file.properties");
 
-      Properties expected = new Properties();
-      expected.setProperty("key1", "value1");
-      expected.setProperty("key2", "value2");
-      expected.setProperty("key3", "value3");
       assertEquals(expected, result);
     }
   }
@@ -354,7 +358,7 @@ class DynatraceMetadataEnricherTest {
               "src/test/resources/mock_target.properties",
               "src/test/resources/metadata_file.properties");
 
-      assertEquals(new Properties(), result);
+      assertTrue(result.isEmpty());
     }
   }
 
@@ -378,7 +382,7 @@ class DynatraceMetadataEnricherTest {
       Properties result =
           DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties", alternativeFileName);
-      assertEquals(new Properties(), result);
+      assertTrue(result.isEmpty());
     }
   }
 
