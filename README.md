@@ -9,7 +9,8 @@ The library is available on [Maven Central](https://mvnrepository.com/artifact/c
 
 ## Usage
 
-Examples for how to use this library can be found in [the example application](example/src/main/java/com/dynatrace/example/App.java).
+Examples for how to use this library can be found in [the example application](example/src/main/java/com/dynatrace/metric/util/example/App.java).
+
 It shows how to create metrics lines that can be sent to a [Dynatrace metrics ingest endpoint](https://www.dynatrace.com/support/help/dynatrace-api/environment-api/metric-v2/post-ingest-metrics/).
 
 ### Metric line creation
@@ -18,7 +19,7 @@ It shows how to create metrics lines that can be sent to a [Dynatrace metrics in
 
 The standard workflow consists of creating a `MetricBuilderFactory` and using it to create `MetricBuilder` objects that can be serialized to a `String`.
 
-The following options can be set on upon creation of a `MetricBuilderFactory`:
+The following options can be set upon creation of a `MetricBuilderFactory`:
 
 * `withPrefix`: A prefix that is prepended to each metric key (separated by a `.`).
 * `withDefaultDimensions`: These dimensions will be added to all metrics created by the factory (see [the section on dimension precedence](#dimension-precedence) below).
