@@ -16,15 +16,17 @@ package com.dynatrace.file.util;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 class PollBasedFilePoller extends AbstractFilePoller {
-  private final AtomicBoolean changedSinceLastPoll = new AtomicBoolean(false);
+  private final AtomicBoolean changedSinceLastInquiry = new AtomicBoolean(false);
   private static final Logger logger = Logger.getLogger(PollBasedFilePoller.class.getName());
-  private volatile long lastUpdatedAt = 0;
+  private static final FileTime ZERO_FILE_TIME = FileTime.from(0, TimeUnit.MILLISECONDS);
+  private FileTime prevModifiedAt = ZERO_FILE_TIME;
 
   protected PollBasedFilePoller(Path filePath, Duration pollInterval) {
     super(filePath);
@@ -37,7 +39,7 @@ class PollBasedFilePoller extends AbstractFilePoller {
             new ThreadFactory() {
               @Override
               public Thread newThread(Runnable r) {
-                Thread t = new Thread(null, r, "PollBasedFilePoller", 0);
+                Thread t = new Thread(null, r, "PollBasedFilePoller");
                 t.setDaemon(true);
                 return t;
               }
@@ -54,30 +56,24 @@ class PollBasedFilePoller extends AbstractFilePoller {
   @Override
   public boolean fileContentsUpdated() {
     // get the current value and reset to false
-    return changedSinceLastPoll.getAndSet(false);
+    return changedSinceLastInquiry.getAndSet(false);
   }
 
-  private void poll() {
-    synchronized (this) {
-      try {
-        long modifiedAt = Files.getLastModifiedTime(absoluteFilePath).toMillis();
-        long previouslyModifiedAt = lastUpdatedAt;
-        lastUpdatedAt = modifiedAt;
+  private synchronized void poll() {
+    try {
+      FileTime lastModifiedAt = Files.getLastModifiedTime(absoluteFilePath);
 
-        if (modifiedAt >= previouslyModifiedAt) {
-          if (previouslyModifiedAt > 0) {
-            changedSinceLastPoll.set(true);
-          }
+      if (lastModifiedAt.compareTo(prevModifiedAt) >= 0) {
+        if (prevModifiedAt.compareTo(ZERO_FILE_TIME) != 0) {
+          changedSinceLastInquiry.set(true);
         }
-      } catch (IOException e) {
-        // One possible reason for this is that no read permissions exist on the file, in
-        // which case the user should (try to) read his file anyway and handle any errors then.
-        changedSinceLastPoll.set(true);
-        logger.warning(
-            () ->
-                String.format(
-                    "Failed to read file %s; Error: %s", absoluteFilePath, e.getMessage()));
       }
+      prevModifiedAt = lastModifiedAt;
+    } catch (IOException e) {
+      // One possible reason for this is that no read permissions exist on the file, in
+      // which case the user should (try to) read the file anyway and handle any errors then.
+      changedSinceLastInquiry.set(true);
+      logger.warning(() -> String.format("Failed to read file %s; Error: %s", absoluteFilePath, e));
     }
   }
 }

@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class FilePollerFactory {
+class FilePollerFactory {
   private static final Logger logger = Logger.getLogger(FilePollerFactory.class.getName());
   private static final boolean IS_MAC_OS =
       System.getProperty("os.name", "").toLowerCase().contains("mac");
@@ -28,7 +28,8 @@ public class FilePollerFactory {
    * See {@link FilePollerFactory#getDefault(String, Duration) getDefault} for details. It calls
    * this method with the default poll duration of 60 seconds.
    *
-   * @param fileName The name of the file to be watched.
+   * @param fileName The name of the file to be watched. An absolute path will be created from the
+   *     file name if it is not already passed as absolute path.
    * @return An object that implements the abstract methods on {@link AbstractFilePoller}.
    * @throws IOException if the initialization of the {@link WatchServiceBasedFilePoller} is not
    *     successful.
@@ -38,12 +39,13 @@ public class FilePollerFactory {
   }
 
   /**
-   * Creates the default {@link AbstractFilePoller} based on the current OS. On Linux and Windows,
-   * the poll mechanism is based on the {@link java.nio.file.WatchService WatchService}. For macOS,
-   * where there is no native implementation for the {@link java.nio.file.WatchService WatchService}
-   * bindings, this method provides a {@link PollBasedFilePoller}, which polls the file of interest
-   * periodically (according to the {@code pollInterval}).
+   * Creates the default {@link AbstractFilePoller} based on the current OS.
    *
+   * @implNote On Linux and Windows, * the poll mechanism is based on the {@link
+   *     java.nio.file.WatchService WatchService}. For macOS, * where there is no native
+   *     implementation for the {@link java.nio.file.WatchService WatchService} * bindings, this
+   *     method provides a {@link PollBasedFilePoller}, which polls the file of interest *
+   *     periodically (according to the {@code pollInterval}).
    * @param fileName The name of the file to be watched.
    * @param pollInterval The interval in which the {@link PollBasedFilePoller} polls for changes.
    *     Only applicable on macOS.
@@ -54,7 +56,7 @@ public class FilePollerFactory {
   public static AbstractFilePoller getDefault(String fileName, Duration pollInterval)
       throws IOException {
     if (IS_MAC_OS) {
-      logger.info("Running on macOS");
+      logger.fine("Running on macOS");
       return getPollBased(fileName, pollInterval);
     } else {
       return getWatchServiceBased(fileName);
@@ -71,7 +73,7 @@ public class FilePollerFactory {
   }
 
   static WatchServiceBasedFilePoller getWatchServiceBased(String fileName) throws IOException {
-    logger.info("Setting up WatchService based FilePoller");
+    logger.info("Setting up WatchService-based FilePoller");
     return new WatchServiceBasedFilePoller(Paths.get(fileName));
   }
 }
