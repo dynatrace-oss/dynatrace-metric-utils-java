@@ -22,7 +22,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
-class PollBasedFilePoller extends AbstractFilePoller {
+class PollBasedFilePoller extends FilePoller {
   private final AtomicBoolean changedSinceLastInquiry = new AtomicBoolean(false);
   private static final Logger logger = Logger.getLogger(PollBasedFilePoller.class.getName());
   private static final FileTime ZERO_FILE_TIME = FileTime.from(0, TimeUnit.MILLISECONDS);

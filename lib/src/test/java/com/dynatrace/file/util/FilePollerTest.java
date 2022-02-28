@@ -157,7 +157,7 @@ class FilePollerTest {
         FilePollerFactory.getWatchServiceBased(tempFile1.toString()), tempFile1, tempFile2);
   }
 
-  void filePollerUpdatesOnChange(AbstractFilePoller poller) throws IOException {
+  void filePollerUpdatesOnChange(FilePoller poller) throws IOException {
     final Path tempFile = tempFiles.get(0);
 
     assertFalse(poller.fileContentsUpdated());
@@ -171,7 +171,7 @@ class FilePollerTest {
 
   // **** TEST HELPERS ****
 
-  void filePollerUpdatesOnFileMove(AbstractFilePoller poller, Path tempFile1, Path tempFile2)
+  void filePollerUpdatesOnFileMove(FilePoller poller, Path tempFile1, Path tempFile2)
       throws IOException {
     // set up the second file
     Files.write(tempFile2, "test file content for tempFile2".getBytes());
@@ -187,7 +187,7 @@ class FilePollerTest {
     assertFalse(poller.fileContentsUpdated());
   }
 
-  void filePollerUpdatesOnFileCopy(AbstractFilePoller poller, Path tempFile1, Path tempFile2)
+  void filePollerUpdatesOnFileCopy(FilePoller poller, Path tempFile1, Path tempFile2)
       throws IOException {
     Files.write(tempFile2, "test file content for tempFile2".getBytes());
 

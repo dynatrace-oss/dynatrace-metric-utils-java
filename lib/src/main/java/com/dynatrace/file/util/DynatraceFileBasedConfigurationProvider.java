@@ -41,7 +41,7 @@ public class DynatraceFileBasedConfigurationProvider {
   private static final String PROPERTIES_FILENAME =
       "/var/lib/dynatrace/enrichment/endpoint/endpoint.properties";
 
-  private AbstractFilePoller filePoller;
+  private FilePoller filePoller;
   private DynatraceConfiguration config;
 
   public static DynatraceFileBasedConfigurationProvider getInstance() {
@@ -51,7 +51,7 @@ public class DynatraceFileBasedConfigurationProvider {
   private void setUp(String fileName, Duration pollInterval) {
     alreadyInitialized = false;
     config = new DynatraceConfiguration();
-    AbstractFilePoller poller = null;
+    FilePoller poller = null;
     try {
       if (!Files.exists(Paths.get(fileName))) {
         logger.info("File based configuration does not exist, serving default config.");

@@ -16,10 +16,10 @@ package com.dynatrace.file.util;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-abstract class AbstractFilePoller {
+abstract class FilePoller {
   protected final Path absoluteFilePath;
 
-  protected AbstractFilePoller(Path filename) {
+  protected FilePoller(Path filename) {
     if (filename == null) {
       throw new IllegalArgumentException("filename cannot be null.");
     }

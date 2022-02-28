@@ -30,16 +30,16 @@ class FilePollerFactory {
    *
    * @param fileName The name of the file to be watched. An absolute path will be created from the
    *     file name if it is not already passed as absolute path.
-   * @return An object that implements the abstract methods on {@link AbstractFilePoller}.
+   * @return An object that implements the abstract methods on {@link FilePoller}.
    * @throws IOException if the initialization of the {@link WatchServiceBasedFilePoller} is not
    *     successful.
    */
-  public static AbstractFilePoller getDefault(String fileName) throws IOException {
+  static FilePoller getDefault(String fileName) throws IOException {
     return getDefault(fileName, Duration.ofSeconds(60));
   }
 
   /**
-   * Creates the default {@link AbstractFilePoller} based on the current OS.
+   * Creates the default {@link FilePoller} based on the current OS.
    *
    * @implNote On Linux and Windows, * the poll mechanism is based on the {@link
    *     java.nio.file.WatchService WatchService}. For macOS, * where there is no native
@@ -49,12 +49,11 @@ class FilePollerFactory {
    * @param fileName The name of the file to be watched.
    * @param pollInterval The interval in which the {@link PollBasedFilePoller} polls for changes.
    *     Only applicable on macOS.
-   * @return An object that implements the abstract methods on {@link AbstractFilePoller}.
+   * @return An object that implements the abstract methods on {@link FilePoller}.
    * @throws IOException if the initialization of the {@link WatchServiceBasedFilePoller} is not
    *     successful.
    */
-  public static AbstractFilePoller getDefault(String fileName, Duration pollInterval)
-      throws IOException {
+  static FilePoller getDefault(String fileName, Duration pollInterval) throws IOException {
     if (IS_MAC_OS) {
       logger.fine("Running on macOS");
       return getPollBased(fileName, pollInterval);

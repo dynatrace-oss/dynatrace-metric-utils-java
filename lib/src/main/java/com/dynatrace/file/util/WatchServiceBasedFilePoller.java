@@ -21,7 +21,7 @@ import java.nio.file.*;
 import java.util.Collections;
 import java.util.List;
 
-class WatchServiceBasedFilePoller extends AbstractFilePoller {
+class WatchServiceBasedFilePoller extends FilePoller {
   private final Path folder;
   private final WatchService watchService;
 
