@@ -70,7 +70,7 @@ class DynatraceMetadataEnricherTest {
         Arguments.of("key_no_value", ""), Arguments.of("", "value_no_key"), Arguments.of("", ""));
   }
 
-  @ParameterizedTest
+  @ParameterizedTest(name = "{index}: createDimensionList with key `{0}` and value `{1}` should drop entry")
   @MethodSource("provideInvalidPropertyParameters")
   void invalidProperties(String key, String value) {
     Properties properties = new Properties();
