@@ -19,8 +19,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Properties;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -60,19 +65,17 @@ class DynatraceMetadataEnricherTest {
             .getValue());
   }
 
-  @Test
-  void invalidProperties() {
-    Properties noValueProperties = new Properties();
-    noValueProperties.setProperty("key_no_value", "");
-    assertTrue(DynatraceMetadataEnricher.createDimensionList(noValueProperties).isEmpty());
+  private static Stream<Arguments> provideInvalidPropertyParameters() {
+    return Stream.of(
+        Arguments.of("key_no_value", ""), Arguments.of("", "value_no_key"), Arguments.of("", ""));
+  }
 
-    Properties noKeyProperties = new Properties();
-    noKeyProperties.setProperty("", "value_no_key");
-    assertTrue(DynatraceMetadataEnricher.createDimensionList(noKeyProperties).isEmpty());
-
-    Properties noKeyAndValueProperties = new Properties();
-    noKeyAndValueProperties.setProperty("", "");
-    assertTrue(DynatraceMetadataEnricher.createDimensionList(noKeyAndValueProperties).isEmpty());
+  @ParameterizedTest
+  @MethodSource("provideInvalidPropertyParameters")
+  void invalidProperties(String key, String value) {
+    Properties properties = new Properties();
+    properties.setProperty(key, value);
+    assertTrue(DynatraceMetadataEnricher.createDimensionList(properties).isEmpty());
   }
 
   @Test
