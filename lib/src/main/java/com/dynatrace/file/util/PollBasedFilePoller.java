@@ -16,8 +16,8 @@ package com.dynatrace.file.util;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -25,8 +25,10 @@ import java.util.logging.Logger;
 class PollBasedFilePoller extends FilePoller {
   private final AtomicBoolean changedSinceLastInquiry = new AtomicBoolean(false);
   private static final Logger logger = Logger.getLogger(PollBasedFilePoller.class.getName());
-  private static final FileTime ZERO_FILE_TIME = FileTime.from(0, TimeUnit.MILLISECONDS);
-  private FileTime prevModifiedAt = ZERO_FILE_TIME;
+
+  private long prevModMillis = 0;
+
+  private final ScheduledFuture<?> worker;
 
   protected PollBasedFilePoller(Path filePath, Duration pollInterval) {
     super(filePath);
@@ -34,7 +36,7 @@ class PollBasedFilePoller extends FilePoller {
       throw new IllegalArgumentException("Poll interval cannot be null");
     }
 
-    ScheduledExecutorService scheduledExecutorService =
+    ScheduledExecutorService executorService =
         Executors.newSingleThreadScheduledExecutor(
             new ThreadFactory() {
               @Override
@@ -44,13 +46,18 @@ class PollBasedFilePoller extends FilePoller {
                 return t;
               }
             });
-    logger.finer(() -> String.format("Polling every %dms", pollInterval.toMillis()));
-    scheduledExecutorService.scheduleAtFixedRate(
-        this::poll, pollInterval.toNanos(), pollInterval.toNanos(), TimeUnit.NANOSECONDS);
 
-    // poll once initially and synchronously to make sure that the atomic data stores are
-    // initialized before the end of the constructor.
-    poll();
+    logger.finer(() -> String.format("Polling every %dms", pollInterval.toMillis()));
+    worker =
+        executorService.scheduleAtFixedRate(
+            this::poll, pollInterval.toNanos(), pollInterval.toNanos(), TimeUnit.NANOSECONDS);
+
+    try {
+      // initially poll once and wait for it to complete.
+      executorService.invokeAll(
+          Arrays.asList(Executors.callable(this::poll)), 5, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException ignored) {
+    }
   }
 
   @Override
@@ -61,19 +68,20 @@ class PollBasedFilePoller extends FilePoller {
 
   private synchronized void poll() {
     try {
-      FileTime lastModifiedAt = Files.getLastModifiedTime(absoluteFilePath);
-
-      if (lastModifiedAt.compareTo(prevModifiedAt) >= 0) {
-        if (prevModifiedAt.compareTo(ZERO_FILE_TIME) != 0) {
-          changedSinceLastInquiry.set(true);
-        }
+      long modifiedAtMillis = Files.getLastModifiedTime(absoluteFilePath).toMillis();
+      if (modifiedAtMillis > prevModMillis && prevModMillis > 0) {
+        changedSinceLastInquiry.set(true);
       }
-      prevModifiedAt = lastModifiedAt;
+      prevModMillis = modifiedAtMillis;
     } catch (IOException e) {
       // One possible reason for this is that no read permissions exist on the file, in
       // which case the user should (try to) read the file anyway and handle any errors then.
       changedSinceLastInquiry.set(true);
-      logger.warning(() -> String.format("Failed to read file %s; Error: %s", absoluteFilePath, e));
+      logger.warning(
+          () ->
+              String.format(
+                  "Failed to read file %s, stopping polling. Error: %s", absoluteFilePath, e));
+      worker.cancel(true);
     }
   }
 }

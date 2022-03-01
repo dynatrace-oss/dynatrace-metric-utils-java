@@ -13,48 +13,36 @@
  */
 package com.dynatrace.file.util;
 
+import com.dynatrace.testutils.TempFiles;
+import com.dynatrace.testutils.TestUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.dynatrace.testutils.TestUtils;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 class FilePollerTest {
-  Path tempDir;
-  List<Path> tempFiles = new ArrayList<>();
-
-  boolean isMacOs = System.getProperty("os.name", "").toLowerCase().contains("mac");
-
+  private static final boolean IS_MAC_OS = System.getProperty("os.name", "").toLowerCase().contains("mac");
+  private TempFiles tf;
+  
   @BeforeEach
   void setUp() throws IOException {
-    cleanUp();
-    tempDir = Files.createTempDirectory("tempdir");
-    for (int i = 0; i < 2; i++) {
-      tempFiles.add(Files.createTempFile(tempDir, "tempfile" + i, ".tmp"));
-    }
+    tf = new TempFiles();
   }
-
+  
   @AfterEach
   void cleanUp() throws IOException {
-    for (Path path : tempFiles) {
-      Files.deleteIfExists(path);
-    }
-    tempFiles.clear();
-    if (tempDir != null) {
-      Files.deleteIfExists(tempDir);
-    }
-    tempDir = null;
+    tf.close();
+    tf = null;
   }
 
   @Test
@@ -72,9 +60,9 @@ class FilePollerTest {
 
   @Test
   void constructorThrowsOnNullDurationForPollBased() {
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> FilePollerFactory.getPollBased(tempFiles.get(0).toString(), null));
+      assertThrows(
+          IllegalArgumentException.class,
+          () -> FilePollerFactory.getPollBased(tf.tempFile1Name(), null));
   }
 
   @Test
@@ -92,73 +80,66 @@ class FilePollerTest {
 
   @Test
   void filePollerUpdatesOnChangePollBased() throws IOException {
-    filePollerUpdatesOnChange(
-        FilePollerFactory.getPollBased(tempFiles.get(0).toString(), Duration.ofMillis(50)));
+      PollBasedFilePoller poller =
+          FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50));
+      // wait for 5 millis so the first poll does not coincide with the file mod time
+      await().atLeast(Duration.ofMillis(5)).until(() -> !poller.fileContentsUpdated());
+      filePollerUpdatesOnChange(poller, tf.tempFile1());
   }
 
   @Test
   void filePollerUpdatesOnChangeWatchServiceBased() throws IOException {
-    if (isMacOs) {
+    if (IS_MAC_OS) {
       System.out.println(
           "macOS does not support WatchService based pollers, skipping this test...");
       return;
     }
-
-    filePollerUpdatesOnChange(FilePollerFactory.getWatchServiceBased(tempFiles.get(0).toString()));
+      filePollerUpdatesOnChange(
+          FilePollerFactory.getWatchServiceBased(tf.tempFile1Name()), tf.tempFile1());
   }
 
   @Test
   void filePollerUpdatesOnFileMovePollBased() throws IOException {
-    final Path tempFile1 = tempFiles.get(0);
-    final Path tempFile2 = tempFiles.get(1);
-
-    filePollerUpdatesOnFileMove(
-        FilePollerFactory.getPollBased(tempFile1.toString(), Duration.ofMillis(50)),
-        tempFile1,
-        tempFile2);
+      PollBasedFilePoller poller =
+          FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50));
+      // wait for 5 millis so the first poll does not coincide with the file mod time
+      await().atLeast(Duration.ofMillis(5)).until(() -> !poller.fileContentsUpdated());
+      filePollerUpdatesOnFileMove(poller, tf);
   }
 
   @Test
   void filePollerUpdatesOnFileMoveWatchServiceBased() throws IOException {
-    if (isMacOs) {
+    if (IS_MAC_OS) {
       System.out.println("Running on macOS, skipping this test...");
       return;
     }
 
-    final Path tempFile1 = tempFiles.get(0);
-    final Path tempFile2 = tempFiles.get(1);
-
-    filePollerUpdatesOnFileMove(
-        FilePollerFactory.getWatchServiceBased(tempFile1.toString()), tempFile1, tempFile2);
+      filePollerUpdatesOnFileMove(FilePollerFactory.getWatchServiceBased(tf.tempFile1Name()), tf);
   }
 
   @Test
   void filePollerUpdatesOnFileCopyPollBased() throws IOException {
-    final Path tempFile1 = tempFiles.get(0);
-    final Path tempFile2 = tempFiles.get(1);
-
-    filePollerUpdatesOnFileCopy(
-        FilePollerFactory.getPollBased(tempFile1.toString(), Duration.ofMillis(50)),
-        tempFile1,
-        tempFile2);
+      PollBasedFilePoller poller =
+          FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50));
+      // wait for 5 millis so the first poll does not coincide with the file mod time
+      await().atLeast(Duration.ofMillis(5)).until(() -> !poller.fileContentsUpdated());
+      filePollerUpdatesOnFileCopy(poller, tf);
   }
 
   @Test
   void filePollerUpdatesOnFileCopyWatchServiceBased() throws IOException {
-    if (isMacOs) {
+    if (IS_MAC_OS) {
       System.out.println("Running on macOS, skipping this test...");
       return;
     }
 
-    final Path tempFile1 = tempFiles.get(0);
-    final Path tempFile2 = tempFiles.get(1);
-
-    filePollerUpdatesOnFileCopy(
-        FilePollerFactory.getWatchServiceBased(tempFile1.toString()), tempFile1, tempFile2);
+      filePollerUpdatesOnFileCopy(FilePollerFactory.getWatchServiceBased(tf.tempFile1Name()), tf);
   }
 
-  void filePollerUpdatesOnChange(FilePoller poller) throws IOException {
-    final Path tempFile = tempFiles.get(0);
+  // **** TEST HELPERS ****
+
+  void filePollerUpdatesOnChange(FilePoller poller, Path tempFile)
+      throws IOException {
 
     assertFalse(poller.fileContentsUpdated());
 
@@ -169,31 +150,27 @@ class FilePollerTest {
     assertFalse(poller.fileContentsUpdated());
   }
 
-  // **** TEST HELPERS ****
-
-  void filePollerUpdatesOnFileMove(FilePoller poller, Path tempFile1, Path tempFile2)
+  void filePollerUpdatesOnFileMove(FilePoller poller, TempFiles tf)
       throws IOException {
     // set up the second file
-    Files.write(tempFile2, "test file content for tempFile2".getBytes());
+    Files.write(tf.tempFile2(), "test file content for tempFile2".getBytes());
 
     // no changes to the first file yet
     assertFalse(poller.fileContentsUpdated());
 
-    // move the second file into position.
-    Files.move(tempFile2, tempFile1, REPLACE_EXISTING);
+    // move the second file into position, this should change the last modified timestamp
+    Files.move(tf.tempFile2(), tf.tempFile1(), REPLACE_EXISTING);
 
-    // wait for non-blocking io to be finished.
     await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
     assertFalse(poller.fileContentsUpdated());
   }
 
-  void filePollerUpdatesOnFileCopy(FilePoller poller, Path tempFile1, Path tempFile2)
-      throws IOException {
-    Files.write(tempFile2, "test file content for tempFile2".getBytes());
+  void filePollerUpdatesOnFileCopy(FilePoller poller, TempFiles tf) throws IOException {
+    Files.write(tf.tempFile2(), "test file content for tempFile2".getBytes());
 
     assertFalse(poller.fileContentsUpdated());
 
-    Files.copy(tempFile2, tempFile1, REPLACE_EXISTING);
+    Files.copy(tf.tempFile2(), tf.tempFile1(), REPLACE_EXISTING);
 
     // wait for non-blocking IO
     await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
