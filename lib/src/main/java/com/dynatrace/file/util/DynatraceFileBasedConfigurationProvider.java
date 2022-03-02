@@ -64,7 +64,7 @@ public class DynatraceFileBasedConfigurationProvider {
           () -> String.format("%s is not a valid file path (%s).", fileName, e.getMessage()));
     } catch (IOException | IllegalArgumentException e) {
       logger.warning(
-          () -> String.format("WatchService could not be initialized: %s", e.getMessage()));
+          () -> String.format("File polling could not be initialized: %s", e.getMessage()));
     }
     filePoller = poller;
     // try to read from file
