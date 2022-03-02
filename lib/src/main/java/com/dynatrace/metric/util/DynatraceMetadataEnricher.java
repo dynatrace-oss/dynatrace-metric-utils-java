@@ -41,7 +41,8 @@ class DynatraceMetadataEnricher {
   }
 
   /**
-   * This function takes {@link Properties} object and transforms it into a {@link List<Dimension>}.
+   * This function takes a {@link Properties} object and transforms it into a {@link
+   * List<Dimension>}.
    *
    * @param properties {@link Properties} to transform
    * @return A {@link List} of {@link Dimension dimensions} mapping {@link String} to {@link
@@ -61,11 +62,11 @@ class DynatraceMetadataEnricher {
             Level.WARNING,
             () ->
                 String.format(
-                    "dropped settings '%s=%s' due to empty key and/or value", key, value));
+                    "dropped properties '%s=%s' due to empty key and/or value", key, value));
         continue;
       }
 
-      dimensions.add(Dimension.create(entry.getKey().toString(), entry.getValue().toString()));
+      dimensions.add(Dimension.create(key, value));
     }
 
     return dimensions;
@@ -114,7 +115,7 @@ class DynatraceMetadataEnricher {
 
   /**
    * Gets the {@link Properties} contained in the metadata file from the indirection file. If the
-   * indirection file does not exist, falls back to the alternative metadata file.
+   * indirection file does not exist, falls back to directly reading the alternative metadata file.
    *
    * @return The {@link Properties} contained in the Dynatrace metadata file.
    */
