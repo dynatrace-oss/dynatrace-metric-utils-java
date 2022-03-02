@@ -56,6 +56,9 @@ class FilePollerFactory {
   static FilePoller getDefault(String fileName, Duration pollInterval) throws IOException {
     if (IS_MAC_OS) {
       logger.fine("Running on macOS");
+      if (pollInterval == null) {
+        pollInterval = Duration.ofSeconds(10);
+      }
       return getPollBased(fileName, pollInterval);
     } else {
       return getWatchServiceBased(fileName);
