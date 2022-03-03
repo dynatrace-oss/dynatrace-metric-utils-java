@@ -24,6 +24,8 @@ class FilePollerFactory {
   private static final boolean IS_MAC_OS =
       System.getProperty("os.name", "").toLowerCase().contains("mac");
 
+  private FilePollerFactory() {}
+
   /**
    * See {@link FilePollerFactory#getDefault(String, Duration) getDefault} for details. It calls
    * this method with the default poll duration of 60 seconds.
@@ -57,7 +59,7 @@ class FilePollerFactory {
     if (IS_MAC_OS) {
       logger.fine("Running on macOS");
       if (pollInterval == null) {
-        pollInterval = Duration.ofSeconds(10);
+        pollInterval = Duration.ofSeconds(60);
       }
       return getPollBased(fileName, pollInterval);
     } else {
