@@ -13,11 +13,14 @@
  */
 package com.dynatrace.file.util;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -27,8 +30,12 @@ class PollBasedFilePoller extends FilePoller {
   private static final Logger logger = Logger.getLogger(PollBasedFilePoller.class.getName());
 
   private long prevModMillis = 0;
+  private String prevChecksum = "";
 
   private final ScheduledFuture<?> worker;
+  private final ScheduledExecutorService executorService;
+
+  private MessageDigest md5;
 
   protected PollBasedFilePoller(Path filePath, Duration pollInterval) {
     super(filePath);
@@ -36,7 +43,13 @@ class PollBasedFilePoller extends FilePoller {
       throw new IllegalArgumentException("Poll interval cannot be null");
     }
 
-    ScheduledExecutorService executorService =
+    try {
+      md5 = MessageDigest.getInstance("MD5");
+    } catch (NoSuchAlgorithmException ignored) {
+      // ignore, since this is not something dependent on the code. MD5 should always be there.
+    }
+
+    executorService =
         Executors.newSingleThreadScheduledExecutor(
             new ThreadFactory() {
               @Override
@@ -52,12 +65,7 @@ class PollBasedFilePoller extends FilePoller {
         executorService.scheduleAtFixedRate(
             this::poll, pollInterval.toNanos(), pollInterval.toNanos(), TimeUnit.NANOSECONDS);
 
-    try {
-      // initially poll once and wait for it to complete.
-      executorService.invokeAll(
-          Arrays.asList(Executors.callable(this::poll)), 5, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException ignored) {
-    }
+    initialPoll();
   }
 
   @Override
@@ -66,13 +74,37 @@ class PollBasedFilePoller extends FilePoller {
     return changedSinceLastInquiry.getAndSet(false);
   }
 
+  private synchronized void initialPoll() {
+    try {
+      prevChecksum = getFileChecksum();
+      prevModMillis =
+          Files.getLastModifiedTime(absoluteFilePath, LinkOption.NOFOLLOW_LINKS).toMillis();
+    } catch (IOException e) {
+      logger.warning(
+          () ->
+              String.format(
+                  "Failed to read file %s, stopping polling. Error: %s", absoluteFilePath, e));
+      worker.cancel(true);
+    }
+  }
+
   private synchronized void poll() {
     try {
-      long modifiedAtMillis = Files.getLastModifiedTime(absoluteFilePath).toMillis();
-      if (modifiedAtMillis > prevModMillis && prevModMillis > 0) {
+      // check if the filetime has changed.
+      long lastModifiedMillis = Files.getLastModifiedTime(absoluteFilePath).toMillis();
+      if (lastModifiedMillis > prevModMillis) {
+        prevModMillis = lastModifiedMillis;
+        changedSinceLastInquiry.set(true);
+        return;
+      }
+
+      // if the filetime hasn't changed, check if the hash has changed.
+      String fileChecksum = getFileChecksum();
+      if (!fileChecksum.equals(prevChecksum)) {
+        prevChecksum = fileChecksum;
+        prevModMillis = lastModifiedMillis;
         changedSinceLastInquiry.set(true);
       }
-      prevModMillis = modifiedAtMillis;
     } catch (IOException e) {
       // One possible reason for this is that no read permissions exist on the file, in
       // which case the user should (try to) read the file anyway and handle any errors then.
@@ -82,6 +114,46 @@ class PollBasedFilePoller extends FilePoller {
               String.format(
                   "Failed to read file %s, stopping polling. Error: %s", absoluteFilePath, e));
       worker.cancel(true);
+    }
+  }
+
+  private synchronized String getFileChecksum() throws IOException {
+    // Get file input stream for reading the file content
+    try (FileInputStream fis = new FileInputStream(absoluteFilePath.toFile())) {
+
+      // Create byte array to read data in chunks
+      byte[] byteArray = new byte[1024];
+      int bytesCount;
+
+      // Read file data and update in message digest
+      while ((bytesCount = fis.read(byteArray)) != -1) {
+        md5.update(byteArray, 0, bytesCount);
+      }
+    }
+
+    // Get the hash's bytes
+    byte[] bytes = md5.digest();
+
+    // This bytes[] has bytes in decimal format, convert it to hexadecimal format
+    StringBuilder sb = new StringBuilder();
+    for (byte aByte : bytes) {
+      sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
+    }
+
+    // return complete hash
+    return sb.toString();
+  }
+
+  @Override
+  public void close() throws IOException {
+    worker.cancel(true);
+    executorService.shutdown();
+    try {
+      if (!executorService.awaitTermination(50, TimeUnit.MILLISECONDS)) {
+        executorService.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      logger.warning("failed to shut down poll based file poller: " + e);
     }
   }
 }

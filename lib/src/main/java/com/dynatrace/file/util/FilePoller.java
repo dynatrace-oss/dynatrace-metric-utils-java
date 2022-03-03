@@ -13,10 +13,11 @@
  */
 package com.dynatrace.file.util;
 
+import java.io.Closeable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-abstract class FilePoller {
+abstract class FilePoller implements Closeable {
   protected final Path absoluteFilePath;
 
   protected FilePoller(Path filename) {

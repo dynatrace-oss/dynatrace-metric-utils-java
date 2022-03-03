@@ -80,11 +80,10 @@ class FilePollerTest {
 
   @Test
   void filePollerUpdatesOnChangePollBased() throws IOException {
-    PollBasedFilePoller poller =
-        FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50));
-    // wait for 5 millis so the first poll does not coincide with the file mod time
-    await().atLeast(Duration.ofMillis(5)).until(() -> !poller.fileContentsUpdated());
-    filePollerUpdatesOnChange(poller, tf.tempFile1());
+    try (PollBasedFilePoller poller =
+        FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50))) {
+      filePollerUpdatesOnChange(poller, tf.tempFile1());
+    }
   }
 
   @Test
@@ -94,17 +93,20 @@ class FilePollerTest {
           "macOS does not support WatchService based pollers, skipping this test...");
       return;
     }
-    filePollerUpdatesOnChange(
-        FilePollerFactory.getWatchServiceBased(tf.tempFile1Name()), tf.tempFile1());
+
+    try (WatchServiceBasedFilePoller poller =
+        FilePollerFactory.getWatchServiceBased(tf.tempFile1Name())) {
+      filePollerUpdatesOnChange(poller, tf.tempFile1());
+    }
   }
 
   @Test
   void filePollerUpdatesOnFileMovePollBased() throws IOException {
-    PollBasedFilePoller poller =
-        FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50));
-    // wait for 5 millis so the first poll does not coincide with the file mod time
-    await().atLeast(Duration.ofMillis(5)).until(() -> !poller.fileContentsUpdated());
-    filePollerUpdatesOnFileMove(poller, tf);
+    try (PollBasedFilePoller poller =
+        FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50))) {
+      // wait for 5 millis so the first poll does not coincide with the file mod time
+      filePollerUpdatesOnFileMove(poller, tf);
+    }
   }
 
   @Test
@@ -114,16 +116,20 @@ class FilePollerTest {
       return;
     }
 
-    filePollerUpdatesOnFileMove(FilePollerFactory.getWatchServiceBased(tf.tempFile1Name()), tf);
+    try (WatchServiceBasedFilePoller poller =
+        FilePollerFactory.getWatchServiceBased(tf.tempFile1Name())) {
+      filePollerUpdatesOnFileMove(poller, tf);
+    }
   }
 
   @Test
   void filePollerUpdatesOnFileCopyPollBased() throws IOException {
-    PollBasedFilePoller poller =
-        FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50));
-    // wait for 5 millis so the first poll does not coincide with the file mod time
-    await().atLeast(Duration.ofMillis(5)).until(() -> !poller.fileContentsUpdated());
-    filePollerUpdatesOnFileCopy(poller, tf);
+    try (PollBasedFilePoller poller =
+        FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50))) {
+      // wait for 5 millis so the first poll does not coincide with the file mod time
+      await().atLeast(Duration.ofMillis(5)).until(() -> !poller.fileContentsUpdated());
+      filePollerUpdatesOnFileCopy(poller, tf);
+    }
   }
 
   @Test
@@ -133,7 +139,10 @@ class FilePollerTest {
       return;
     }
 
-    filePollerUpdatesOnFileCopy(FilePollerFactory.getWatchServiceBased(tf.tempFile1Name()), tf);
+    try (WatchServiceBasedFilePoller poller =
+        FilePollerFactory.getWatchServiceBased(tf.tempFile1Name())) {
+      filePollerUpdatesOnFileCopy(poller, tf);
+    }
   }
 
   // **** TEST HELPERS ****

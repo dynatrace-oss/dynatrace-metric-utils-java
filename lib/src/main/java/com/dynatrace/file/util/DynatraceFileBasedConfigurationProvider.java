@@ -53,6 +53,7 @@ public class DynatraceFileBasedConfigurationProvider {
     config = new DynatraceConfiguration();
     FilePoller poller = null;
     try {
+      closePoller();
       if (!Files.exists(Paths.get(fileName))) {
         logger.info("File based configuration does not exist, serving default config.");
       } else {
@@ -73,9 +74,16 @@ public class DynatraceFileBasedConfigurationProvider {
 
   // This method should never be called by user code. It is only available for testing.
   // VisibleForTesting
-  void forceOverwriteConfig(String fileName, Duration pollInterval) {
+  public void forceOverwriteConfig(String fileName, Duration pollInterval) {
     logger.warning("Overwriting config. This should ONLY happen in testing.");
     setUp(fileName, pollInterval);
+  }
+
+  private void closePoller() throws IOException {
+    if (filePoller != null) {
+      filePoller.close();
+      filePoller = null;
+    }
   }
 
   private void updateConfigFromFile(String fileName) {

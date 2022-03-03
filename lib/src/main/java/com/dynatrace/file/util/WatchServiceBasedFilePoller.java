@@ -58,4 +58,9 @@ class WatchServiceBasedFilePoller extends FilePoller {
     watchKey.reset();
     return watchEvents;
   }
+
+  @Override
+  public void close() throws IOException {
+    watchService.close();
+  }
 }
