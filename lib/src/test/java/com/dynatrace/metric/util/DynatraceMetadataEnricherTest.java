@@ -20,49 +20,67 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.Properties;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-public class DynatraceMetadataEnricherTest {
+class DynatraceMetadataEnricherTest {
 
   @Test
-  public void validMetrics() {
+  void validProperties() {
+    Properties properties = new Properties();
+    properties.setProperty("prop.a", "value.a");
+    properties.setProperty("prop.b", "value.b");
+
     ArrayList<Dimension> entries =
-        new ArrayList<>(
-            DynatraceMetadataEnricher.parseDynatraceMetadata(
-                Arrays.asList("prop.a=value.a", "prop.b=value.b")));
+        new ArrayList<>(DynatraceMetadataEnricher.createDimensionList(properties));
 
-    assertEquals("prop.a", entries.get(0).getKey());
-    assertEquals("value.a", entries.get(0).getValue());
-    assertEquals("prop.b", entries.get(1).getKey());
-    assertEquals("value.b", entries.get(1).getValue());
+    // Has one entry with key "prop.a"
+    assertEquals(1, entries.stream().filter(entry -> entry.getKey().equals("prop.a")).count());
+
+    // Entry with key "prop.a" has value "value.a"
+    assertEquals(
+        "value.a",
+        entries.stream()
+            .filter(entry -> entry.getKey().equals("prop.a"))
+            .findFirst()
+            .get()
+            .getValue());
+
+    // Has one entry with key "prop.p"
+    assertEquals(1, entries.stream().filter(entry -> entry.getKey().equals("prop.b")).count());
+
+    // Entry with key "prop.b" has value "value.b"
+    assertEquals(
+        "value.b",
+        entries.stream()
+            .filter(entry -> entry.getKey().equals("prop.b"))
+            .findFirst()
+            .get()
+            .getValue());
+  }
+
+  private static Stream<Arguments> provideInvalidPropertyParameters() {
+    return Stream.of(
+        Arguments.of("key_no_value", ""), Arguments.of("", "value_no_key"), Arguments.of("", ""));
+  }
+
+  @ParameterizedTest(
+      name = "{index}: createDimensionList with key `{0}` and value `{1}` should drop entry")
+  @MethodSource("provideInvalidPropertyParameters")
+  void invalidProperties(String key, String value) {
+    Properties properties = new Properties();
+    properties.setProperty(key, value);
+    assertTrue(DynatraceMetadataEnricher.createDimensionList(properties).isEmpty());
   }
 
   @Test
-  public void invalidMetrics() {
-    assertTrue(
-        DynatraceMetadataEnricher.parseDynatraceMetadata(Collections.singletonList("key_no_value="))
-            .isEmpty());
-    assertTrue(
-        DynatraceMetadataEnricher.parseDynatraceMetadata(Collections.singletonList("=value_no_key"))
-            .isEmpty());
-    assertTrue(
-        DynatraceMetadataEnricher.parseDynatraceMetadata(
-                Collections.singletonList("==============="))
-            .isEmpty());
-    assertTrue(
-        DynatraceMetadataEnricher.parseDynatraceMetadata(Collections.singletonList("")).isEmpty());
-    assertTrue(
-        DynatraceMetadataEnricher.parseDynatraceMetadata(Collections.singletonList("=")).isEmpty());
-    assertTrue(DynatraceMetadataEnricher.parseDynatraceMetadata(Collections.emptyList()).isEmpty());
-  }
-
-  @Test
-  public void testGetIndirectionFileContentValid() throws IOException {
+  void testGetIndirectionFileContentValid() throws IOException {
     String expected =
         "dt_metadata_e617c525669e072eebe3d0f08212e8f2_private_target_file_specifier.properties";
     // "mock" the contents of dt_metadata_e617c525669e072eebe3d0f08212e8f2.properties
@@ -72,96 +90,61 @@ public class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  public void testGetIndirectionFilePassNull() {
+  void testGetIndirectionFilePassNull() {
     assertThrows(IOException.class, () -> DynatraceMetadataEnricher.getMetadataFileName(null));
   }
 
   @Test
-  public void testGetIndirectionFileContentEmptyContent() throws IOException {
+  void testGetIndirectionFileContentEmptyContent() throws IOException {
     StringReader reader = new StringReader("");
     assertNull(DynatraceMetadataEnricher.getMetadataFileName(reader));
   }
 
   @Test
-  public void testGetDynatraceMetadataFileContentValid() throws IOException {
-    List<String> expected = new ArrayList<>();
-    expected.add("key1=value1");
-    expected.add("key2=value2");
-    expected.add("key3=value3");
-
-    StringReader reader = new StringReader(String.join("\n", expected));
-    List<String> result = DynatraceMetadataEnricher.getDynatraceMetadataFileContents(reader);
-    assertEquals(expected, result);
-    assertNotSame(expected, result);
-  }
-
-  @Test
-  public void testGetDynatraceMetadataFileContentInvalid() throws IOException {
-    List<String> inputs = Arrays.asList("=0", "", "a=", "\t\t", "=====", "    ", "   test   ");
-    List<String> expected = Arrays.asList("=0", "", "a=", "", "=====", "", "test");
-
-    StringReader reader = new StringReader(String.join("\n", inputs));
-    List<String> result = DynatraceMetadataEnricher.getDynatraceMetadataFileContents(reader);
-    assertEquals(expected, result);
-    assertNotSame(expected, result);
-  }
-
-  @Test
-  public void testGetDynatraceMetadataFileContentEmptyFile() throws IOException {
-    List<String> expected = new ArrayList<>();
-
-    List<String> result =
-        DynatraceMetadataEnricher.getDynatraceMetadataFileContents(new StringReader(""));
-    assertEquals(expected, result);
-    assertNotSame(expected, result);
-  }
-
-  @Test
-  public void testGetDynatraceMetadataFileContentPassNull() {
-    assertThrows(
-        IOException.class, () -> DynatraceMetadataEnricher.getDynatraceMetadataFileContents(null));
-  }
-
-  @Test
-  public void testGetMetadataFileContentWithRedirection_Valid() {
+  void testGetPropertiesWithIndirection_Valid() {
     // this should not be used. If it is, it will not exist and throw an exception, breaking the
     // test.
     String nonExistentAlternativeFilename = generateNonExistentFilename();
-    List<String> expected = Arrays.asList("key1=value1", "key2=value2", "key3=value3");
-    List<String> results =
-        DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+    Properties expected = new Properties();
+    expected.setProperty("key1", "value1");
+    expected.setProperty("key2", "value2");
+    expected.setProperty("key3", "value3");
+
+    Properties results =
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(
             "src/test/resources/indirection.properties", nonExistentAlternativeFilename);
     assertEquals(expected, results);
     assertNotSame(expected, results);
   }
 
   @Test
-  public void
-      testGetMetadataFileContentWithRedirection_IndirectionFileDoesNotExistAlternativeDoesNotExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileDoesNotExistAlternativeDoesNotExist() {
     String filename = generateNonExistentFilename();
     String alternativeFilename = generateNonExistentFilename();
 
-    List<String> result =
-        DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
-            filename, alternativeFilename);
-    assertEquals(Collections.<String>emptyList(), result);
+    Properties result =
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(filename, alternativeFilename);
+    assertTrue(result.isEmpty());
   }
 
   @Test
-  public void
-      testGetMetadataFileContentWithRedirection_IndirectionFileDoesNotExistAlternativeExists() {
+  void testGetPropertiesWithIndirection_IndirectionFileDoesNotExistAlternativeExists() {
     String filename = generateNonExistentFilename();
 
-    List<String> result =
-        DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+    Properties expected = new Properties();
+    expected.setProperty("key1", "value1");
+    expected.setProperty("key2", "value2");
+    expected.setProperty("key3", "value3");
+
+    Properties result =
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(
             filename, "src/test/resources/metadata_file.properties");
-    List<String> expected = Arrays.asList("key1=value1", "key2=value2", "key3=value3");
+
     assertEquals(expected, result);
   }
 
   @Test
-  public void
-      testGetMetadataFileContentWithRedirection_IndirectionFileReturnsNullAndAlternativeDoesNotExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileReturnsNullAndAlternativeDoesNotExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       mockEnricher
@@ -177,20 +160,19 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
                       Mockito.anyString(), Mockito.anyString()))
           .thenCallRealMethod();
 
-      List<String> result =
-          DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+      Properties result =
+          DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties", nonExistentAlternativeFile);
-      assertEquals(Collections.<String>emptyList(), result);
+      assertTrue(result.isEmpty());
     }
   }
 
   @Test
-  public void
-      testGetMetadataFileContentWithRedirection_IndirectionFileReturnsNullAndAlternativeDoesExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileReturnsNullAndAlternativeDoesExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       mockEnricher
@@ -205,28 +187,26 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
                       Mockito.anyString(), Mockito.anyString()))
           .thenCallRealMethod();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getDynatraceMetadataFileContents(
-                      Mockito.any(FileReader.class)))
-          .thenCallRealMethod();
 
-      List<String> result =
-          DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+      Properties expected = new Properties();
+      expected.setProperty("key1", "value1");
+      expected.setProperty("key2", "value2");
+      expected.setProperty("key3", "value3");
+
+      Properties result =
+          DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties",
               "src/test/resources/metadata_file.properties");
-      List<String> expected = Arrays.asList("key1=value1", "key2=value2", "key3=value3");
+
       assertEquals(expected, result);
     }
   }
 
   @Test
-  public void
-      testGetMetadataFileContentWithRedirection_IndirectionFileReturnsEmptyAndAlternativeDoesNotExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileReturnsEmptyAndAlternativeDoesNotExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       // ignore the return value of the testfile and mock the return value of the
@@ -244,20 +224,19 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
                       Mockito.anyString(), Mockito.anyString()))
           .thenCallRealMethod();
 
-      List<String> result =
-          DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+      Properties result =
+          DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties", nonExistentAlternativeFile);
-      assertEquals(Collections.<String>emptyList(), result);
+      assertTrue(result.isEmpty());
     }
   }
 
   @Test
-  public void
-      testGetMetadataFileContentWithRedirection_IndirectionFileReturnsEmptyAndAlternativeDoesExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileReturnsEmptyAndAlternativeDoesExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       mockEnricher
@@ -272,28 +251,26 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
                       Mockito.anyString(), Mockito.anyString()))
           .thenCallRealMethod();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getDynatraceMetadataFileContents(
-                      Mockito.any(FileReader.class)))
-          .thenCallRealMethod();
 
-      List<String> result =
-          DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+      Properties expected = new Properties();
+      expected.setProperty("key1", "value1");
+      expected.setProperty("key2", "value2");
+      expected.setProperty("key3", "value3");
+
+      Properties result =
+          DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties",
               "src/test/resources/metadata_file.properties");
-      List<String> expected = Arrays.asList("key1=value1", "key2=value2", "key3=value3");
+
       assertEquals(expected, result);
     }
   }
 
   @Test
-  public void
-      testGetMetadataFileContentWithRedirection_IndirectionFileThrowsAndAlternativeDoesNotExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileThrowsAndAlternativeDoesNotExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       // ignore the return value of the testfile and mock the return value of the
@@ -311,20 +288,19 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
                       Mockito.anyString(), Mockito.anyString()))
           .thenCallRealMethod();
 
-      List<String> result =
-          DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+      Properties result =
+          DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties", nonExistentAlternativeFile);
-      assertEquals(Collections.<String>emptyList(), result);
+      assertTrue(result.isEmpty());
     }
   }
 
   @Test
-  public void
-      testGetMetadataFileContentWithRedirection_IndirectionFileThrowsAndAlternativeDoesExist() {
+  void testGetPropertiesWithIndirection_IndirectionFileThrowsAndAlternativeDoesExist() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       mockEnricher
@@ -339,27 +315,26 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
                       Mockito.anyString(), Mockito.anyString()))
           .thenCallRealMethod();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getDynatraceMetadataFileContents(
-                      Mockito.any(FileReader.class)))
-          .thenCallRealMethod();
 
-      List<String> result =
-          DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+      Properties expected = new Properties();
+      expected.setProperty("key1", "value1");
+      expected.setProperty("key2", "value2");
+      expected.setProperty("key3", "value3");
+
+      Properties result =
+          DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties",
               "src/test/resources/metadata_file.properties");
-      List<String> expected = Arrays.asList("key1=value1", "key2=value2", "key3=value3");
+
       assertEquals(expected, result);
     }
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedirection_MetadataFileDoesNotExist() {
+  void testGetPropertiesWithIndirection_MetadataFileDoesNotExist() {
     String metadataFilename = generateNonExistentFilename();
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
@@ -375,30 +350,24 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
                       Mockito.anyString(), Mockito.anyString()))
-          .thenCallRealMethod();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getDynatraceMetadataFileContents(
-                      Mockito.any(FileReader.class)))
           .thenCallRealMethod();
 
       // call with an existing indirection target as alternative.
       // if the test failed, the alternative file would be read and results would be returned
       // which in turn would break the test.
-      List<String> result =
-          DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+      Properties result =
+          DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties",
               "src/test/resources/metadata_file.properties");
 
-      assertEquals(Collections.<String>emptyList(), result);
+      assertTrue(result.isEmpty());
     }
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedirection_MetadataFileReadThrows() {
+  void testGetPropertiesWithIndirection_EmptyMetadataFile() {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
       mockEnricher
@@ -407,58 +376,22 @@ public class DynatraceMetadataEnricherTest {
       mockEnricher
           .when(
               () ->
-                  DynatraceMetadataEnricher.getDynatraceMetadataFileContents(
-                      Mockito.any(FileReader.class)))
-          .thenThrow(new IOException("test exception"));
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
                       Mockito.anyString(), Mockito.anyString()))
           .thenCallRealMethod();
 
       // this should never be used but is required.
       String alternativeFileName = generateNonExistentFilename();
 
-      List<String> result =
-          DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
+      Properties result =
+          DynatraceMetadataEnricher.getPropertiesWithIndirection(
               "src/test/resources/mock_target.properties", alternativeFileName);
-      assertEquals(Collections.<String>emptyList(), result);
+      assertTrue(result.isEmpty());
     }
   }
 
   @Test
-  public void testGetMetadataFileContentWithRedirection_EmptyMetadataFile() {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(() -> DynatraceMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-          .thenReturn("src/test/resources/mock_target.properties");
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getDynatraceMetadataFileContents(
-                      Mockito.any(FileReader.class)))
-          .thenReturn(Collections.emptyList());
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
-                      Mockito.anyString(), Mockito.anyString()))
-          .thenCallRealMethod();
-
-      // this should never be used but is required.
-      String alternativeFileName = generateNonExistentFilename();
-
-      List<String> result =
-          DynatraceMetadataEnricher.getMetadataFileContentWithRedirection(
-              "src/test/resources/mock_target.properties", alternativeFileName);
-      assertEquals(Collections.<String>emptyList(), result);
-    }
-  }
-
-  @Test
-  public void testFileExistsAndIsReadable() {
+  void testFileExistsAndIsReadable() {
     assertFalse(DynatraceMetadataEnricher.fileExistsAndIsReadable(null));
     assertFalse(DynatraceMetadataEnricher.fileExistsAndIsReadable(""));
     assertFalse(DynatraceMetadataEnricher.fileExistsAndIsReadable(generateNonExistentFilename()));

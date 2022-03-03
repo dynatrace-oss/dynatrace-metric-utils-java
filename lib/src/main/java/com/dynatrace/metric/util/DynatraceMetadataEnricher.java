@@ -15,12 +15,9 @@ package com.dynatrace.metric.util;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 class DynatraceMetadataEnricher {
   private static final Logger logger = Logger.getLogger(DynatraceMetadataEnricher.class.getName());
@@ -39,49 +36,40 @@ class DynatraceMetadataEnricher {
    *     with empty key or value are discarded.
    */
   static List<Dimension> getDynatraceMetadata() {
-    return parseDynatraceMetadata(
-        getMetadataFileContentWithRedirection(
-            INDIRECTION_FILE_NAME, ALTERNATIVE_METADATA_FILENAME));
+    return createDimensionList(
+        getPropertiesWithIndirection(INDIRECTION_FILE_NAME, ALTERNATIVE_METADATA_FILENAME));
   }
 
   /**
-   * This function takes a list of strings from the Dynatrace metadata file and transforms it into a
-   * list of {@link Dimension} objects. Parsing failures will not be added to the output list.
-   * Therefore, it is possible that the output list is shorter than the input, or even empty.
+   * This function takes a {@link Properties} object and transforms it into a {@link
+   * List<Dimension>}.
    *
-   * @param lines a {@link List<String>} containing key-value pairs (as one string) separated by an
-   *     equal sign.
+   * @param properties {@link Properties} to transform
    * @return A {@link List} of {@link Dimension dimensions} mapping {@link String} to {@link
-   *     String}. These represent the the lines passed in separated by the first occurring equal
-   *     sign on each line, respectively. If no line is parsable, returns an empty list. Dimensions
-   *     are not normalized.
+   *     String}. These represent the property entries, where empty keys or values were omitted.
+   *     Dimensions are not normalized.
    */
-  static List<Dimension> parseDynatraceMetadata(Collection<String> lines) {
-    ArrayList<Dimension> entries = new ArrayList<>();
+  static List<Dimension> createDimensionList(Properties properties) {
+    ArrayList<Dimension> dimensions = new ArrayList<>(properties.size());
 
-    // iterate all lines from metadata file.
-    for (String line : lines) {
-      logger.fine(String.format("parsing Dynatrace metadata: %s", line));
-      // if there are more than one '=' in the line, split only at the first one.
-      String[] split = line.split("=", 2);
+    for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+      String key = entry.getKey().toString();
+      String value = entry.getValue().toString();
 
-      // skip if there is no '=' in the line
-      if (split.length != 2) {
-        logger.warning(String.format("could not parse metadata line ('%s')", line));
+      // skip if either key or value are empty
+      if (key.isEmpty() || value.isEmpty()) {
+        logger.log(
+            Level.WARNING,
+            () ->
+                String.format(
+                    "dropped properties '%s=%s' due to empty key and/or value", key, value));
         continue;
       }
 
-      String key = split[0];
-      String value = split[1];
-
-      // make sure key and value are set to non-null, non-empty values
-      if ((key == null || key.isEmpty()) || (value == null || value.isEmpty())) {
-        logger.warning(String.format("could not parse metadata line ('%s')", line));
-        continue;
-      }
-      entries.add(Dimension.create(key, value));
+      dimensions.add(Dimension.create(key, value));
     }
-    return entries;
+
+    return dimensions;
   }
 
   /**
@@ -108,22 +96,6 @@ class DynatraceMetadataEnricher {
   }
 
   /**
-   * Read the actual content of the metadata file.
-   *
-   * @param fileContents A {@link Reader} object containing the metadata contents.
-   * @return A {@link List<String>} containing the {@link String#trim() trimmed} lines.
-   * @throws IOException if an error occurs during reading of the file.
-   */
-  static List<String> getDynatraceMetadataFileContents(Reader fileContents) throws IOException {
-    if (fileContents == null) {
-      throw new IOException("passed Reader cannot be null.");
-    }
-    try (BufferedReader reader = new BufferedReader(fileContents)) {
-      return reader.lines().map(String::trim).collect(Collectors.toList());
-    }
-  }
-
-  /**
    * A helper function that returns whether file exists and is readable.
    *
    * @param filePath The path to the file.
@@ -142,15 +114,15 @@ class DynatraceMetadataEnricher {
   }
 
   /**
-   * Gets the file location of the metadata file from the indirection file and reads the contents
-   * thereof. If the indirection file does not exist, falls back to the alternative metadata file.
+   * Gets the {@link Properties} contained in the metadata file from the indirection file. If the
+   * indirection file does not exist, falls back to directly reading the alternative metadata file.
    *
-   * @return A {@link List<String>} representing the contents of the Dynatrace metadata file.
-   *     Leading and trailing whitespaces are {@link String#trim() trimmed} for each of the lines.
+   * @return The {@link Properties} contained in the Dynatrace metadata file.
    */
-  static List<String> getMetadataFileContentWithRedirection(
+  static Properties getPropertiesWithIndirection(
       String indirectionFileName, String alternativeMetadataFilename) {
     String metadataFileName = null;
+    Properties props = new Properties();
 
     try (Reader indirectionFileReader = new FileReader(indirectionFileName)) {
       metadataFileName = getMetadataFileName(indirectionFileReader);
@@ -164,26 +136,28 @@ class DynatraceMetadataEnricher {
     if (metadataFileName == null || metadataFileName.isEmpty()) {
       if (DynatraceMetadataEnricher.fileExistsAndIsReadable(alternativeMetadataFilename)) {
         // alternative file exists, use it for metadata enrichment
-        logger.info(
-            String.format(
-                "Alternative metadata file exists, attempting to read from %s.",
-                alternativeMetadataFilename));
+        logger.log(
+            Level.INFO,
+            () ->
+                String.format(
+                    "Alternative metadata file exists, attempting to read from %s.",
+                    alternativeMetadataFilename));
         metadataFileName = alternativeMetadataFilename;
       } else {
-        // no alternative file exists, return an empty list.
-        return Collections.emptyList();
+        // no alternative file exists, return empty properties.
+        return props;
       }
     }
 
-    List<String> properties = Collections.emptyList();
-    try (Reader metadataFileReader = new FileReader(metadataFileName)) {
-      properties = getDynatraceMetadataFileContents(metadataFileReader);
+    try (Reader reader = new FileReader(metadataFileName)) {
+      props.load(reader);
     } catch (FileNotFoundException e) {
       logger.warning("Failed to read properties file: File not found");
     } catch (Exception e) {
       logger.info(
           String.format("Error while trying to read contents of Dynatrace metadata file: %s", e));
     }
-    return properties;
+
+    return props;
   }
 }
