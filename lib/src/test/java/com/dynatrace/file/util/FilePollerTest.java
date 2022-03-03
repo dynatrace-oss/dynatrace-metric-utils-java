@@ -104,7 +104,6 @@ class FilePollerTest {
   void filePollerUpdatesOnFileMovePollBased() throws IOException {
     try (PollBasedFilePoller poller =
         FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50))) {
-      // wait for 5 millis so the first poll does not coincide with the file mod time
       filePollerUpdatesOnFileMove(poller, tf);
     }
   }
@@ -126,8 +125,6 @@ class FilePollerTest {
   void filePollerUpdatesOnFileCopyPollBased() throws IOException {
     try (PollBasedFilePoller poller =
         FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50))) {
-      // wait for 5 millis so the first poll does not coincide with the file mod time
-      await().atLeast(Duration.ofMillis(5)).until(() -> !poller.fileContentsUpdated());
       filePollerUpdatesOnFileCopy(poller, tf);
     }
   }
@@ -153,7 +150,6 @@ class FilePollerTest {
 
     Files.write(tempFile, "test file content".getBytes());
 
-    // wait for non-blocking IO
     await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
     assertFalse(poller.fileContentsUpdated());
   }
@@ -179,7 +175,6 @@ class FilePollerTest {
 
     Files.copy(tf.tempFile2(), tf.tempFile1(), REPLACE_EXISTING);
 
-    // wait for non-blocking IO
     await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
     assertFalse(poller.fileContentsUpdated());
   }
