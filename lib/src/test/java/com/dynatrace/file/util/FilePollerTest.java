@@ -142,9 +142,25 @@ class FilePollerTest {
     }
   }
 
+  @Test
+  void pollingWorksAfterFileHasBeenDeletedAndCreatedPollBased() throws IOException {
+    try (PollBasedFilePoller poller =
+        FilePollerFactory.getPollBased(tf.tempFile1Name(), Duration.ofMillis(50))) {
+      filePollerUpdatesOnlyOnCreateAndChangeNotOnDelete(poller, tf.tempFile1());
+    }
+  }
+
+  @Test
+  void pollingWorksAfterFileHasBeenDeletedAndCreatedWatchServiceBased() throws IOException {
+    try (WatchServiceBasedFilePoller poller =
+        FilePollerFactory.getWatchServiceBased(tf.tempFile1Name())) {
+      filePollerUpdatesOnlyOnCreateAndChangeNotOnDelete(poller, tf.tempFile1());
+    }
+  }
+
   // **** TEST HELPERS ****
 
-  void filePollerUpdatesOnChange(FilePoller poller, Path tempFile) throws IOException {
+  private void filePollerUpdatesOnChange(FilePoller poller, Path tempFile) throws IOException {
 
     assertFalse(poller.fileContentsUpdated());
 
@@ -154,7 +170,7 @@ class FilePollerTest {
     assertFalse(poller.fileContentsUpdated());
   }
 
-  void filePollerUpdatesOnFileMove(FilePoller poller, TempFiles tf) throws IOException {
+  private void filePollerUpdatesOnFileMove(FilePoller poller, TempFiles tf) throws IOException {
     // set up the second file
     Files.write(tf.tempFile2(), "test file content for tempFile2".getBytes());
 
@@ -168,7 +184,7 @@ class FilePollerTest {
     assertFalse(poller.fileContentsUpdated());
   }
 
-  void filePollerUpdatesOnFileCopy(FilePoller poller, TempFiles tf) throws IOException {
+  private void filePollerUpdatesOnFileCopy(FilePoller poller, TempFiles tf) throws IOException {
     Files.write(tf.tempFile2(), "test file content for tempFile2".getBytes());
 
     assertFalse(poller.fileContentsUpdated());
@@ -177,5 +193,26 @@ class FilePollerTest {
 
     await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
     assertFalse(poller.fileContentsUpdated());
+  }
+
+  private void filePollerUpdatesOnlyOnCreateAndChangeNotOnDelete(FilePoller poller, Path path)
+      throws IOException {
+    Files.write(path, "Some test data".getBytes());
+
+    await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
+
+    Files.deleteIfExists(path);
+
+    await()
+        .pollDelay(Duration.ofMillis(100)) // wait to make sure the deletion operation is finished.
+        .atMost(150, TimeUnit.MILLISECONDS) // then check that no update has taken place.
+        .until(() -> !poller.fileContentsUpdated());
+
+    // create the file again
+    Files.createFile(path);
+    await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
+
+    Files.write(path, "Some content".getBytes());
+    await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
   }
 }
