@@ -53,7 +53,6 @@ public class DynatraceFileBasedConfigurationProvider {
     config = new DynatraceConfiguration();
     FilePoller poller = null;
     try {
-      closePoller();
       if (!Files.exists(Paths.get(fileName))) {
         logger.info("File based configuration does not exist, serving default config.");
       } else {
@@ -72,16 +71,31 @@ public class DynatraceFileBasedConfigurationProvider {
     updateConfigFromFile(fileName);
   }
 
-  // This method should never be called by user code. It is only available for testing.
-  // VisibleForTesting
+  /**
+   * This method should never be called by user code. It is only available for testing. When passing
+   * null for the {@code fileName}, this method just shuts down the file polling mechanism.
+   *
+   * <p>VisibleForTesting
+   *
+   * @param fileName The filename of the file to watch.
+   * @param pollInterval Polling interval for interval-based file pollers.
+   */
   public void forceOverwriteConfig(String fileName, Duration pollInterval) {
-    logger.warning("Overwriting config. This should ONLY happen in testing.");
-    setUp(fileName, pollInterval);
+    closePoller();
+    if (fileName != null) {
+      logger.warning("Overwriting config. This should ONLY happen in testing.");
+      setUp(fileName, pollInterval);
+    }
   }
 
-  private void closePoller() throws IOException {
+  private void closePoller() {
     if (filePoller != null) {
-      filePoller.close();
+      logger.warning("Shutting down file polling mechanism. This should ONLY happen in testing.");
+      try {
+        filePoller.close();
+      } catch (IOException e) {
+        logger.warning("Failed to shut down polling mechanism: " + e);
+      }
       filePoller = null;
     }
   }

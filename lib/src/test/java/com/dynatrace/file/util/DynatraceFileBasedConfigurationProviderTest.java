@@ -53,6 +53,8 @@ class DynatraceFileBasedConfigurationProviderTest {
         DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(),
         instance.getMetricIngestEndpoint());
     assertEquals("", instance.getMetricIngestToken());
+
+    instance.forceOverwriteConfig(null, null);
   }
 
   @Test
@@ -67,6 +69,8 @@ class DynatraceFileBasedConfigurationProviderTest {
         DynatraceMetricApiConstants.getDefaultOneAgentEndpoint(),
         instance.getMetricIngestEndpoint());
     assertEquals("", instance.getMetricIngestToken());
+
+    instance.forceOverwriteConfig(null, null);
   }
 
   @Test
@@ -88,17 +92,17 @@ class DynatraceFileBasedConfigurationProviderTest {
         "https://your-dynatrace-ingest-url/api/v2/metrics/ingest",
         instance.getMetricIngestEndpoint());
     assertEquals("YOUR.DYNATRACE.TOKEN", instance.getMetricIngestToken());
+
+    instance.forceOverwriteConfig(null, null);
   }
 
   @Test
-  void testConfigIsUpdatedIfFileChanges() throws IOException, InterruptedException {
+  void testConfigIsUpdatedIfFileChanges() throws IOException {
     final Path tempfile = Files.createTempFile(tempDir, "tempfile", ".properties");
     Files.write(
         tempfile,
         ("DT_METRICS_INGEST_URL = original_url\n" + "DT_METRICS_INGEST_API_TOKEN = original_token")
             .getBytes());
-    // wait for the nonblocking io to finish writing.
-    Thread.sleep(30);
 
     final DynatraceFileBasedConfigurationProvider instance =
         DynatraceFileBasedConfigurationProvider.getInstance();
@@ -119,6 +123,8 @@ class DynatraceFileBasedConfigurationProviderTest {
         .until(() -> instance.getMetricIngestEndpoint().equals("new_url"));
     assertEquals("new_url", instance.getMetricIngestEndpoint());
     assertEquals("new_token", instance.getMetricIngestToken());
+
     Files.delete(tempfile);
+    instance.forceOverwriteConfig(null, null);
   }
 }
