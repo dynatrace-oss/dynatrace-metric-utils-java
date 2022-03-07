@@ -94,6 +94,8 @@ class WatchServiceBasedFilePollerTest {
 
   @Test
   void pollingWorksAfterFileHasBeenDeletedAndCreated() throws IOException {
+    assumeFalse(
+        IS_MAC_OS, "macOS does not support WatchService based pollers, skipping this test...");
     try (WatchServiceBasedFilePoller poller =
         FilePollerFactory.getWatchServiceBased(tf.tempFile1Name())) {
       FilePollerTestHelpers.filePollerUpdatesOnlyOnCreateAndChangeNotOnDelete(
