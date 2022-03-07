@@ -27,20 +27,6 @@ class FilePollerFactory {
   private FilePollerFactory() {}
 
   /**
-   * See {@link FilePollerFactory#getDefault(String, Duration) getDefault} for details. It calls
-   * this method with the default poll duration of 60 seconds.
-   *
-   * @param fileName The name of the file to be watched. An absolute path will be created from the
-   *     file name if it is not already passed as absolute path.
-   * @return An object that implements the abstract methods on {@link FilePoller}.
-   * @throws IOException if the initialization of the {@link WatchServiceBasedFilePoller} is not
-   *     successful.
-   */
-  static FilePoller getDefault(String fileName) throws IOException {
-    return getDefault(fileName, Duration.ofSeconds(60));
-  }
-
-  /**
    * Creates the default {@link FilePoller} based on the current OS.
    *
    * @implNote On Linux and Windows, * the poll mechanism is based on the {@link
@@ -50,7 +36,7 @@ class FilePollerFactory {
    *     periodically (according to the {@code pollInterval}).
    * @param fileName The name of the file to be watched.
    * @param pollInterval The interval in which the {@link PollBasedFilePoller} polls for changes.
-   *     Only applicable on macOS.
+   *     Only applicable on macOS. Will default to 60s if {@code null} is passed.
    * @return An object that implements the abstract methods on {@link FilePoller}.
    * @throws IOException if the initialization of the {@link WatchServiceBasedFilePoller} is not
    *     successful.
