@@ -17,6 +17,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import com.dynatrace.testutils.TempFiles;
 import com.dynatrace.testutils.TestUtils;
@@ -88,11 +89,8 @@ class FilePollerTest {
 
   @Test
   void filePollerUpdatesOnChangeWatchServiceBased() throws IOException {
-    if (IS_MAC_OS) {
-      System.out.println(
-          "macOS does not support WatchService based pollers, skipping this test...");
-      return;
-    }
+    assumeFalse(
+        IS_MAC_OS, "macOS does not support WatchService based pollers, skipping this test...");
 
     try (WatchServiceBasedFilePoller poller =
         FilePollerFactory.getWatchServiceBased(tf.tempFile1Name())) {
@@ -110,10 +108,8 @@ class FilePollerTest {
 
   @Test
   void filePollerUpdatesOnFileMoveWatchServiceBased() throws IOException {
-    if (IS_MAC_OS) {
-      System.out.println("Running on macOS, skipping this test...");
-      return;
-    }
+    assumeFalse(
+        IS_MAC_OS, "macOS does not support WatchService based pollers, skipping this test...");
 
     try (WatchServiceBasedFilePoller poller =
         FilePollerFactory.getWatchServiceBased(tf.tempFile1Name())) {
@@ -131,10 +127,8 @@ class FilePollerTest {
 
   @Test
   void filePollerUpdatesOnFileCopyWatchServiceBased() throws IOException {
-    if (IS_MAC_OS) {
-      System.out.println("Running on macOS, skipping this test...");
-      return;
-    }
+    assumeFalse(
+        IS_MAC_OS, "macOS does not support WatchService based pollers, skipping this test...");
 
     try (WatchServiceBasedFilePoller poller =
         FilePollerFactory.getWatchServiceBased(tf.tempFile1Name())) {
@@ -161,7 +155,6 @@ class FilePollerTest {
   // **** TEST HELPERS ****
 
   private void filePollerUpdatesOnChange(FilePoller poller, Path tempFile) throws IOException {
-
     assertFalse(poller.fileContentsUpdated());
 
     Files.write(tempFile, "test file content".getBytes());
