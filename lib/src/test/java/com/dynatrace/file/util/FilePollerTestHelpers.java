@@ -21,7 +21,6 @@ import com.dynatrace.testutils.TempFiles;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 class FilePollerTestHelpers {
@@ -74,7 +73,8 @@ class FilePollerTestHelpers {
     Files.deleteIfExists(path);
 
     await()
-        .pollDelay(Duration.ofMillis(50)) // wait to make sure the deletion operation is finished.
+        .pollDelay(
+            50, TimeUnit.MILLISECONDS) // wait to make sure the deletion operation is finished.
         .then()
         .atMost(150, TimeUnit.MILLISECONDS) // then check that no update has taken place.
         .until(() -> !poller.fileContentsUpdated());
