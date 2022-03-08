@@ -13,6 +13,7 @@
  */
 package com.dynatrace.file.util;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.dynatrace.testutils.TempFiles;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,8 +95,29 @@ class PollBasedFilePollerTest {
   void pollingWorksAfterFileHasBeenDeletedAndCreated() throws IOException {
     try (PollBasedFilePoller poller =
         FilePollerFactory.getPollBased(tf.tempFile1Name(), POLL_INTERVAL)) {
-      FilePollerTestHelpers.filePollerUpdatesOnlyOnCreateAndChangeNotOnDelete(
-          poller, tf.tempFile1());
+      Path path = tf.tempFile1();
+
+      Files.write(path, "Some test data".getBytes());
+
+      await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
+
+      Files.deleteIfExists(path);
+
+      await()
+          .pollDelay(
+              Duration.ofMillis(100)) // wait to make sure the deletion operation is finished.
+          .atMost(150, TimeUnit.MILLISECONDS) // then check that no update has taken place.
+          .until(() -> !poller.fileContentsUpdated());
+
+      // create the file again
+      Files.createFile(path);
+      await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
+
+      Files.write(path, "Some content".getBytes());
+      await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
+
+      //      FilePollerTestHelpers.filePollerUpdatesOnlyOnCreateAndChangeNotOnDelete(
+      //          poller, tf.tempFile1());
     }
   }
 }

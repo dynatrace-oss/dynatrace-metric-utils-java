@@ -50,7 +50,7 @@ jobs:
                   --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED' > gradle.properties
 
       - name: Test
-        run: ./gradlew check
+        run: ./gradlew check --info
 
       - name: Upload JAR
         # only run this action on ubuntu, since the jar should be the same
