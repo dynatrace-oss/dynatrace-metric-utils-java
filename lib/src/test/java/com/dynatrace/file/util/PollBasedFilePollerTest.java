@@ -99,15 +99,26 @@ class PollBasedFilePollerTest {
 
       Files.write(path, "Some test data".getBytes());
 
-      await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
+      await()
+          .pollDelay(50, TimeUnit.MILLISECONDS)
+          .then()
+          .atMost(1, TimeUnit.SECONDS)
+          .until(poller::fileContentsUpdated);
 
+      System.out.println(poller.fileContentsUpdated());
       Files.deleteIfExists(path);
+      System.out.println(poller.fileContentsUpdated());
 
       await()
-          .pollDelay(
-              Duration.ofMillis(100)) // wait to make sure the deletion operation is finished.
+          .pollDelay(Duration.ofMillis(50)) // wait to make sure the deletion operation is finished.
+          .then()
           .atMost(150, TimeUnit.MILLISECONDS) // then check that no update has taken place.
-          .until(() -> !poller.fileContentsUpdated());
+          .until(
+              () -> {
+                boolean updated = poller.fileContentsUpdated();
+                System.out.println("file contents updated: " + updated);
+                return !updated;
+              });
 
       // create the file again
       Files.createFile(path);
