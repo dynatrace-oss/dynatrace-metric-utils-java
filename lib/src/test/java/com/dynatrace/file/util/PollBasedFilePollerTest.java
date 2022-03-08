@@ -105,9 +105,7 @@ class PollBasedFilePollerTest {
           .atMost(1, TimeUnit.SECONDS)
           .until(poller::fileContentsUpdated);
 
-      System.out.println(poller.fileContentsUpdated());
       Files.deleteIfExists(path);
-      System.out.println(poller.fileContentsUpdated());
 
       await()
           .pollDelay(Duration.ofMillis(50)) // wait to make sure the deletion operation is finished.
