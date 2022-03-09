@@ -29,7 +29,7 @@ class PollBasedFilePoller extends FilePoller {
   private static final String LOG_MESSAGE_FAILED_FILE_READ = "Failed to read file %s. Error: %s";
 
   private final AtomicBoolean changedSinceLastInquiry = new AtomicBoolean(false);
-  private byte[] prevChecksumBytes = null;
+  private byte[] prevChecksumBytes;
 
   private final ScheduledFuture<?> worker;
   private final ScheduledExecutorService executorService;
@@ -64,17 +64,14 @@ class PollBasedFilePoller extends FilePoller {
         executorService.scheduleAtFixedRate(
             this::poll, pollInterval.toNanos(), pollInterval.toNanos(), TimeUnit.NANOSECONDS);
 
-    initialPoll();
+    // read the initial checksum
+    prevChecksumBytes = getChecksumBytes();
   }
 
   @Override
   public boolean fileContentsUpdated() {
     // get the current value and reset to false
     return changedSinceLastInquiry.getAndSet(false);
-  }
-
-  private synchronized void initialPoll() {
-    prevChecksumBytes = getChecksumBytes();
   }
 
   private synchronized void poll() {

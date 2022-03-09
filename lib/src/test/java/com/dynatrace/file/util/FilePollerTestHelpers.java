@@ -64,13 +64,14 @@ class FilePollerTestHelpers {
       throws IOException {
     Files.write(path, "Some test data".getBytes());
 
+    // make sure data was initially written and the change picked up
     await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
 
+    // delete the file
     Files.deleteIfExists(path);
 
-    await()
-        .atMost(1, TimeUnit.SECONDS) // then check that no update has taken place.
-        .until(() -> !poller.fileContentsUpdated());
+    // check that no update is recorded
+    await().atMost(1, TimeUnit.SECONDS).until(() -> !poller.fileContentsUpdated());
 
     // create the file again
     Files.createFile(path);
