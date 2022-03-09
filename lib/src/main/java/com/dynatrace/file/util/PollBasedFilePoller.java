@@ -74,15 +74,10 @@ class PollBasedFilePoller extends FilePoller {
   }
 
   private synchronized void initialPoll() {
-    //    try {
     prevChecksumBytes = getChecksumBytes();
-    //    } catch (IOException e) {
-    //      LOGGER.warning(() -> String.format(LOG_MESSAGE_FAILED_FILE_READ, absoluteFilePath, e));
-    //    }
   }
 
   private synchronized void poll() {
-    //    try {
     byte[] latestChecksumBytes = getChecksumBytes();
 
     if (!Arrays.equals(latestChecksumBytes, prevChecksumBytes)) {
@@ -97,9 +92,6 @@ class PollBasedFilePoller extends FilePoller {
         changedSinceLastInquiry.set(true);
       }
     }
-    //    } catch (IOException e) {
-    //      LOGGER.warning(() -> String.format(LOG_MESSAGE_FAILED_FILE_READ, absoluteFilePath, e));
-    //    }
   }
 
   private synchronized byte[] getChecksumBytes() {
