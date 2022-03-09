@@ -70,7 +70,7 @@ class FilePollerTestHelpers {
     Files.deleteIfExists(path);
 
     await()
-        .atMost(150, TimeUnit.MILLISECONDS) // then check that no update has taken place.
+        .atMost(2, TimeUnit.SECONDS) // then check that no update has taken place.
         .until(() -> !poller.fileContentsUpdated());
 
     // create the file again
