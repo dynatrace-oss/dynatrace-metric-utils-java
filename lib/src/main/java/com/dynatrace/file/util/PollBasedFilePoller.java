@@ -74,38 +74,32 @@ class PollBasedFilePoller extends FilePoller {
   }
 
   private synchronized void initialPoll() {
-    try {
-      prevChecksumBytes = getChecksumBytes();
-    } catch (IOException e) {
-      LOGGER.warning(() -> String.format(LOG_MESSAGE_FAILED_FILE_READ, absoluteFilePath, e));
-    }
+    prevChecksumBytes = getChecksumBytes();
   }
 
   private synchronized void poll() {
-    try {
-      byte[] latestChecksumBytes = getChecksumBytes();
+    byte[] latestChecksumBytes = getChecksumBytes();
 
-      if (!Arrays.equals(latestChecksumBytes, prevChecksumBytes)) {
-        prevChecksumBytes = latestChecksumBytes;
+    if (!Arrays.equals(latestChecksumBytes, prevChecksumBytes)) {
+      prevChecksumBytes = latestChecksumBytes;
 
-        // The file did exist before (prevChecksumBytes != null) but doesn't anymore
-        // (latestChecksumBytes == null).
-        // This code here is only reached when prevChecksumBytes != latestChecksumBytes.
-        // This means the file has been deleted since the last poll, which should not trigger a
-        // state change.
-        if (latestChecksumBytes != null) {
-          changedSinceLastInquiry.set(true);
-        }
+      // The file did exist before (prevChecksumBytes != null) but doesn't anymore
+      // (latestChecksumBytes == null).
+      // This code here is only reached when prevChecksumBytes != latestChecksumBytes.
+      // This means the file has been deleted since the last poll, which should not trigger a
+      // state change.
+      if (latestChecksumBytes != null) {
+        changedSinceLastInquiry.set(true);
       }
-    } catch (IOException e) {
-      LOGGER.warning(() -> String.format(LOG_MESSAGE_FAILED_FILE_READ, absoluteFilePath, e));
     }
   }
 
-  private synchronized byte[] getChecksumBytes() throws IOException {
-    byte[] bytes;
+  private synchronized byte[] getChecksumBytes() {
+    byte[] bytes = null;
     try {
       bytes = md5.digest(Files.readAllBytes(absoluteFilePath));
+    } catch (IOException e) {
+      LOGGER.warning(() -> String.format(LOG_MESSAGE_FAILED_FILE_READ, absoluteFilePath, e));
     } finally {
       md5.reset();
     }
