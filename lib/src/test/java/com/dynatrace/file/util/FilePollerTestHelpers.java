@@ -64,18 +64,11 @@ class FilePollerTestHelpers {
       throws IOException {
     Files.write(path, "Some test data".getBytes());
 
-    await()
-        .pollDelay(50, TimeUnit.MILLISECONDS) // wait to make sure the write operation is finished.
-        .then()
-        .atMost(1, TimeUnit.SECONDS)
-        .until(poller::fileContentsUpdated);
+    await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
 
     Files.deleteIfExists(path);
 
     await()
-        .pollDelay(
-            50, TimeUnit.MILLISECONDS) // wait to make sure the deletion operation is finished.
-        .then()
         .atMost(1, TimeUnit.SECONDS) // then check that no update has taken place.
         .until(() -> !poller.fileContentsUpdated());
 
