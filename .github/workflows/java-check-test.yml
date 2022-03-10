@@ -19,6 +19,7 @@ jobs:
         os: [ 
           ubuntu-latest,
           windows-latest,
+          macos-latest,
         ]
     
     name: Java ${{ matrix.java-version }} on ${{ matrix.os }}

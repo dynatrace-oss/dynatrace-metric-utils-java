@@ -1,9 +1,23 @@
+/**
+ * Copyright 2022 Dynatrace LLC
+ *
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dynatrace.file.util;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -18,7 +32,7 @@ public class DynatraceFileBasedConfigurationProvider {
   private boolean alreadyInitialized = false;
 
   private DynatraceFileBasedConfigurationProvider(String fileName) {
-    setUp(fileName);
+    setUp(fileName, null);
   }
 
   private static final Logger logger =
@@ -34,7 +48,7 @@ public class DynatraceFileBasedConfigurationProvider {
     return ProviderHolder.INSTANCE;
   }
 
-  private void setUp(String fileName) {
+  private void setUp(String fileName, Duration pollInterval) {
     alreadyInitialized = false;
     config = new DynatraceConfiguration();
     FilePoller poller = null;
@@ -42,26 +56,48 @@ public class DynatraceFileBasedConfigurationProvider {
       if (!Files.exists(Paths.get(fileName))) {
         logger.info("File based configuration does not exist, serving default config.");
       } else {
-        poller = new FilePoller(fileName);
+        poller = FilePollerFactory.getDefault(fileName, pollInterval);
       }
     } catch (InvalidPathException e) {
-      // This happens on windows, when the linux filepath is not valid.
+      // This happens on Windows, when the *nix filepath is not valid.
       logger.info(
           () -> String.format("%s is not a valid file path (%s).", fileName, e.getMessage()));
     } catch (IOException | IllegalArgumentException e) {
       logger.warning(
-          () -> String.format("WatchService could not be initialized: %s", e.getMessage()));
+          () -> String.format("File polling could not be initialized: %s", e.getMessage()));
     }
     filePoller = poller;
     // try to read from file
     updateConfigFromFile(fileName);
   }
 
-  // This method should never be called by user code. It is only available for testing.
-  // VisibleForTesting
-  void forceOverwriteConfig(String fileName) {
-    logger.warning("Overwriting config. This should ONLY happen in testing.");
-    setUp(fileName);
+  /**
+   * This method should never be called by user code. It is only available for testing. When passing
+   * null for the {@code fileName}, this method just shuts down the file polling mechanism.
+   *
+   * <p>VisibleForTesting
+   *
+   * @param fileName The filename of the file to watch.
+   * @param pollInterval Polling interval for interval-based file pollers.
+   */
+  public void forceOverwriteConfig(String fileName, Duration pollInterval) {
+    closePoller();
+    if (fileName != null) {
+      logger.warning("Overwriting config. This should ONLY happen in testing.");
+      setUp(fileName, pollInterval);
+    }
+  }
+
+  private void closePoller() {
+    if (filePoller != null) {
+      logger.warning("Shutting down file polling mechanism. This should ONLY happen in testing.");
+      try {
+        filePoller.close();
+      } catch (IOException e) {
+        logger.warning("Failed to shut down polling mechanism: " + e);
+      }
+      filePoller = null;
+    }
   }
 
   private void updateConfigFromFile(String fileName) {

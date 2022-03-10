@@ -48,7 +48,7 @@ class MetricValuesTest {
   }
 
   @Test
-  public void testLongCounterValue() throws MetricException {
+  public void testLongCounterValue() {
     MetricValues.LongCounterValue val;
     val = new MetricValues.LongCounterValue(0, false);
     assertEquals("count,0", val.serialize());
