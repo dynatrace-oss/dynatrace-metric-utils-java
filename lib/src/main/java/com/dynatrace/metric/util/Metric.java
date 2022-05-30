@@ -323,8 +323,8 @@ public final class Metric {
       if (builder.length() > METRIC_LINE_MAX_LENGTH) {
         throw new MetricException(
             String.format(
-                "Serialized line exceeds limit of %d characters accepted by the ingest API:%n%s",
-                METRIC_LINE_MAX_LENGTH, builder.substring(0, 100) + "... (truncated)"));
+                "Serialized line exceeds limit of %d characters accepted by the ingest API:%n%s... (truncated)",
+                METRIC_LINE_MAX_LENGTH, builder.substring(0, 100)));
       }
 
       return builder.toString();
