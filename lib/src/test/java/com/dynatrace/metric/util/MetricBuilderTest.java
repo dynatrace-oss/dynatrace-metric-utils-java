@@ -332,5 +332,7 @@ class MetricBuilderTest {
     assertTrue(dimensionPattern.matcher(me.getMessage()).find());
 
     assertTrue(me.getMessage().endsWith("... (truncated)"));
+    // assert that the line has been truncated.
+    assertTrue(me.getMessage().length() < 200);
   }
 }
