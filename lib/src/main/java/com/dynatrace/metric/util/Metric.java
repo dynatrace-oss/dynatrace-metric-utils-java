@@ -30,7 +30,7 @@ public final class Metric {
 
     // The maximum number of characters per serialized line accepted by the ingest API.
     // Lines exceeding this threshold should be dropped.
-    private static final int METRIC_LINE_MAX_LENGTH = 2000;
+    private static final int METRIC_LINE_MAX_LENGTH = 50_000;
 
     // The timestamp warning is rate-limited to log only once every time this factor is reached by
     // the timestampWarningCounter.
@@ -323,7 +323,7 @@ public final class Metric {
         throw new MetricException(
             String.format(
                 "Serialized line exceeds limit of %d characters accepted by the ingest API:%n%s",
-                METRIC_LINE_MAX_LENGTH, builder.toString()));
+                METRIC_LINE_MAX_LENGTH, builder.substring(0, 100) + "... (truncated)"));
       }
 
       return builder.toString();

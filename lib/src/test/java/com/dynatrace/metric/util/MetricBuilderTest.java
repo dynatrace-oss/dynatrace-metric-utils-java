@@ -19,6 +19,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
+
 import org.junit.jupiter.api.Test;
 
 class MetricBuilderTest {
@@ -302,8 +304,9 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testThrowsOnLineTooLong() throws MetricException {
-    int numDimensions = 250;
+  void testThrowsOnLineTooLong() throws MetricException {
+    // shortest dimension/value pair: 'dim0=val0' (9 chars); max line length: 50_000 characters
+    int numDimensions = 50_000 / 9;
     List<Dimension> dimensions = new ArrayList<>(numDimensions);
     for (int i = 0; i < numDimensions; i++) {
       String key = String.format("dim%d", i);
@@ -313,24 +316,21 @@ class MetricBuilderTest {
     Metric.Builder metricBuilder =
         Metric.builder("name")
             .setPrefix("prefix")
-            .setLongCounterValueTotal(1)
+            .setDoubleCounterValueDelta(1)
             .setDefaultDimensions(DimensionList.fromCollection(dimensions));
 
     MetricException me = assertThrows(MetricException.class, metricBuilder::serialize);
 
-    String expectedMessage =
-        "Serialized line exceeds limit of 2000 characters accepted by the ingest API:";
+    assertTrue(
+        me.getMessage()
+            .startsWith(
+                "Serialized line exceeds limit of 50000 characters accepted by the ingest API:"));
+    // The message is truncated (to not print 50.000 characters) and the dimensions are in a random
+    // order (due to the deduplication, which uses a map that does not preserve order). Therefore,
+    // we can just assert that there are some dimensions before the truncation, but not which ones.
+    Pattern dimensionPattern = Pattern.compile("dim\\d+=val\\d+,");
+    assertTrue(dimensionPattern.matcher(me.getMessage()).find());
 
-    // the serialized method will have the dimensions in a shuffled manner (due to the duplicate
-    // elimination using a map), so we assert that certain dimensions are included, but not the
-    // order.
-    assertTrue(me.getMessage().contains(expectedMessage));
-    assertTrue(me.getMessage().contains("dim0=val0"));
-    assertTrue(
-        me.getMessage()
-            .contains(String.format("dim%d=val%d", numDimensions / 2, numDimensions / 2)));
-    assertTrue(
-        me.getMessage()
-            .contains(String.format("dim%d=val%d", numDimensions - 1, numDimensions - 1)));
+    assertTrue(me.getMessage().endsWith("... (truncated)"));
   }
 }
