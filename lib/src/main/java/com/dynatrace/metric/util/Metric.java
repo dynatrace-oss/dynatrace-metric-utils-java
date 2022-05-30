@@ -86,7 +86,7 @@ public final class Metric {
      *     counter API will be removed in future versions. Use {@link #setDoubleCounterValueDelta}
      *     instead.
      */
-    @Deprecated
+    @Deprecated(since = "1.2.0")
     public Builder setLongCounterValueTotal(long value) throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.LongCounterValue(value, false);
@@ -151,7 +151,7 @@ public final class Metric {
      *     counter API will be removed in future versions. Use {@link #setDoubleCounterValueDelta}
      *     instead.
      */
-    @Deprecated
+    @Deprecated(since = "v1.2.0")
     public Builder setDoubleCounterValueTotal(double value) throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.DoubleCounterValue(value, false);
@@ -241,12 +241,13 @@ public final class Metric {
       if (year < 2000 || year > 3000) {
         if (timestampWarningCounter.getAndIncrement() == 0) {
           logger.warning(
-              String.format(
-                  "Order of magnitude of the timestamp seems off (%s). "
-                      + "The timestamp represents a time before the year 2000 or after the year 3000. "
-                      + "Skipping setting timestamp, the current server time will be added upon ingestion. "
-                      + "Only one out of every %d of these messages will be printed.",
-                  timestamp.toString(), TIMESTAMP_WARNING_THROTTLE_FACTOR));
+              () ->
+                  String.format(
+                      "Order of magnitude of the timestamp seems off (%s). "
+                          + "The timestamp represents a time before the year 2000 or after the year 3000. "
+                          + "Skipping setting timestamp, the current server time will be added upon ingestion. "
+                          + "Only one out of every %d of these messages will be printed.",
+                      timestamp, TIMESTAMP_WARNING_THROTTLE_FACTOR));
         }
         timestampWarningCounter.compareAndSet(TIMESTAMP_WARNING_THROTTLE_FACTOR, 0);
 
