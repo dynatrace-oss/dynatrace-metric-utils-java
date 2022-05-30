@@ -86,7 +86,7 @@ public final class Metric {
      *     counter API will be removed in future versions. Use {@link #setDoubleCounterValueDelta}
      *     instead.
      */
-    @Deprecated(since = "1.2.0")
+    @Deprecated
     public Builder setLongCounterValueTotal(long value) throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.LongCounterValue(value, false);
@@ -151,7 +151,7 @@ public final class Metric {
      *     counter API will be removed in future versions. Use {@link #setDoubleCounterValueDelta}
      *     instead.
      */
-    @Deprecated(since = "v1.2.0")
+    @Deprecated
     public Builder setDoubleCounterValueTotal(double value) throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.DoubleCounterValue(value, false);
