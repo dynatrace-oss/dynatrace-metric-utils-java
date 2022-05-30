@@ -100,14 +100,13 @@ class MetricBuilderTest {
   }
 
   @Test
-  public void testValueSetTwice() {
-    assertThrows(
-        MetricException.class,
-        () ->
-            Metric.builder("name")
-                .setLongCounterValueTotal(1)
-                .setDoubleCounterValueTotal(1.23)
-                .serialize());
+  void testValueSetTwice() {
+    // first setting of value does not throw.
+    Metric.Builder builder =
+        assertDoesNotThrow(() -> Metric.builder("name").setLongCounterValueDelta(1));
+
+    // trying to set again throws an exception.
+    assertThrows(MetricException.class, () -> builder.setDoubleCounterValueDelta(1.23));
   }
 
   @Test
