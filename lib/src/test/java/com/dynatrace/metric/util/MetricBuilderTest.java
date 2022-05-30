@@ -29,7 +29,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  @Deprecated(since = "v1.2.0")
+  @Deprecated
   void testSetLongCounterValueTotal() throws MetricException {
     String expected = "name count,1";
     String actual = Metric.builder("name").setLongCounterValueTotal(1).serialize();
@@ -62,7 +62,7 @@ class MetricBuilderTest {
   }
 
   @Test
-  @Deprecated(since = "v1.2.0")
+  @Deprecated
   void testSetDoubleCounterValueTotal() throws MetricException {
     String expected = "name count,1.23";
     String actual = Metric.builder("name").setDoubleCounterValueTotal(1.23).serialize();
