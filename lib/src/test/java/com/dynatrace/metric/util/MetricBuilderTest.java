@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
@@ -321,15 +322,21 @@ class MetricBuilderTest {
 
     MetricException me = assertThrows(MetricException.class, metricBuilder::serialize);
 
-    assertTrue(
-        me.getMessage()
-            .startsWith(
-                "Serialized line exceeds limit of 50000 characters accepted by the ingest API:"));
+    Pattern messagePattern =
+        Pattern.compile(
+            "Serialized line exceeds limit of 50000 characters accepted by the ingest API:\\r?\\nprefix.name,dim\\d+=val\\d+");
+    Matcher matcher = messagePattern.matcher(me.getMessage());
+    assertTrue(matcher.find());
+    // assert that the string starts with the match
+    assertEquals(0, matcher.start());
+
     // The message is truncated (to not print 50.000 characters) and the dimensions are in a random
     // order (due to the deduplication, which uses a map that does not preserve order). Therefore,
     // we can just assert that there are some dimensions before the truncation, but not which ones.
     Pattern dimensionPattern = Pattern.compile("dim\\d+=val\\d+,");
-    assertTrue(dimensionPattern.matcher(me.getMessage()).find());
+    long foundDimensionMatches = dimensionPattern.matcher(me.getMessage()).results().count();
+    // assert that there are multiple dimensions
+    assertTrue(foundDimensionMatches > 3);
 
     assertTrue(me.getMessage().endsWith("... (truncated)"));
     // assert that the line has been truncated.
