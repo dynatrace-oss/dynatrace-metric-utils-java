@@ -30,7 +30,7 @@ public final class Metric {
 
     // The maximum number of characters per serialized line accepted by the ingest API.
     // Lines exceeding this threshold should be dropped.
-    private static final int METRIC_LINE_MAX_LENGTH = 2000;
+    private static final int METRIC_LINE_MAX_LENGTH = 50_000;
 
     // The timestamp warning is rate-limited to log only once every time this factor is reached by
     // the timestampWarningCounter.
@@ -241,12 +241,13 @@ public final class Metric {
       if (year < 2000 || year > 3000) {
         if (timestampWarningCounter.getAndIncrement() == 0) {
           logger.warning(
-              String.format(
-                  "Order of magnitude of the timestamp seems off (%s). "
-                      + "The timestamp represents a time before the year 2000 or after the year 3000. "
-                      + "Skipping setting timestamp, the current server time will be added upon ingestion. "
-                      + "Only one out of every %d of these messages will be printed.",
-                  timestamp.toString(), TIMESTAMP_WARNING_THROTTLE_FACTOR));
+              () ->
+                  String.format(
+                      "Order of magnitude of the timestamp seems off (%s). "
+                          + "The timestamp represents a time before the year 2000 or after the year 3000. "
+                          + "Skipping setting timestamp, the current server time will be added upon ingestion. "
+                          + "Only one out of every %d of these messages will be printed.",
+                      timestamp, TIMESTAMP_WARNING_THROTTLE_FACTOR));
         }
         timestampWarningCounter.compareAndSet(TIMESTAMP_WARNING_THROTTLE_FACTOR, 0);
 
@@ -322,8 +323,8 @@ public final class Metric {
       if (builder.length() > METRIC_LINE_MAX_LENGTH) {
         throw new MetricException(
             String.format(
-                "Serialized line exceeds limit of %d characters accepted by the ingest API:%n%s",
-                METRIC_LINE_MAX_LENGTH, builder.toString()));
+                "Serialized line exceeds limit of %d characters accepted by the ingest API. Metric name: '%s'",
+                METRIC_LINE_MAX_LENGTH, normalizedKeyString));
       }
 
       return builder.toString();
