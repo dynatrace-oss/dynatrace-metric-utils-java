@@ -286,6 +286,8 @@ public final class Metric {
         throw new MetricException("Normalized metric key is empty.");
       }
 
+      logger.fine(() -> String.format("serializing metric '%s'", normalizedKeyString));
+
       if (this.value == null) {
         throw new MetricException("No value set for metric.");
       }
