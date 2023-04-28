@@ -140,15 +140,34 @@ public final class DimensionList {
     boolean firstIteration = true;
 
     for (Dimension dimension : dimensions) {
-      if (!firstIteration) {
-        builder.append(",");
-      } else {
-        firstIteration = false;
-      }
+      // if the dimension is not valid, don't add it to the
+      if (isDimensionValid(dimension)) {
+        if (!firstIteration) {
+          builder.append(",");
+        } else {
+          firstIteration = false;
+        }
 
-      builder.append(dimension.serialize());
+        builder.append(dimension.serialize());
+      }
     }
 
     return builder.toString();
+  }
+
+  static boolean isDimensionValid(Dimension dimension) {
+    String key = dimension.getKey();
+    if (key == null || key.isEmpty()) {
+      logger.warning("dimension key is null or empty.");
+      return false;
+    }
+
+    String value = dimension.getValue();
+    if (value == null || value.isEmpty()) {
+      logger.warning(() -> String.format("dimension value for dimension key '%s' is null or empty.", key));
+      return false;
+    }
+
+    return true;
   }
 }
