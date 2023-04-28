@@ -219,6 +219,30 @@ class MetricBuilderTest {
   }
 
   @Test
+  void testSetNullOrEmptyDimensions() throws MetricException {
+    String expected = "prefix.name,dim1=val1 count,delta=1";
+    String actual =
+      Metric.builder("name")
+        .setPrefix("prefix")
+        .setLongCounterValueDelta(1)
+        .setDimensions(
+          DimensionList.create(
+            Dimension.create("dim1", "val1"),
+            Dimension.create("dim2", null),
+            Dimension.create("dim3", ""),
+            Dimension.create("", "val4"),
+            Dimension.create(null, "val5"),
+            Dimension.create("", null),
+            Dimension.create(null, ""),
+            Dimension.create("", ""),
+            Dimension.create(null, null)
+          )
+        ).serialize();
+    assertEquals(expected, actual);
+
+  }
+
+  @Test
   void testJustDefaultDimensions() throws MetricException {
     String expected = "prefix.name,defdim1=val1 count,delta=1";
     String actual =
