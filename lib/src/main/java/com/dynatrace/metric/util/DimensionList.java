@@ -140,7 +140,7 @@ public final class DimensionList {
     boolean firstIteration = true;
 
     for (Dimension dimension : dimensions) {
-      // if the dimension is not valid, don't add it to the
+      // if the dimension is not valid, don't add it to the serialized line
       if (isDimensionValid(dimension)) {
         if (!firstIteration) {
           builder.append(",");
