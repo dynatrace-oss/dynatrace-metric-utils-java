@@ -111,6 +111,6 @@ spotless {
         endWithNewline()
     }
     java {
-        googleJavaFormat('1.8')
+        googleJavaFormat('1.7')
     }
 }
