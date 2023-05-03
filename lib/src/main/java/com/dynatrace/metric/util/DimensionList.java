@@ -156,6 +156,9 @@ public final class DimensionList {
   }
 
   static boolean isDimensionValid(Dimension dimension) {
+    // Dimension key should never be empty, as the creation of a dimension list will drop all dimension with empty
+    // keys. DimensionLists will always be normalized upon creation. At the point where this method is used, all
+    // dimensions should be part of a dimension list, and therefore never contain null or empty dimension keys.
     String key = dimension.getKey();
     if (key == null || key.isEmpty()) {
       logger.warning("dimension key is null or empty.");

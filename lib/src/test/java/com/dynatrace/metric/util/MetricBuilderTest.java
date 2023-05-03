@@ -239,7 +239,6 @@ class MetricBuilderTest {
           )
         ).serialize();
     assertEquals(expected, actual);
-
   }
 
   @Test
