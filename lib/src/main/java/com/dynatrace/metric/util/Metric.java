@@ -328,7 +328,11 @@ public final class Metric {
                 METRIC_LINE_MAX_LENGTH, normalizedKeyString));
       }
 
-      logger.fine(() -> String.format("finished serializing metric '%s' (final name: '%s')", metricKey, normalizedKeyString));
+      logger.fine(
+          () ->
+              String.format(
+                  "finished serializing metric '%s' (final name: '%s')",
+                  metricKey, normalizedKeyString));
       return builder.toString();
     }
 
