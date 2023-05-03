@@ -16,7 +16,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'com.diffplug.spotless' version '6.7.1'
+    id 'com.diffplug.spotless' version '6.17.0'
 }
 
 group 'com.dynatrace.metric.util'
@@ -111,6 +111,6 @@ spotless {
         endWithNewline()
     }
     java {
-        googleJavaFormat()
+        googleJavaFormat('1.8')
     }
 }
