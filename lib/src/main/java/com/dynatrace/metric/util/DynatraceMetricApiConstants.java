@@ -28,9 +28,7 @@ public final class DynatraceMetricApiConstants {
     return DEFAULT_ONEAGENT_ENDPOINT;
   }
 
-  /**
-   * @return The maximum number of metric lines per request accepted by the ingest endpoint.
-   */
+  /** @return The maximum number of metric lines per request accepted by the ingest endpoint. */
   public static int getPayloadLinesLimit() {
     return PAYLOAD_LINES_LIMIT;
   }

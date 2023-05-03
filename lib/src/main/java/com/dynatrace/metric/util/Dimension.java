@@ -25,16 +25,12 @@ public final class Dimension {
     this.value = value;
   }
 
-  /**
-   * @return A {@link String} containing the dimension key.
-   */
+  /** @return A {@link String} containing the dimension key. */
   public String getKey() {
     return key;
   }
 
-  /**
-   * @return A {@link String} containing the dimension value.
-   */
+  /** @return A {@link String} containing the dimension value. */
   public String getValue() {
     return value;
   }
