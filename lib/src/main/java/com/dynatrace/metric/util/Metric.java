@@ -287,7 +287,6 @@ public final class Metric {
         throw new MetricException("Normalized metric key is empty.");
       }
 
-
       if (this.value == null) {
         throw new MetricException("No value set for metric.");
       }
