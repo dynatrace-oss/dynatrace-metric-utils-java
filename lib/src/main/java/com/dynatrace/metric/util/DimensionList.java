@@ -140,15 +140,39 @@ public final class DimensionList {
     boolean firstIteration = true;
 
     for (Dimension dimension : dimensions) {
-      if (!firstIteration) {
-        builder.append(",");
-      } else {
-        firstIteration = false;
-      }
+      // if the dimension is not valid, don't add it to the serialized line
+      if (isDimensionValid(dimension)) {
+        if (!firstIteration) {
+          builder.append(",");
+        } else {
+          firstIteration = false;
+        }
 
-      builder.append(dimension.serialize());
+        builder.append(dimension.serialize());
+      }
     }
 
     return builder.toString();
+  }
+
+  static boolean isDimensionValid(Dimension dimension) {
+    // Dimension key should never be empty, as the creation of a dimension list will drop all
+    // dimension with empty keys. DimensionLists will always be normalized upon creation. At the
+    // point where this method is used, all dimensions should be part of a dimension list, and
+    // therefore never contain null or empty dimension keys.
+    String key = dimension.getKey();
+    if (key == null || key.isEmpty()) {
+      logger.warning("dimension key is null or empty.");
+      return false;
+    }
+
+    String value = dimension.getValue();
+    if (value == null || value.isEmpty()) {
+      logger.warning(
+          () -> String.format("dimension value for dimension key '%s' is null or empty.", key));
+      return false;
+    }
+
+    return true;
   }
 }

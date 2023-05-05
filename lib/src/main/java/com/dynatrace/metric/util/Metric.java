@@ -45,6 +45,7 @@ public final class Metric {
     private DimensionList dynatraceMetadataDimensions;
 
     private Builder(String metricKey) {
+      logger.fine(() -> String.format("building metric '%s'", metricKey));
       this.metricKey = metricKey;
     }
 
@@ -327,6 +328,11 @@ public final class Metric {
                 METRIC_LINE_MAX_LENGTH, normalizedKeyString));
       }
 
+      logger.fine(
+          () ->
+              String.format(
+                  "finished serializing metric '%s' (final name: '%s')",
+                  metricKey, normalizedKeyString));
       return builder.toString();
     }
 
