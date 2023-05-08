@@ -20,7 +20,7 @@ plugins {
 }
 
 group 'com.dynatrace.metric.util'
-version = '1.7.0'
+version = '1.7.1'
 
 repositories {
     mavenCentral()
@@ -45,6 +45,8 @@ test {
 java {
     withJavadocJar()
     withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 publishing {
