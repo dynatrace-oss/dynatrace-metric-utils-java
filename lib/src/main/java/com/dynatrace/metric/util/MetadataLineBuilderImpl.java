@@ -1,11 +1,17 @@
+// TODO: continue with the absolute unit serialization
+// TODO: Fix the bugs around using separate backing fields instead of a list for description and unit
+
 package com.dynatrace.metric.util;
 
 import com.dynatrace.metric.util.validation.CodePoints;
 import com.dynatrace.metric.util.validation.DimensionValueValidator;
 import com.dynatrace.metric.util.validation.UnitValidator;
 import org.apache.commons.lang3.StringUtils;
+import sun.jvm.hotspot.oops.Metadata;
 
 import java.util.ArrayList;
+
+import static com.dynatrace.metric.util.MetadataConstants.Limits.MAX_DESCRIPTION_LENGTH;
 
 public class MetadataLineBuilderImpl
   implements MetadataLineBuilder.MetricKeyStep,
@@ -14,7 +20,8 @@ public class MetadataLineBuilderImpl
   MetadataLineBuilder.UnitStep,
   MetadataLineBuilder.BuildStep {
 
-  private final ArrayList<String> dimensions;
+  private String description;
+  private String unit;
 
   private String metricKey;
   private String payloadType;
@@ -25,7 +32,6 @@ public class MetadataLineBuilderImpl
   private boolean hasError = false;
 
   private MetadataLineBuilderImpl() {
-    this.dimensions = new ArrayList<>(2);
   }
 
   /**
@@ -34,7 +40,7 @@ public class MetadataLineBuilderImpl
    * @return The {@link MetadataLineBuilder.MetricKeyStep} that is used to set the metric key.
    */
   public static MetadataLineBuilder.MetricKeyStep newBuilder() {
-    return MetadataLineBuilderImpl.newBuilder();
+    return new MetadataLineBuilderImpl();
   }
 
 
@@ -68,21 +74,14 @@ public class MetadataLineBuilderImpl
     if (this.hasError || StringUtils.isBlank(description) || DimensionValueValidator.isEmptyQuoted(description)) {
       return this;
     }
+    // TODO Constants for MAX_DIMENSION_VALUE
+    description = LineNormalizer.normalizeDimensionValue(description, MAX_DESCRIPTION_LENGTH);
 
-    String normalizedDescription = normalizeDescription(description);
     // TODO Maybe Log here when description was normalized?
 
-    String dimension = MetadataConstants.Dimensions.DESCRIPTION_KEY + (char) CodePoints.EQUALS + normalizedDescription;
-    this.dimensions.add(dimension);
-    this.dimensionsLength += dimension.length();
+    // +1 refers to the = char
+    this.dimensionsLength += MetadataConstants.Dimensions.DESCRIPTION_KEY.length() + 1 + description.length();
     return this;
-  }
-
-  private String normalizeDescription(String description) {
-    // TODO: Normalize the description. Needs to consider the maximum character for this description
-    // see: MetadataConstants.MAX_DESCRIPTION_LENGTH
-    // TODO: Check if we need to normalize first using DimensionValueValidator.normalizationRequiredStringValue
-    return description;
   }
 
   @Override
