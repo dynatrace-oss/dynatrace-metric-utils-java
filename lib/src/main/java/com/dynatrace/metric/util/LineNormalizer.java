@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
 /**
  * Utility class containing methods to apply normalization to metric keys and dimensions, according to the  specification
  */
@@ -48,8 +47,6 @@ public class LineNormalizer {
     StringBuilder sb = new StringBuilder();
     final int length = value.length();
     boolean wasNormalizedBefore = false;
-    int invalidCharEncountered = 0;
-    boolean wasTruncated = false;
 
     for (int offset = 0; offset < length; ) {
       final int codePoint = value.codePointAt(offset);
@@ -61,19 +58,16 @@ public class LineNormalizer {
         }
         if (!DimensionValueValidator.canAppendToValue(sb.length(), CodePoints.UNDERSCORE, false, false,
           maxDimensionValueLength)) {
-          wasTruncated = true;
           break;
         }
         sb.appendCodePoint(CodePoints.UNDERSCORE);
         wasNormalizedBefore = true;
-        invalidCharEncountered++;
       } else {
         boolean shouldEscape = DimensionValueValidator.shouldEscapeString(codePoint);
         boolean canAppend = DimensionValueValidator.canAppendToValue(sb.length(), codePoint, false, shouldEscape,
           maxDimensionValueLength);
 
         if (!canAppend) {
-          wasTruncated = true;
           break;
         }
 
@@ -105,7 +99,6 @@ public class LineNormalizer {
     StringBuilder sb = new StringBuilder();
     final int length = value.length();
     boolean wasNormalizedBefore = false;
-    int invalidCharEncountered = 0;
     boolean wasTruncated = false;
 
     DimensionValueValidator.State state = DimensionValueValidator.State.START;
@@ -136,7 +129,6 @@ public class LineNormalizer {
             }
             sb.appendCodePoint(CodePoints.UNDERSCORE);
             wasNormalizedBefore = true;
-            invalidCharEncountered++;
             break;
           }
           boolean shouldEscape = DimensionValueValidator.shouldEscapeQuotedString(codePoint);

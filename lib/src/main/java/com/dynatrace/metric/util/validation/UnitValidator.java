@@ -14,6 +14,10 @@ public final class UnitValidator {
    * @return True if the unit is valid, false otherwise.
    */
   public static boolean isValidUnit(String unit) {
+    if (unit == null || unit.isEmpty()) {
+      return false;
+    }
+
     final int length = unit.length();
 
     if (length > MetadataConstants.Limits.MAX_UNIT_LENGTH) {

@@ -1,32 +1,21 @@
 package com.dynatrace.metric.util;
 
 import org.junit.jupiter.api.Test;
-import sun.jvm.hotspot.oops.Metadata;
 
 import static org.junit.jupiter.api.Assertions.*;
-class MetadataLineBuilderImplTest {
+class MetadataLineFactoryTest {
 
 
   @Test
   void shouldNotEscapeSimpleDescription() {
-    String line = MetadataLineBuilderImpl.newBuilder()
-      .metricKey("my.metric")
-      .counter()
-      .description("description")
-      .unit("count")
-      .build();
+    String line = MetadataLineFactory.createCounterMetadataLine("my.metric", "description", "count");
 
     assertEquals("#my.metric count dt.meta.description=description,dt.meta.unit=count", line);
   }
 
   @Test
   void testShouldEscapeSpacesInDimensionValues() {
-    String line = MetadataLineBuilderImpl.newBuilder()
-      .metricKey("my.metric")
-      .counter()
-      .description("some description")
-      .unit("count")
-      .build();
+    String line = MetadataLineFactory.createCounterMetadataLine("my.metric", "some description", "count");
 
     assertEquals("#my.metric count dt.meta.description=some\\ description,dt.meta.unit=count", line);
   }
