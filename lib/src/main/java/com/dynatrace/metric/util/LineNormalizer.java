@@ -3,28 +3,26 @@ package com.dynatrace.metric.util;
 import com.dynatrace.metric.util.validation.CodePoints;
 import com.dynatrace.metric.util.validation.DimensionValueValidator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * Utility class containing methods to apply normalization to metric keys and dimensions, according to the  specification
+ * Utility class containing methods to apply normalization to metric keys and dimensions, according
+ * to the specification
  */
 public class LineNormalizer {
 
-  private LineNormalizer() {
-  }
+  private LineNormalizer() {}
 
   /**
-   * Applies normalization to the provided dimension value according to the  spec.
+   * Applies normalization to the provided dimension value according to the spec.
    *
-   * @param value                   The dimension value to normalize.
-   * @param maxDimensionValueLength The maximum value to compare too. E.g. The maximum value for  dimensions.
-   * @return The {@link String result}, containing the potentially normalized value
-   * along with any warning encountered.
+   * @param value The dimension value to normalize.
+   * @param maxDimensionValueLength The maximum value to compare too. E.g. The maximum value for
+   *     dimensions.
+   * @return The {@link String result}, containing the potentially normalized value along with any
+   *     warning encountered.
    */
   public static String normalizeDimensionValue(String value, int maxDimensionValueLength) {
-    boolean isQuoted = value.startsWith(CodePoints.QUOTATION_MARK) && value.endsWith(CodePoints.QUOTATION_MARK);
+    boolean isQuoted =
+        value.startsWith(CodePoints.QUOTATION_MARK) && value.endsWith(CodePoints.QUOTATION_MARK);
     if (isQuoted) {
       return normalizeQuotedDimValue(value, maxDimensionValueLength);
     }
@@ -34,10 +32,11 @@ public class LineNormalizer {
   /**
    * Applies normalization to the string dimension value.
    *
-   * @param value                   The string dimension value.
-   * @param maxDimensionValueLength The maximum value to compare too. E.g. The maximum value for  dimensions.
-   * @return The {@link String result}, containing the potentially normalized value
-   * along with any warning encountered.
+   * @param value The string dimension value.
+   * @param maxDimensionValueLength The maximum value to compare too. E.g. The maximum value for
+   *     dimensions.
+   * @return The {@link String result}, containing the potentially normalized value along with any
+   *     warning encountered.
    */
   private static String normalizeStringDimValue(String value, int maxDimensionValueLength) {
     if (!DimensionValueValidator.normalizationRequiredStringValue(value, maxDimensionValueLength)) {
@@ -56,16 +55,17 @@ public class LineNormalizer {
           offset += Character.charCount(codePoint);
           continue;
         }
-        if (!DimensionValueValidator.canAppendToValue(sb.length(), CodePoints.UNDERSCORE, false, false,
-          maxDimensionValueLength)) {
+        if (!DimensionValueValidator.canAppendToValue(
+            sb.length(), CodePoints.UNDERSCORE, false, false, maxDimensionValueLength)) {
           break;
         }
         sb.appendCodePoint(CodePoints.UNDERSCORE);
         wasNormalizedBefore = true;
       } else {
         boolean shouldEscape = DimensionValueValidator.shouldEscapeString(codePoint);
-        boolean canAppend = DimensionValueValidator.canAppendToValue(sb.length(), codePoint, false, shouldEscape,
-          maxDimensionValueLength);
+        boolean canAppend =
+            DimensionValueValidator.canAppendToValue(
+                sb.length(), codePoint, false, shouldEscape, maxDimensionValueLength);
 
         if (!canAppend) {
           break;
@@ -86,13 +86,15 @@ public class LineNormalizer {
   /**
    * Applies normalization to the quoted string dimension value.
    *
-   * @param value                   The quoted dimension value.
-   * @param maxDimensionValueLength The maximum value to compare too. E.g. The maximum value for  dimensions.
-   * @return The {@link String result}, containing the potentially normalized value
-   * along with any warning encountered.
+   * @param value The quoted dimension value.
+   * @param maxDimensionValueLength The maximum value to compare too. E.g. The maximum value for
+   *     dimensions.
+   * @return The {@link String result}, containing the potentially normalized value along with any
+   *     warning encountered.
    */
   private static String normalizeQuotedDimValue(String value, int maxDimensionValueLength) {
-    if (!DimensionValueValidator.normalizationRequiredQuotedStringValue(value, maxDimensionValueLength)) {
+    if (!DimensionValueValidator.normalizationRequiredQuotedStringValue(
+        value, maxDimensionValueLength)) {
       return value;
     }
 
@@ -122,8 +124,8 @@ public class LineNormalizer {
             if (wasNormalizedBefore) {
               break;
             }
-            if (!DimensionValueValidator.canAppendToValue(sb.length(), CodePoints.UNDERSCORE, true, false,
-              maxDimensionValueLength)) {
+            if (!DimensionValueValidator.canAppendToValue(
+                sb.length(), CodePoints.UNDERSCORE, true, false, maxDimensionValueLength)) {
               wasTruncated = true;
               break;
             }
@@ -132,8 +134,9 @@ public class LineNormalizer {
             break;
           }
           boolean shouldEscape = DimensionValueValidator.shouldEscapeQuotedString(codePoint);
-          boolean canAppend = DimensionValueValidator.canAppendToValue(sb.length(), codePoint, true, shouldEscape,
-            maxDimensionValueLength);
+          boolean canAppend =
+              DimensionValueValidator.canAppendToValue(
+                  sb.length(), codePoint, true, shouldEscape, maxDimensionValueLength);
 
           if (!canAppend) {
             wasTruncated = true;

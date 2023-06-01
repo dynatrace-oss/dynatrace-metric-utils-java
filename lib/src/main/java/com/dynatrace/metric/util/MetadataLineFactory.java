@@ -7,7 +7,8 @@ import com.dynatrace.metric.util.validation.UnitValidator;
 
 public class MetadataLineFactory {
 
-  public static String createCounterMetadataLine(String metricKey, String description, String unit) {
+  public static String createCounterMetadataLine(
+      String metricKey, String description, String unit) {
     return createMetadataLine(metricKey, description, unit, MetadataConstants.Payload.TYPE_COUNT);
   }
 
@@ -15,13 +16,15 @@ public class MetadataLineFactory {
     return createMetadataLine(metricKey, description, unit, MetadataConstants.Payload.TYPE_GAUGE);
   }
 
-  private static String createMetadataLine(String metricKey, String description, String unit, String payloadType) {
+  private static String createMetadataLine(
+      String metricKey, String description, String unit, String payloadType) {
     String normalizedDescription = null;
 
     int builderLength = 0;
     // if description is not empty or null, try normalize
     if (description != null && !description.isEmpty()) {
-      normalizedDescription = LineNormalizer.normalizeDimensionValue(description, MAX_DESCRIPTION_LENGTH);
+      normalizedDescription =
+          LineNormalizer.normalizeDimensionValue(description, MAX_DESCRIPTION_LENGTH);
       builderLength += normalizedDescription.length();
     }
 
@@ -34,30 +37,36 @@ public class MetadataLineFactory {
       return null;
     }
 
-    builderLength += Character.charCount(CodePoints.NUMBER_SIGN) +
-      Character.charCount(CodePoints.BLANK) * 2
-      // a comma may be required if description and unit are set
-      + Character.charCount(CodePoints.COMMA);
+    builderLength +=
+        Character.charCount(CodePoints.NUMBER_SIGN)
+            + Character.charCount(CodePoints.BLANK) * 2
+            // a comma may be required if description and unit are set
+            + Character.charCount(CodePoints.COMMA);
 
     StringBuilder lineBuilder = new StringBuilder(builderLength);
 
     lineBuilder
-      .appendCodePoint(CodePoints.NUMBER_SIGN)
-      .append(metricKey)
-      .appendCodePoint(CodePoints.BLANK)
-      .append(payloadType)
-      .appendCodePoint(CodePoints.BLANK);
+        .appendCodePoint(CodePoints.NUMBER_SIGN)
+        .append(metricKey)
+        .appendCodePoint(CodePoints.BLANK)
+        .append(payloadType)
+        .appendCodePoint(CodePoints.BLANK);
 
     if (normalizedDescription != null) {
-      lineBuilder.append(MetadataConstants.Dimensions.DESCRIPTION_KEY).appendCodePoint(CodePoints.EQUALS)
-        .append(normalizedDescription);
+      lineBuilder
+          .append(MetadataConstants.Dimensions.DESCRIPTION_KEY)
+          .appendCodePoint(CodePoints.EQUALS)
+          .append(normalizedDescription);
       if (unit != null) {
         lineBuilder.appendCodePoint(CodePoints.COMMA);
       }
     }
 
     if (unit != null) {
-      lineBuilder.append(MetadataConstants.Dimensions.UNIT_KEY).appendCodePoint(CodePoints.EQUALS).append(unit);
+      lineBuilder
+          .append(MetadataConstants.Dimensions.UNIT_KEY)
+          .appendCodePoint(CodePoints.EQUALS)
+          .append(unit);
     }
 
     return lineBuilder.toString();
