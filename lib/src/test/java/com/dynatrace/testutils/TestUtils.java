@@ -14,7 +14,6 @@
 package com.dynatrace.testutils;
 
 import java.io.File;
-import java.util.Random;
 import java.util.UUID;
 
 public class TestUtils {
