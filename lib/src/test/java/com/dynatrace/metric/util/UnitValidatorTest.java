@@ -45,7 +45,7 @@ class UnitValidatorTest {
       // code point for index 0 is the NUL character.
       Arguments.of("invalid NUL char", TestUtils.codePointToString(0)),
       Arguments.of("invalid Dollar sign", "$"),
-      Arguments.of("invalid Euro sign", "€"),
+      Arguments.of("invalid Euro sign", "\u20AC"),
       Arguments.of("invalid open curly bracket", "{"),
       Arguments.of("invalid closed curly bracket", "}"),
       Arguments.of("invalid text enclosed in curly brackets", "{unit}"),
