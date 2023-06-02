@@ -9,6 +9,7 @@ class MetadataLineFactory {
   static String createMetadataLine(
       String metricKey, String description, String unit, String payloadType) {
     String normalizedDescription = null;
+    String validUnit = null;
 
     int builderLength = 0;
     // if description is not empty or null, try normalize
@@ -20,6 +21,7 @@ class MetadataLineFactory {
 
     if (UnitValidator.isValidUnit(unit)) {
       builderLength += unit.length();
+      validUnit = unit;
     }
 
     // neither desc nor unit are set
@@ -47,12 +49,12 @@ class MetadataLineFactory {
           .append(MetadataConstants.Dimensions.DESCRIPTION_KEY)
           .appendCodePoint(CodePoints.EQUALS)
           .append(normalizedDescription);
-      if (unit != null) {
+      if (validUnit != null) {
         lineBuilder.appendCodePoint(CodePoints.COMMA);
       }
     }
 
-    if (unit != null) {
+    if (validUnit != null) {
       lineBuilder
           .append(MetadataConstants.Dimensions.UNIT_KEY)
           .appendCodePoint(CodePoints.EQUALS)
