@@ -13,8 +13,14 @@
  */
 package com.dynatrace.metric.util;
 
+enum MetricType {
+  COUNTER(""),
+  GAUGE
+}
+
 /** Interface type that all Metric values have to follow. */
 interface IMetricValue {
+  MetricType getMetricType();
   String serialize();
 }
 
@@ -37,6 +43,11 @@ final class MetricValues {
     LongCounterValue(long value, boolean isDelta) {
       this.value = value;
       this.isDelta = isDelta;
+    }
+
+    @Override
+    public MetricType getMetricType() {
+      return MetricType.COUNTER;
     }
 
     @Override
@@ -68,6 +79,11 @@ final class MetricValues {
     }
 
     @Override
+    public MetricType getMetricType() {
+      return MetricType.GAUGE;
+    }
+
+    @Override
     public String serialize() {
       return String.format("gauge,min=%d,max=%d,sum=%d,count=%d", min, max, sum, count);
     }
@@ -78,6 +94,11 @@ final class MetricValues {
 
     LongGaugeValue(long value) {
       this.value = value;
+    }
+
+    @Override
+    public MetricType getMetricType() {
+      return MetricType.GAUGE;
     }
 
     @Override
@@ -94,6 +115,11 @@ final class MetricValues {
       throwIfNaNOrInfDouble(value);
       this.value = value;
       this.absolute = isDelta;
+    }
+
+    @Override
+    public MetricType getMetricType() {
+      return MetricType.COUNTER;
     }
 
     @Override
@@ -129,6 +155,11 @@ final class MetricValues {
     }
 
     @Override
+    public MetricType getMetricType() {
+      return MetricType.GAUGE;
+    }
+
+    @Override
     public String serialize() {
       return String.format(
           "gauge,min=%s,max=%s,sum=%s,count=%d",
@@ -142,6 +173,11 @@ final class MetricValues {
     DoubleGaugeValue(double value) throws MetricException {
       throwIfNaNOrInfDouble(value);
       this.value = value;
+    }
+
+    @Override
+    public MetricType getMetricType() {
+      return MetricType.GAUGE;
     }
 
     @Override

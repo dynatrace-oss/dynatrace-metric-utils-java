@@ -20,7 +20,7 @@ plugins {
 }
 
 group 'com.dynatrace.metric.util'
-version = '1.7.1'
+version = '1.8.0'
 
 repositories {
     mavenCentral()
@@ -99,12 +99,12 @@ publishing {
     }
 }
 
-signing {
-    def signingKey = findProperty('signingKey')
-    def signingPassword = findProperty('signingPassword')
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign publishing.publications.mavenJava
-}
+//signing {
+//    def signingKey = findProperty('signingKey')
+//    def signingPassword = findProperty('signingPassword')
+//    useInMemoryPgpKeys(signingKey, signingPassword)
+//    sign publishing.publications.mavenJava
+//}
 
 spotless {
     format 'misc', {

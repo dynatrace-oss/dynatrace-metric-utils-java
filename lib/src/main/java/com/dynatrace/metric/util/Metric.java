@@ -24,7 +24,9 @@ import java.util.logging.Logger;
  */
 public final class Metric {
 
-  /** Builder class for {@link Metric Metrics}. */
+  /**
+   * Builder class for {@link Metric Metrics}.
+   */
   public static final class Builder {
     private static final Logger logger = Logger.getLogger(Builder.class.getName());
 
@@ -84,8 +86,8 @@ public final class Metric {
      * @return this
      * @throws MetricException if a value has already been set on the metric.
      * @deprecated Counters should be ingested to the Dynatrace API as deltas. Therefore, the total
-     *     counter API will be removed in future versions. Use {@link #setDoubleCounterValueDelta}
-     *     instead.
+     * counter API will be removed in future versions. Use {@link #setDoubleCounterValueDelta}
+     * instead.
      */
     @Deprecated
     public Builder setLongCounterValueTotal(long value) throws MetricException {
@@ -126,16 +128,16 @@ public final class Metric {
      * Use a long summary value for the current metric. Will produce the entry
      * "gauge,min=[min],max=[max],sum=[sum],count=[count]" in the resulting metric line
      *
-     * @param min the minimum value for the current metric.
-     * @param max the maximum value for the current metric.
-     * @param sum the sum of all values in the recorded timeframe
+     * @param min   the minimum value for the current metric.
+     * @param max   the maximum value for the current metric.
+     * @param sum   the sum of all values in the recorded timeframe
      * @param count the number of elements contributing to the value.
      * @return this.
      * @throws MetricException if a value has already been set on the metric. Also thrown if min or
-     *     max are greater than the sum or if the count is negative.
+     *                         max are greater than the sum or if the count is negative.
      */
     public Builder setLongSummaryValue(long min, long max, long sum, long count)
-        throws MetricException {
+      throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.LongSummaryValue(min, max, sum, count);
       return this;
@@ -149,8 +151,8 @@ public final class Metric {
      * @return this
      * @throws MetricException if a value has already been set on the metric.
      * @deprecated Counters should be ingested to the Dynatrace API as deltas. Therefore, the total
-     *     counter API will be removed in future versions. Use {@link #setDoubleCounterValueDelta}
-     *     instead.
+     * counter API will be removed in future versions. Use {@link #setDoubleCounterValueDelta}
+     * instead.
      */
     @Deprecated
     public Builder setDoubleCounterValueTotal(double value) throws MetricException {
@@ -191,16 +193,16 @@ public final class Metric {
      * Use a double summary value for the current metric. Will produce the entry
      * "gauge,min=[min],max=[max],sum=[sum],count=[count]" in the resulting metric line
      *
-     * @param min the minimum value for the current metric.
-     * @param max the maximum value for the current metric.
-     * @param sum the sum of all values in the recorded timeframe
+     * @param min   the minimum value for the current metric.
+     * @param max   the maximum value for the current metric.
+     * @param sum   the sum of all values in the recorded timeframe
      * @param count the number of elements contributing to the value.
      * @return this.
      * @throws MetricException if a value has already been set on the metric. Also thrown if min or
-     *     max are greater than the sum or if the count is negative.
+     *                         max are greater than the sum or if the count is negative.
      */
     public Builder setDoubleSummaryValue(double min, double max, double sum, long count)
-        throws MetricException {
+      throws MetricException {
       throwIfValueAlreadySet();
       this.value = new MetricValues.DoubleSummaryValue(min, max, sum, count);
       return this;
@@ -230,7 +232,7 @@ public final class Metric {
      * no value will be set.
      *
      * @param timestamp an {@link Instant} object describing the time at which the {@link Metric}
-     *     was created.
+     *                  was created.
      * @return this
      */
     public Builder setTimestamp(Instant timestamp) {
@@ -242,13 +244,13 @@ public final class Metric {
       if (year < 2000 || year > 3000) {
         if (timestampWarningCounter.getAndIncrement() == 0) {
           logger.warning(
-              () ->
-                  String.format(
-                      "Order of magnitude of the timestamp seems off (%s). "
-                          + "The timestamp represents a time before the year 2000 or after the year 3000. "
-                          + "Skipping setting timestamp, the current server time will be added upon ingestion. "
-                          + "Only one out of every %d of these messages will be printed.",
-                      timestamp, TIMESTAMP_WARNING_THROTTLE_FACTOR));
+            () ->
+              String.format(
+                "Order of magnitude of the timestamp seems off (%s). "
+                  + "The timestamp represents a time before the year 2000 or after the year 3000. "
+                  + "Skipping setting timestamp, the current server time will be added upon ingestion. "
+                  + "Only one out of every %d of these messages will be printed.",
+                timestamp, TIMESTAMP_WARNING_THROTTLE_FACTOR));
         }
         timestampWarningCounter.compareAndSet(TIMESTAMP_WARNING_THROTTLE_FACTOR, 0);
 
@@ -270,22 +272,11 @@ public final class Metric {
       return this.setTimestamp(Instant.now());
     }
 
-    /**
-     * Serialize a {@link Metric.Builder} object to a String in a valid format for the Dynatrace
-     * metrics ingest endpoint.
-     *
-     * @return A {@link String} containing all properties set on the {@link Metric.Builder} in an
-     *     ingestion-ready format.
-     * @throws MetricException If no value is set or if the prefix/metric key combination evaluates
-     *     to an invalid/empty metric key after normalization. Will also throw a {@link
-     *     MetricException} when the line length after serialization exceeds the maximum line length
-     *     accepted by the ingest API.
-     */
-    public String serialize() throws MetricException {
-      String normalizedKeyString = makeNormalizedMetricKey();
-      if (normalizedKeyString == null || normalizedKeyString.isEmpty()) {
-        throw new MetricException("Normalized metric key is empty.");
-      }
+    private String normalizedMetricKey = null;
+
+    public String serializeMetricLine() throws MetricException {
+      // getNormalizedMetricKey will normalize the key if not already normalized, and throw if the key is invalid
+      String normalizedKeyString = getNormalizedMetricKey();
 
       if (this.value == null) {
         throw new MetricException("No value set for metric.");
@@ -298,8 +289,8 @@ public final class Metric {
       // combine default dimensions, dynamic dimensions and Dynatrace metadata dimensions into one
       // list.
       DimensionList allDimensions =
-          DimensionList.merge(
-              this.defaultDimensions, this.dimensions, this.dynatraceMetadataDimensions);
+        DimensionList.merge(
+          this.defaultDimensions, this.dimensions, this.dynatraceMetadataDimensions);
       String dimensionsString = null;
       if (!allDimensions.isEmpty()) {
         dimensionsString = allDimensions.serialize();
@@ -323,39 +314,71 @@ public final class Metric {
 
       if (builder.length() > METRIC_LINE_MAX_LENGTH) {
         throw new MetricException(
-            String.format(
-                "Serialized line exceeds limit of %d characters accepted by the ingest API. Metric name: '%s'",
-                METRIC_LINE_MAX_LENGTH, normalizedKeyString));
+          String.format(
+            "Serialized line exceeds limit of %d characters accepted by the ingest API. Metric name: '%s'",
+            METRIC_LINE_MAX_LENGTH, normalizedKeyString));
       }
 
       logger.fine(
-          () ->
-              String.format(
-                  "finished serializing metric '%s' (final name: '%s')",
-                  metricKey, normalizedKeyString));
+        () ->
+          String.format(
+            "finished serializing metric '%s' (final name: '%s')",
+            metricKey, normalizedKeyString));
       return builder.toString();
     }
 
-    private String makeNormalizedMetricKey() {
-      if (this.prefix == null || this.prefix.isEmpty()) {
-        return Normalize.metricKey(metricKey);
+    public String serializeMetadataLine() {
+      String metricKey = getNormalizedMetricKey();
+      MEta
+
+    
+
+    /**
+     * @deprecated please use {@link Metric.Builder#serializeMetricLine()}
+     * Serialize a {@link Metric.Builder} object to a String in a valid format for the Dynatrace
+     * metrics ingest endpoint.
+     *
+     * @return A {@link String} containing all properties set on the {@link Metric.Builder} in an
+     * ingestion-ready format.
+     * @throws MetricException If no value is set or if the prefix/metric key combination evaluates
+     *                         to an invalid/empty metric key after normalization. Will also throw a {@link
+     *                         MetricException} when the line length after serialization exceeds the maximum line length
+     *                         accepted by the ingest API.
+     */
+    @Deprecated
+    public String serialize() throws MetricException {
+      return serializeMetricLine();
+    }
+
+    private String getNormalizedMetricKey() throws MetricException {
+      if (normalizedMetricKey != null) {
+        return normalizedMetricKey;
       }
 
-      return Normalize.metricKey(String.format("%s.%s", prefix, metricKey));
+      if (this.prefix == null || this.prefix.isEmpty()) {
+        normalizedMetricKey = Normalize.metricKey(metricKey);
+      } else {
+        normalizedMetricKey = Normalize.metricKey(String.format("%s.%s", prefix, metricKey));
+      }
+
+      if (normalizedMetricKey == null || normalizedMetricKey.isEmpty()) {
+        throw new MetricException("Normalized metric key is empty.");
+      }
+
+      return normalizedMetricKey;
     }
   }
-
-  /** Created using {@link Metric.Builder} */
-  private Metric() {}
-
-  /**
-   * Create a new {@link Builder Metric.Builder} object.
-   *
-   * @param metricKey The metric key. A prefix can be added right away or using the method on the
-   *     builder.
-   * @return A new {@link Builder} object with the metricKey property set.
-   */
-  public static Builder builder(String metricKey) {
-    return new Builder(metricKey);
-  }
+    /** Created using {@link Metric.Builder} */
+    private Metric() {}
+    
+    /**
+     * Create a new {@link Builder Metric.Builder} object.
+     *
+     * @param metricKey The metric key. A prefix can be added right away or using the method on the
+     *                  builder.
+     * @return A new {@link Builder} object with the metricKey property set.
+     */
+    public static Builder builder(String metricKey) {
+      return new Builder(metricKey);
+    }
 }
