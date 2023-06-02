@@ -14,8 +14,20 @@
 package com.dynatrace.metric.util;
 
 enum MetricType {
-  COUNTER(""),
-  GAUGE
+  COUNTER("count"),
+  GAUGE("gauge");
+
+  private final String metricType;
+
+  MetricType(String metricType) {
+    this.metricType = metricType;
+  }
+
+  @Override
+  public String toString() {
+    return this.metricType;
+  }
+
 }
 
 /** Interface type that all Metric values have to follow. */

@@ -5,18 +5,11 @@ import static com.dynatrace.metric.util.MetadataConstants.Limits.MAX_DESCRIPTION
 import com.dynatrace.metric.util.validation.CodePoints;
 import com.dynatrace.metric.util.validation.UnitValidator;
 
-public class MetadataLineFactory {
+class MetadataLineFactory {
 
-  public static String createCounterMetadataLine(
-      String metricKey, String description, String unit) {
-    return createMetadataLine(metricKey, description, unit, MetadataConstants.Payload.TYPE_COUNT);
-  }
+  private MetadataLineFactory() { }
 
-  public static String createGaugeMetadataLine(String metricKey, String description, String unit) {
-    return createMetadataLine(metricKey, description, unit, MetadataConstants.Payload.TYPE_GAUGE);
-  }
-
-  private static String createMetadataLine(
+  static String createMetadataLine(
       String metricKey, String description, String unit, String payloadType) {
     String normalizedDescription = null;
 

@@ -46,6 +46,9 @@ public final class Metric {
     private DimensionList defaultDimensions;
     private DimensionList dynatraceMetadataDimensions;
 
+    private String unit;
+    private String description;
+
     private Builder(String metricKey) {
       logger.fine(() -> String.format("building metric '%s'", metricKey));
       this.metricKey = metricKey;
@@ -272,6 +275,16 @@ public final class Metric {
       return this.setTimestamp(Instant.now());
     }
 
+    public Builder setUnit(String unit) {
+      this.unit = unit;
+      return this;
+    }
+
+    public Builder setDescription(String description) {
+      this.description = description;
+      return this;
+    }
+
     private String normalizedMetricKey = null;
 
     public String serializeMetricLine() throws MetricException {
@@ -327,23 +340,29 @@ public final class Metric {
       return builder.toString();
     }
 
-    public String serializeMetadataLine() {
-      String metricKey = getNormalizedMetricKey();
-      MEta
+    public String serializeMetadataLine() throws MetricException {
+      // getNormalizedMetricKey will normalize the key if not already normalized, and throw if the key is invalid
+      String normalizedKeyString = getNormalizedMetricKey();
 
-    
+      if (this.value == null) {
+        throw new MetricException("No value set for metric.");
+      }
+
+      return MetadataLineFactory.createMetadataLine(
+        normalizedKeyString, description, unit, this.value.getMetricType().toString());
+    }
+
 
     /**
-     * @deprecated please use {@link Metric.Builder#serializeMetricLine()}
-     * Serialize a {@link Metric.Builder} object to a String in a valid format for the Dynatrace
-     * metrics ingest endpoint.
-     *
      * @return A {@link String} containing all properties set on the {@link Metric.Builder} in an
      * ingestion-ready format.
      * @throws MetricException If no value is set or if the prefix/metric key combination evaluates
      *                         to an invalid/empty metric key after normalization. Will also throw a {@link
      *                         MetricException} when the line length after serialization exceeds the maximum line length
      *                         accepted by the ingest API.
+     * @deprecated please use {@link Metric.Builder#serializeMetricLine()}
+     * Serialize a {@link Metric.Builder} object to a String in a valid format for the Dynatrace
+     * metrics ingest endpoint.
      */
     @Deprecated
     public String serialize() throws MetricException {
@@ -368,17 +387,21 @@ public final class Metric {
       return normalizedMetricKey;
     }
   }
-    /** Created using {@link Metric.Builder} */
-    private Metric() {}
-    
-    /**
-     * Create a new {@link Builder Metric.Builder} object.
-     *
-     * @param metricKey The metric key. A prefix can be added right away or using the method on the
-     *                  builder.
-     * @return A new {@link Builder} object with the metricKey property set.
-     */
-    public static Builder builder(String metricKey) {
-      return new Builder(metricKey);
-    }
+
+  /**
+   * Created using {@link Metric.Builder}
+   */
+  private Metric() {
+  }
+
+  /**
+   * Create a new {@link Builder Metric.Builder} object.
+   *
+   * @param metricKey The metric key. A prefix can be added right away or using the method on the
+   *                  builder.
+   * @return A new {@link Builder} object with the metricKey property set.
+   */
+  public static Builder builder(String metricKey) {
+    return new Builder(metricKey);
+  }
 }

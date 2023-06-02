@@ -14,15 +14,6 @@ public final class MetadataConstants {
     public static final int MAX_UNIT_LENGTH = 63;
   }
 
-  /** Constants for payload types of a metadata line. */
-  public static final class Payload {
-
-    private Payload() {}
-
-    public static final String TYPE_COUNT = "count";
-    public static final String TYPE_GAUGE = "gauge";
-  }
-
   /** Constants for Dynatrace-reserved metadata dimension keys */
   public static final class Dimensions {
 
