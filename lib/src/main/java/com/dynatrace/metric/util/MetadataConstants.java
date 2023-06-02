@@ -1,7 +1,7 @@
 package com.dynatrace.metric.util;
 
 /** Constants related to metadata line creation, serialization and normalization. */
-public final class MetadataConstants {
+final class MetadataConstants {
 
   private MetadataConstants() {}
 

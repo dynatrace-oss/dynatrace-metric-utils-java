@@ -1,12 +1,12 @@
-package com.dynatrace.metric.util.validation;
+package com.dynatrace.metric.util;
 
-/** Offers validation methods for Dimension Values according to the specification. */
-public final class DimensionValueValidator {
+/** Offers validation methods for string values (e.g. descriptions) according to the Dynatrace specification. */
+final class StringValueValidator {
 
-  private DimensionValueValidator() {}
+  private StringValueValidator() {}
 
   /**
-   * Checks if the codepoint of a dimension value should be escaped according to spec.
+   * Checks if the codepoint must be escaped.
    *
    * @param codePoint The codepoint.
    * @return True if the codepoint falls into the list of chars to escape according to spec, false
@@ -21,7 +21,7 @@ public final class DimensionValueValidator {
   }
 
   /**
-   * Checks if the codepoint of a quoted dimension value should be escaped according to spec.
+   * Checks if the codepoint of a quoted string should be escaped according to spec.
    *
    * @param codePoint The codepoint.
    * @return True if the codepoint falls into the list of chars to escape according to spec, false
@@ -32,28 +32,16 @@ public final class DimensionValueValidator {
   }
 
   /**
-   * Checks if the string is composed of only empty quotes.
-   *
-   * @param value The string value.
-   * @return True if the string value is two quotes (""""), false otherwise.
-   */
-  public static boolean isEmptyQuoted(String value) {
-    return "\"\"".equals(value);
-  }
-
-  /**
    * Checks if the codepoint is an invalid codepoint (control chars)
    *
    * @param codePoint The codepoint.
-   * @return True if the codepoint falls into the list of invalid chars for dimension values, false
-   *     otherwise.
+   * @return True if the codepoint falls into the list of invalid chars, false otherwise.
    */
   public static boolean isInvalidCodePoint(int codePoint) {
     switch (Character.getType(codePoint)) {
       case Character.UNASSIGNED:
         // support all emojis of unicode range "Supplemental Symbols and Pictographs"
         // see https://www.unicode.org/charts/PDF/Unicode-14.0/U140-1F900.pdf
-        // See rationale in APM-360016
         if (codePoint >= CodePoints.UC_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS_START
             && codePoint <= CodePoints.UC_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS_END) {
           return false;
@@ -72,17 +60,17 @@ public final class DimensionValueValidator {
   }
 
   /**
-   * Calculates if by adding the next character, the dimension value length is still less or equal
-   * than the limits described by the spec. It considers the next character + any necessary escaping
-   * character or final quote in case of quoted dimension values.
+   * Calculates if by adding the next character, the string length is still less or equal
+   * than the limit. It considers the next character + any necessary escaping
+   * character or final quote in case of quoted strings.
    *
-   * @param currentValueLength The current length of the dimension value.
-   * @param codePoint The next character to be added to the dimension value StringBuilder.
-   * @param isQuoted Indicates whether the dimension value is a quoted value. This causes the
+   * @param currentValueLength The current length of the string.
+   * @param codePoint The next character to be added to the StringBuilder.
+   * @param isQuoted Indicates whether the string is a quoted value. This causes the
    *     calculation to consider the length of the quote character.
    * @param includeEscapeChar Indicates whether the char to be added should be escaped. This causes
    *     the calculation to consider the length of the backslash character.
-   * @param maxDimensionValueLength The maximum value to compare too. E.g. The maximum value for
+   * @param maxStringValueLength The maximum value to compare too. E.g. The maximum value for
    *     dimensions
    * @return True if the next character fits and can be safely added to the StringBuilder and False
    *     if not.
@@ -92,7 +80,7 @@ public final class DimensionValueValidator {
       int codePoint,
       boolean isQuoted,
       boolean includeEscapeChar,
-      int maxDimensionValueLength) {
+      int maxStringValueLength) {
     int sizeToAdd = currentValueLength + Character.charCount(codePoint);
 
     if (isQuoted) {
@@ -102,23 +90,22 @@ public final class DimensionValueValidator {
     if (includeEscapeChar) {
       sizeToAdd += Character.charCount(CodePoints.BACKSLASH);
     }
-    return sizeToAdd <= maxDimensionValueLength;
+    return sizeToAdd <= maxStringValueLength;
   }
 
   /**
-   * Iterates through the string dimension value once to find out if it needs to be normalized.
+   * Iterates through the string once to find out if it needs to be normalized.
    *
-   * @param value The dimension string value
-   * @param maxDimensionValueLength The maximum value to compare too. E.g. The maximum value for
+   * @param value The  string value
+   * @param maxStringValueLength The maximum value to compare too. E.g. The maximum value for
    *     dimensions
    * @return True if it needs to be normalized (truncated, replaced or escaped) according to spec,
    *     false otherwise.
    */
-  public static boolean normalizationRequiredStringValue(
-      String value, int maxDimensionValueLength) {
+  public static boolean normalizationRequiredStringValue(String value, int maxStringValueLength) {
     final int length = value.length();
 
-    if (length > maxDimensionValueLength) {
+    if (length > maxStringValueLength) {
       return true;
     }
 
@@ -135,20 +122,20 @@ public final class DimensionValueValidator {
   }
 
   /**
-   * Iterates through the quoted string dimension value once to find out if it needs to be
+   * Iterates through the quoted string once to find out if it needs to be
    * normalized.
    *
-   * @param value The quoted dimension string value
-   * @param maxDimensionValueLength The maximum value to compare too. E.g. The maximum value for
+   * @param value The quoted  string value
+   * @param maxStringValueLength The maximum value to compare too. E.g. The maximum value for
    *     dimensions
    * @return True if it needs to be normalized (truncated, replaced or escaped) according to spec,
    *     false otherwise.
    */
   public static boolean normalizationRequiredQuotedStringValue(
-      String value, int maxDimensionValueLength) {
+      String value, int maxStringValueLength) {
     final int length = value.length();
 
-    if (length > maxDimensionValueLength) {
+    if (length > maxStringValueLength) {
       return true;
     }
 

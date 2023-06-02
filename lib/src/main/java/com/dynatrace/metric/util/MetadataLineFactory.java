@@ -2,9 +2,6 @@ package com.dynatrace.metric.util;
 
 import static com.dynatrace.metric.util.MetadataConstants.Limits.MAX_DESCRIPTION_LENGTH;
 
-import com.dynatrace.metric.util.validation.CodePoints;
-import com.dynatrace.metric.util.validation.UnitValidator;
-
 class MetadataLineFactory {
 
   private MetadataLineFactory() { }
@@ -17,7 +14,7 @@ class MetadataLineFactory {
     // if description is not empty or null, try normalize
     if (description != null && !description.isEmpty()) {
       normalizedDescription =
-          LineNormalizer.normalizeDimensionValue(description, MAX_DESCRIPTION_LENGTH);
+          StringValueNormalizer.normalizeStringValue(description, MAX_DESCRIPTION_LENGTH);
       builderLength += normalizedDescription.length();
     }
 

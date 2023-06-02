@@ -1,8 +1,6 @@
-package com.dynatrace.metric.util.validation;
+package com.dynatrace.metric.util;
 
-import com.dynatrace.metric.util.MetadataConstants;
-
-public final class UnitValidator {
+final class UnitValidator {
 
   private UnitValidator() {}
 

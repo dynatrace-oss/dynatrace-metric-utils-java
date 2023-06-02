@@ -1,6 +1,6 @@
-package com.dynatrace.metric.util.validation;
+package com.dynatrace.metric.util;
 
-public final class CodePoints {
+final class CodePoints {
   public static final int QUOTE = "\"".codePointAt(0);
   public static final int BACKSLASH = "\\".codePointAt(0);
   public static final int FORWARDSLASH = "/".codePointAt(0);
