@@ -20,7 +20,6 @@ import java.util.UUID;
 public class TestUtils {
   public static String generateNonExistentFilename() {
     File f;
-    Random r = new Random();
     // generate random filenames until we find one that does not exist:
     do {
       String filename = "src/test/resources/" + UUID.randomUUID() + ".properties";
