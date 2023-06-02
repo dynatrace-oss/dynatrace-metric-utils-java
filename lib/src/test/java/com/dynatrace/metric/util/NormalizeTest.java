@@ -15,10 +15,9 @@ package com.dynatrace.metric.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.dynatrace.testutils.TestUtils;
 import java.time.Instant;
 import java.util.stream.Stream;
-
-import com.dynatrace.testutils.TestUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -246,7 +245,9 @@ public class NormalizeTest {
             "escape consecutive special chars", "  ,,==\\\\", "\\ \\ \\,\\,\\=\\=\\\\\\\\"),
         Arguments.of("escape key-value pair", "key=\"value\"", "key\\=\\\"value\\\""),
         Arguments.of(
-            "escape too long string", TestUtils.repeatStringNTimes("=", 250), TestUtils.repeatStringNTimes("\\=", 125)),
+            "escape too long string",
+            TestUtils.repeatStringNTimes("=", 250),
+            TestUtils.repeatStringNTimes("\\=", 125)),
         Arguments.of(
             "escape sequence not broken apart 1",
             TestUtils.repeatStringNTimes("a", 249) + "=",

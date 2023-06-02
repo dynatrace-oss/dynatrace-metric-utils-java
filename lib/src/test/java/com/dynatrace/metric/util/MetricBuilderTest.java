@@ -349,10 +349,8 @@ class MetricBuilderTest {
 
   @Test
   void testCreateMetadataLineWithUnit() throws MetricException {
-    Metric.Builder builder = Metric.builder("name")
-      .setPrefix("prefix")
-      .setUnit("unit")
-      .setDoubleGaugeValue(3.);
+    Metric.Builder builder =
+        Metric.builder("name").setPrefix("prefix").setUnit("unit").setDoubleGaugeValue(3.);
 
     assertEquals("prefix.name gauge,3.0", builder.serializeMetricLine());
     assertEquals("#prefix.name gauge dt.meta.unit=unit", builder.serializeMetadataLine());
@@ -360,31 +358,36 @@ class MetricBuilderTest {
 
   @Test
   void testCreateMetadataLineWithDescription() throws MetricException {
-    Metric.Builder builder = Metric.builder("name")
-      .setPrefix("prefix")
-      .setDescription("my description goes here")
-      .setDoubleGaugeValue(3.);
+    Metric.Builder builder =
+        Metric.builder("name")
+            .setPrefix("prefix")
+            .setDescription("my description goes here")
+            .setDoubleGaugeValue(3.);
 
     assertEquals("prefix.name gauge,3.0", builder.serializeMetricLine());
-    assertEquals("#prefix.name gauge dt.meta.description=my\\ description\\ goes\\ here", builder.serializeMetadataLine());
+    assertEquals(
+        "#prefix.name gauge dt.meta.description=my\\ description\\ goes\\ here",
+        builder.serializeMetadataLine());
   }
 
   @Test
   void testCreateMetadataLineWithUnitAndDescription() throws MetricException {
-    Metric.Builder builder = Metric.builder("name")
-      .setPrefix("prefix")
-      .setUnit("unit")
-      .setDescription("my description goes here")
-      .setDoubleGaugeValue(3.);
+    Metric.Builder builder =
+        Metric.builder("name")
+            .setPrefix("prefix")
+            .setUnit("unit")
+            .setDescription("my description goes here")
+            .setDoubleGaugeValue(3.);
 
     assertEquals("prefix.name gauge,3.0", builder.serializeMetricLine());
-    assertEquals("#prefix.name gauge dt.meta.description=my\\ description\\ goes\\ here,dt.meta.unit=unit", builder.serializeMetadataLine());
+    assertEquals(
+        "#prefix.name gauge dt.meta.description=my\\ description\\ goes\\ here,dt.meta.unit=unit",
+        builder.serializeMetadataLine());
   }
 
   @Test
   void testCreateMetadataLineThrowsIfNoValueTypeSet() {
-    Metric.Builder builder = Metric.builder("name")
-      .setUnit("unit");
+    Metric.Builder builder = Metric.builder("name").setUnit("unit");
 
     assertThrows(MetricException.class, builder::serializeMetadataLine);
   }

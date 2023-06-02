@@ -1,9 +1,9 @@
 package com.dynatrace.metric.util;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+
+import org.junit.jupiter.api.Test;
 
 class MetadataLineFactoryTest {
   private static final String METRIC_NAME = "my.metric";
@@ -13,27 +13,29 @@ class MetadataLineFactoryTest {
   private static String createExpectedLine(String description, String unit) {
     if (description != null && unit != null) {
       return String.format(
-        "#%s " + // Metric name
-          "%s " +  // Metric type
-          "%s=%s," + // description key = description value
-          "%s=%s", // unit key = unit value
-        METRIC_NAME, GAUGE_TYPE, MetadataConstants.Dimensions.DESCRIPTION_KEY, description, MetadataConstants.Dimensions.UNIT_KEY, unit
-      );
+          "#%s " + // Metric name
+              "%s " + // Metric type
+              "%s=%s," + // description key = description value
+              "%s=%s", // unit key = unit value
+          METRIC_NAME,
+          GAUGE_TYPE,
+          MetadataConstants.Dimensions.DESCRIPTION_KEY,
+          description,
+          MetadataConstants.Dimensions.UNIT_KEY,
+          unit);
     } else {
       if (description != null) {
         return String.format(
-          "#%s " + // Metric name
-            "%s " +  // Metric type
-            "%s=%s", // description key = description value
-          METRIC_NAME, GAUGE_TYPE, MetadataConstants.Dimensions.DESCRIPTION_KEY, description
-        );
+            "#%s " + // Metric name
+                "%s " + // Metric type
+                "%s=%s", // description key = description value
+            METRIC_NAME, GAUGE_TYPE, MetadataConstants.Dimensions.DESCRIPTION_KEY, description);
       } else {
         return String.format(
-          "#%s " + // Metric name
-            "%s " +  // Metric type
-            "%s=%s", // unit key = unit value
-          METRIC_NAME, GAUGE_TYPE, MetadataConstants.Dimensions.UNIT_KEY, unit
-        );
+            "#%s " + // Metric name
+                "%s " + // Metric type
+                "%s=%s", // unit key = unit value
+            METRIC_NAME, GAUGE_TYPE, MetadataConstants.Dimensions.UNIT_KEY, unit);
       }
     }
   }
@@ -44,66 +46,67 @@ class MetadataLineFactoryTest {
     assertNull(MetadataLineFactory.createMetadataLine(METRIC_NAME, null, null, GAUGE_TYPE));
   }
 
-
   @Test
   void whenUnitIsNull_shouldCreateMetadataLineWithJustDescription() {
     assertEquals(
-      createExpectedLine("my\\ description", null),
-      MetadataLineFactory.createMetadataLine(METRIC_NAME, "my description", null, GAUGE_TYPE));
+        createExpectedLine("my\\ description", null),
+        MetadataLineFactory.createMetadataLine(METRIC_NAME, "my description", null, GAUGE_TYPE));
   }
 
   @Test
   void whenUnitIsEmpty_shouldCreateMetadataLineWithJustDescription() {
     assertEquals(
-      createExpectedLine("my\\ description", null),
-      MetadataLineFactory.createMetadataLine(METRIC_NAME, "my description", "", GAUGE_TYPE));
+        createExpectedLine("my\\ description", null),
+        MetadataLineFactory.createMetadataLine(METRIC_NAME, "my description", "", GAUGE_TYPE));
   }
 
   @Test
   void whenDescriptionIsNull_shouldCreateMetadataLineWithJustUnit() {
     assertEquals(
-      createExpectedLine(null, "unit"),
-      MetadataLineFactory.createMetadataLine(METRIC_NAME, null, "unit", GAUGE_TYPE));
+        createExpectedLine(null, "unit"),
+        MetadataLineFactory.createMetadataLine(METRIC_NAME, null, "unit", GAUGE_TYPE));
   }
 
   @Test
   void whenDescriptionIsEmpty_shouldCreateMetadataLineWithJustUnit() {
     assertEquals(
-      createExpectedLine(null, "unit"),
-      MetadataLineFactory.createMetadataLine(METRIC_NAME, "", "unit", GAUGE_TYPE));
+        createExpectedLine(null, "unit"),
+        MetadataLineFactory.createMetadataLine(METRIC_NAME, "", "unit", GAUGE_TYPE));
   }
 
   @Test
   void whenDescriptionNeedsEscaping_shouldEscapeDescriptionValue() {
     assertEquals(
-      createExpectedLine("my\\ description", null),
-      MetadataLineFactory.createMetadataLine(METRIC_NAME, "my description", null, GAUGE_TYPE));
+        createExpectedLine("my\\ description", null),
+        MetadataLineFactory.createMetadataLine(METRIC_NAME, "my description", null, GAUGE_TYPE));
   }
 
   @Test
   void whenUnitAndDescriptionSet_shouldAddBoth() {
     assertEquals(
-      createExpectedLine("description", "unit"),
-      MetadataLineFactory.createMetadataLine(METRIC_NAME, "description", "unit", GAUGE_TYPE));
+        createExpectedLine("description", "unit"),
+        MetadataLineFactory.createMetadataLine(METRIC_NAME, "description", "unit", GAUGE_TYPE));
   }
 
   @Test
   void bothSet_invalidUnitIgnored() {
     assertEquals(
-      createExpectedLine("description", null),
-      MetadataLineFactory.createMetadataLine(METRIC_NAME, "description", "{invalid unit}", GAUGE_TYPE));
+        createExpectedLine("description", null),
+        MetadataLineFactory.createMetadataLine(
+            METRIC_NAME, "description", "{invalid unit}", GAUGE_TYPE));
   }
 
   @Test
   void bothSet_invalidDescriptionIgnored() {
     assertEquals(
-      createExpectedLine(null, "unit"),
-      MetadataLineFactory.createMetadataLine(METRIC_NAME, "", "unit", GAUGE_TYPE));
+        createExpectedLine(null, "unit"),
+        MetadataLineFactory.createMetadataLine(METRIC_NAME, "", "unit", GAUGE_TYPE));
   }
 
   @Test
   void bothSet_bothInvalid_shouldReturnNull() {
-    assertNull(MetadataLineFactory.createMetadataLine(METRIC_NAME, "", "{invalid unit}", GAUGE_TYPE));
+    assertNull(
+        MetadataLineFactory.createMetadataLine(METRIC_NAME, "", "{invalid unit}", GAUGE_TYPE));
   }
 
   @Test
@@ -113,14 +116,15 @@ class MetadataLineFactoryTest {
 
   @Test
   void onlyInvalidUnitSet_shouldReturnNull() {
-    assertNull(MetadataLineFactory.createMetadataLine(METRIC_NAME, null, "{invalid unit}", GAUGE_TYPE));
+    assertNull(
+        MetadataLineFactory.createMetadataLine(METRIC_NAME, null, "{invalid unit}", GAUGE_TYPE));
   }
 
   @Test
   void addOtherTypeToMetadataLineGeneration_lineIsCreatedWithOtherType() {
     String metricType = "othertype";
     String expected = String.format("#%s %s dt.meta.unit=unit", METRIC_NAME, metricType);
-    assertEquals(expected,
-      MetadataLineFactory.createMetadataLine(METRIC_NAME, null, "unit", metricType));
+    assertEquals(
+        expected, MetadataLineFactory.createMetadataLine(METRIC_NAME, null, "unit", metricType));
   }
 }

@@ -27,12 +27,12 @@ enum MetricType {
   public String toString() {
     return this.metricType;
   }
-
 }
 
 /** Interface type that all Metric values have to follow. */
 interface IMetricValue {
   MetricType getMetricType();
+
   String serialize();
 }
 

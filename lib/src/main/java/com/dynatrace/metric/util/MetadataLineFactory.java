@@ -4,7 +4,7 @@ import static com.dynatrace.metric.util.MetadataConstants.Limits.MAX_DESCRIPTION
 
 class MetadataLineFactory {
 
-  private MetadataLineFactory() { }
+  private MetadataLineFactory() {}
 
   static String createMetadataLine(
       String metricKey, String description, String unit, String payloadType) {

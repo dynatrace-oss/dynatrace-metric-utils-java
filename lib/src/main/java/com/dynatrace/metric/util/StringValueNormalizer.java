@@ -1,8 +1,6 @@
 package com.dynatrace.metric.util;
 
-/**
- * Utility class containing methods normalize strings according to the Dynatrace specification
- */
+/** Utility class containing methods normalize strings according to the Dynatrace specification */
 class StringValueNormalizer {
 
   private static final String EMPTY_QUOTED_STRING = "\"\"";
@@ -93,12 +91,11 @@ class StringValueNormalizer {
    *     warning encountered.
    */
   private static String normalizeQuotedStringValue(String value, int maxStringValueLength) {
-    if (value.equals(EMPTY_QUOTED_STRING)){
+    if (value.equals(EMPTY_QUOTED_STRING)) {
       return null;
     }
 
-    if (!StringValueValidator.normalizationRequiredQuotedStringValue(
-        value, maxStringValueLength)) {
+    if (!StringValueValidator.normalizationRequiredQuotedStringValue(value, maxStringValueLength)) {
       return value;
     }
 

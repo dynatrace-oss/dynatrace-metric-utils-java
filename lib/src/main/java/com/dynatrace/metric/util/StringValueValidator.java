@@ -1,6 +1,9 @@
 package com.dynatrace.metric.util;
 
-/** Offers validation methods for string values (e.g. descriptions) according to the Dynatrace specification. */
+/**
+ * Offers validation methods for string values (e.g. descriptions) according to the Dynatrace
+ * specification.
+ */
 final class StringValueValidator {
 
   private StringValueValidator() {}
@@ -60,14 +63,14 @@ final class StringValueValidator {
   }
 
   /**
-   * Calculates if by adding the next character, the string length is still less or equal
-   * than the limit. It considers the next character + any necessary escaping
-   * character or final quote in case of quoted strings.
+   * Calculates if by adding the next character, the string length is still less or equal than the
+   * limit. It considers the next character + any necessary escaping character or final quote in
+   * case of quoted strings.
    *
    * @param currentValueLength The current length of the string.
    * @param codePoint The next character to be added to the StringBuilder.
-   * @param isQuoted Indicates whether the string is a quoted value. This causes the
-   *     calculation to consider the length of the quote character.
+   * @param isQuoted Indicates whether the string is a quoted value. This causes the calculation to
+   *     consider the length of the quote character.
    * @param includeEscapeChar Indicates whether the char to be added should be escaped. This causes
    *     the calculation to consider the length of the backslash character.
    * @param maxStringValueLength The maximum value to compare too. E.g. The maximum value for
@@ -96,7 +99,7 @@ final class StringValueValidator {
   /**
    * Iterates through the string once to find out if it needs to be normalized.
    *
-   * @param value The  string value
+   * @param value The string value
    * @param maxStringValueLength The maximum value to compare too. E.g. The maximum value for
    *     dimensions
    * @return True if it needs to be normalized (truncated, replaced or escaped) according to spec,
@@ -122,17 +125,15 @@ final class StringValueValidator {
   }
 
   /**
-   * Iterates through the quoted string once to find out if it needs to be
-   * normalized.
+   * Iterates through the quoted string once to find out if it needs to be normalized.
    *
-   * @param value The quoted  string value
+   * @param value The quoted string value
    * @param maxStringValueLength The maximum value to compare too. E.g. The maximum value for
    *     dimensions
    * @return True if it needs to be normalized (truncated, replaced or escaped) according to spec,
    *     false otherwise.
    */
-  static boolean normalizationRequiredQuotedStringValue(
-      String value, int maxStringValueLength) {
+  static boolean normalizationRequiredQuotedStringValue(String value, int maxStringValueLength) {
     final int length = value.length();
 
     if (length > maxStringValueLength) {
