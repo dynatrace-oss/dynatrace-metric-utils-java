@@ -29,4 +29,19 @@ public class TestUtils {
     } while (f.exists());
     return f.getAbsolutePath();
   }
+
+  public static String codePointToString(int codePoint) {
+    return new String(Character.toChars(codePoint));
+  }
+
+  public static String repeatStringNTimes(String s, int n) {
+    return new String(new char[n]).replace("\0", s);
+  }
+
+  public static String createStringOfLength(int n, boolean quoted) {
+    if (quoted) {
+      return "\"" + repeatStringNTimes("a", n) + "\"";
+    }
+    return repeatStringNTimes("a", n);
+  }
 }

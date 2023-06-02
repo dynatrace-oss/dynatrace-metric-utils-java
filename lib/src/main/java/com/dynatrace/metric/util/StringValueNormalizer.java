@@ -5,6 +5,8 @@ package com.dynatrace.metric.util;
  */
 class StringValueNormalizer {
 
+  private static final String EMPTY_QUOTED_STRING = "\"\"";
+
   private StringValueNormalizer() {}
 
   /**
@@ -16,6 +18,10 @@ class StringValueNormalizer {
    *     warning encountered.
    */
   public static String normalizeStringValue(String value, int maxStringValueLength) {
+    if (value == null || value.isEmpty()) {
+      return null;
+    }
+
     boolean isQuoted =
         value.startsWith(CodePoints.QUOTATION_MARK) && value.endsWith(CodePoints.QUOTATION_MARK);
     if (isQuoted) {
@@ -87,6 +93,10 @@ class StringValueNormalizer {
    *     warning encountered.
    */
   private static String normalizeQuotedStringValue(String value, int maxStringValueLength) {
+    if (value.equals(EMPTY_QUOTED_STRING)){
+      return null;
+    }
+
     if (!StringValueValidator.normalizationRequiredQuotedStringValue(
         value, maxStringValueLength)) {
       return value;

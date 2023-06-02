@@ -12,7 +12,7 @@ final class StringValueValidator {
    * @return True if the codepoint falls into the list of chars to escape according to spec, false
    *     otherwise.
    */
-  public static boolean shouldEscapeString(int codePoint) {
+  static boolean shouldEscapeString(int codePoint) {
     return codePoint == CodePoints.COMMA
         || codePoint == CodePoints.EQUALS
         || codePoint == CodePoints.BLANK
@@ -27,7 +27,7 @@ final class StringValueValidator {
    * @return True if the codepoint falls into the list of chars to escape according to spec, false
    *     otherwise.
    */
-  public static boolean shouldEscapeQuotedString(int codePoint) {
+  static boolean shouldEscapeQuotedString(int codePoint) {
     return codePoint == CodePoints.QUOTE || codePoint == CodePoints.BACKSLASH;
   }
 
@@ -37,7 +37,7 @@ final class StringValueValidator {
    * @param codePoint The codepoint.
    * @return True if the codepoint falls into the list of invalid chars, false otherwise.
    */
-  public static boolean isInvalidCodePoint(int codePoint) {
+  static boolean isInvalidCodePoint(int codePoint) {
     switch (Character.getType(codePoint)) {
       case Character.UNASSIGNED:
         // support all emojis of unicode range "Supplemental Symbols and Pictographs"
@@ -75,7 +75,7 @@ final class StringValueValidator {
    * @return True if the next character fits and can be safely added to the StringBuilder and False
    *     if not.
    */
-  public static boolean canAppendToValue(
+  static boolean canAppendToValue(
       int currentValueLength,
       int codePoint,
       boolean isQuoted,
@@ -102,7 +102,7 @@ final class StringValueValidator {
    * @return True if it needs to be normalized (truncated, replaced or escaped) according to spec,
    *     false otherwise.
    */
-  public static boolean normalizationRequiredStringValue(String value, int maxStringValueLength) {
+  static boolean normalizationRequiredStringValue(String value, int maxStringValueLength) {
     final int length = value.length();
 
     if (length > maxStringValueLength) {
@@ -131,7 +131,7 @@ final class StringValueValidator {
    * @return True if it needs to be normalized (truncated, replaced or escaped) according to spec,
    *     false otherwise.
    */
-  public static boolean normalizationRequiredQuotedStringValue(
+  static boolean normalizationRequiredQuotedStringValue(
       String value, int maxStringValueLength) {
     final int length = value.length();
 
