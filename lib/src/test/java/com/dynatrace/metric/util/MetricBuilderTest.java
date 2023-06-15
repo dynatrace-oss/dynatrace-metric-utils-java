@@ -392,6 +392,10 @@ class MetricBuilderTest {
     assertThrows(MetricException.class, builder::serializeMetadataLine);
   }
 
-  // assert throws on serialize metadata with no value
+  @Test
+  void testGetNormalizedMetricNameThrowsOnEmptyName() {
+    Metric.Builder builder = Metric.builder("");
 
+    assertThrows(MetricException.class, builder::getNormalizedMetricKey);
+  }
 }
