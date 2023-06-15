@@ -43,20 +43,20 @@ public class App {
       // the following code will create this metric line:
       // prefix.metric1,dim2=value2,default1=value1,dim1=value1,default2=value2 count,123 1616416882
       String metricLine1 =
-          metricBuilderFactory
-              .newMetricBuilder("metric1")
-              .setDimensions(dimensions)
-              .setLongGaugeValue(123)
-              .setCurrentTime()
-              .serialize();
+        metricBuilderFactory
+          .newMetricBuilder("metric1")
+          .setDimensions(dimensions)
+          .setLongGaugeValue(123)
+          .setCurrentTime()
+          .serializeMetricLine();
 
       String metricLine2 =
-          metricBuilderFactory
-              .newMetricBuilder("metric2")
-              .setDimensions(differentDimensions)
-              .setLongGaugeValue(321)
-              .setCurrentTime()
-              .serialize();
+        metricBuilderFactory
+          .newMetricBuilder("metric2")
+          .setDimensions(differentDimensions)
+          .setLongGaugeValue(321)
+          .setCurrentTime()
+          .serializeMetricLine();
 
       System.out.println(metricLine1);
       System.out.println(metricLine2);
@@ -79,7 +79,7 @@ public class App {
                   DimensionList.merge(defaultDims, dimensions, dynatraceMetadataDimensions))
               .setLongGaugeValue(123)
               .setCurrentTime()
-              .serialize();
+              .serializeMetricLine();
 
       String metricLine2 =
           Metric.builder("metric2")
@@ -89,7 +89,7 @@ public class App {
                       defaultDims, differentDimensions, dynatraceMetadataDimensions))
               .setLongGaugeValue(321)
               .setCurrentTime()
-              .serialize();
+              .serializeMetricLine();
 
       System.out.println(metricLine1);
       System.out.println(metricLine2);
@@ -97,6 +97,37 @@ public class App {
     } catch (MetricException me) {
       System.out.println(me);
     }
+
+    // =============================================================================================
+    // Metadata
+    // =============================================================================================
+    try {
+      Metric.Builder builder1 = metricBuilderFactory
+        .newMetricBuilder("metric1")
+        .setLongGaugeValue(321)
+        .setUnit("unit")
+        .setDescription("A description of the metric");
+
+      Metric.Builder builder2 = Metric.builder("metric2")
+        .setDoubleCounterValueDelta(321)
+        .setUnit("Byte")
+        .setDescription("This metric measures something in Bytes");
+
+      String metricLine1 = builder1.serializeMetricLine();
+      String metadataLine1 = builder1.serializeMetadataLine();
+
+      String metricLine2 = builder2.serializeMetricLine();
+      String metadataLine2 = builder2.serializeMetadataLine();
+
+      System.out.println(metricLine1);
+      System.out.println(metadataLine1);
+      System.out.println(metricLine2);
+      System.out.println(metadataLine2);
+
+    } catch (MetricException me) {
+      System.out.println(me);
+    }
+
   }
 
   // to try this out, create the endpoint.properties file, start the app, and then modify the
