@@ -368,7 +368,7 @@ public final class Metric {
       return serializeMetricLine();
     }
 
-    private String getNormalizedMetricKey() throws MetricException {
+    public String getNormalizedMetricKey() throws MetricException {
       if (normalizedMetricKey != null) {
         return normalizedMetricKey;
       }
