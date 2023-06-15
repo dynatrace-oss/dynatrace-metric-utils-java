@@ -58,15 +58,15 @@ public class NormalizeTest {
   @Test
   public void testDimensionValuesEscapedOnlyOnce() throws MetricException {
     MetricBuilderFactory metricBuilderFactory = MetricBuilderFactory.builder().build();
-    String expected = "metric1,key=\\ \\,\\=\\\\ count,123 1620392690261";
+    String expected = "metric1,key=\\ \\,\\=\\\\ count,delta=123 1620392690261";
 
     String actual =
         metricBuilderFactory
             .newMetricBuilder("metric1")
             .setDimensions(DimensionList.create(Dimension.create("key", " ,=\\")))
-            .setLongCounterValueTotal(123)
+            .setLongCounterValueDelta(123)
             .setTimestamp(Instant.ofEpochMilli(1620392690261L))
-            .serialize();
+            .serializeMetricLine();
 
     assertEquals(expected, actual);
   }
