@@ -47,6 +47,8 @@ public final class Metric {
     private String unit;
     private String description;
 
+    private String normalizedMetricKey = null;
+
     private Builder(String metricKey) {
       logger.fine(() -> String.format("building metric '%s'", metricKey));
       this.metricKey = metricKey;
@@ -273,18 +275,41 @@ public final class Metric {
       return this.setTimestamp(Instant.now());
     }
 
+    /**
+     * (Optional) Set a unit to be serialized in a metadata line. See <a
+     * href="https://www.dynatrace.com/support/help/dynatrace-api/environment-api/metrics-units">the
+     * Dynatrace documentation</a> for more information.
+     *
+     * @param unit The unit string. Use the <a
+     *     href="https://www.dynatrace.com/support/help/dynatrace-api/environment-api/metrics-units">Metric
+     *     Units API</a> to find out about exiting units or create your own.
+     * @return this {@link Builder} instance.
+     */
     public Builder setUnit(String unit) {
       this.unit = unit;
       return this;
     }
 
+    /**
+     * (Optional) Set a description to be serialized in a metadata line.
+     *
+     * @param description The {@link String} describing the metric. This description will be
+     *     displayed in the Dynatrace UI.
+     * @return this {@link Builder} instance.
+     */
     public Builder setDescription(String description) {
       this.description = description;
       return this;
     }
 
-    private String normalizedMetricKey = null;
-
+    /**
+     * @return A {@link String} containing all properties set on the {@link Metric.Builder} in an
+     *     ingestion-ready format.
+     * @throws MetricException If no value is set or if the prefix/metric key combination evaluates
+     *     to an invalid/empty metric key after normalization. Will also throw a {@link
+     *     MetricException} when the line length after serialization exceeds the maximum line length
+     *     accepted by the ingest API.
+     */
     public String serializeMetricLine() throws MetricException {
       // getNormalizedMetricKey will normalize the key if not already normalized, and throw if the
       // key is invalid
@@ -339,6 +364,18 @@ public final class Metric {
       return builder.toString();
     }
 
+    /**
+     * Creates a Dynatrace Metadata line containing unit and description, if set. Metadata lines can
+     * be sent to the same Dynatrace metrics API and contain additional information about the
+     * metric. See <a
+     * href="https://www.dynatrace.com/support/help/shortlink/metric-ingestion-protocol#metadata">the
+     * Dynatrace documentation</a> for more details on Metadata in Dynatrace.
+     *
+     * @return A metadata line that can be sent to the Dynatrace v2 metrics API, or null if neither
+     *     Unit nor description are set.
+     * @throws MetricException If no value was set before trying to create the metadata line. The
+     *     value is required, as metadata contains the value type of the metric.
+     */
     public String serializeMetadataLine() throws MetricException {
       // getNormalizedMetricKey will normalize the key if not already normalized, and throw if the
       // key is invalid
@@ -368,6 +405,13 @@ public final class Metric {
       return serializeMetricLine();
     }
 
+    /**
+     * Calculates the normalized metric key on the first call, and uses the previously normalized
+     * metric key on subsequent invocations.
+     *
+     * @return the normalized metric key, including the prefix, if set.
+     * @throws MetricException when the metric key is null or empty after normalization.
+     */
     public String getNormalizedMetricKey() throws MetricException {
       if (normalizedMetricKey != null) {
         return normalizedMetricKey;
