@@ -8,7 +8,10 @@ class StringValueNormalizer {
   private StringValueNormalizer() {}
 
   /**
-   * Applies normalization to the provided String.
+   * Applies normalization to the string. Normalizations applied:
+   * * Replaces invalid characters with underscores
+   * * Escapes control characters with a backslash
+   * * Truncates strings that exceed the line length limit
    *
    * @param value The string to normalize.
    * @param maxStringValueLength The maximum length of the string.
