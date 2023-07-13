@@ -2,9 +2,9 @@ package com.dynatrace.metric.util;
 
 import static com.dynatrace.metric.util.MetadataConstants.Limits.MAX_DESCRIPTION_LENGTH;
 
-class MetadataLineFactory {
+class Metadata {
 
-  private MetadataLineFactory() {}
+  private Metadata() {}
 
   static String createMetadataLine(
       String metricKey, String description, String unit, String payloadType) {

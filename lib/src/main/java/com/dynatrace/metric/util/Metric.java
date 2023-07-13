@@ -385,7 +385,7 @@ public final class Metric {
         throw new MetricException("No value set for metric.");
       }
 
-      return MetadataLineFactory.createMetadataLine(
+      return Metadata.createMetadataLine(
           normalizedKeyString, description, unit, this.value.getMetricType().toString());
     }
 
