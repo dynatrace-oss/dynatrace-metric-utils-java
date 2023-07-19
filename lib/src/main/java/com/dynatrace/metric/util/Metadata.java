@@ -16,7 +16,7 @@ class Metadata {
     if (description != null && !description.isEmpty()) {
       normalizedDescription =
           StringValueNormalizer.normalizeStringValue(description, MAX_DESCRIPTION_LENGTH);
-      builderLength += normalizedDescription.length();
+      builderLength += normalizedDescription == null ? 0 : normalizedDescription.length();
     }
 
     if (UnitValidator.isValidUnit(unit)) {

@@ -118,6 +118,13 @@ class MetadataTest {
   }
 
   @Test
+  void emptyQuotedDimensonValue_shouldReturnEmptyString() {
+    // description with empty dimension value is dropped.
+    assertEquals(createExpectedLine(null, "unit"),
+      Metadata.createMetadataLine(METRIC_NAME, "\"\"","unit", GAUGE_TYPE));
+  }
+
+  @Test
   void addOtherTypeToMetadataLineGeneration_lineIsCreatedWithOtherType() {
     String metricType = "othertype";
     String expected = String.format("#%s %s dt.meta.unit=unit", METRIC_NAME, metricType);
