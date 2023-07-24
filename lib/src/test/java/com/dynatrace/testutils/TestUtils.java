@@ -14,13 +14,11 @@
 package com.dynatrace.testutils;
 
 import java.io.File;
-import java.util.Random;
 import java.util.UUID;
 
 public class TestUtils {
   public static String generateNonExistentFilename() {
     File f;
-    Random r = new Random();
     // generate random filenames until we find one that does not exist:
     do {
       String filename = "src/test/resources/" + UUID.randomUUID() + ".properties";
@@ -28,5 +26,20 @@ public class TestUtils {
       f = new File(filename);
     } while (f.exists());
     return f.getAbsolutePath();
+  }
+
+  public static String codePointToString(int codePoint) {
+    return new String(Character.toChars(codePoint));
+  }
+
+  public static String repeatStringNTimes(String s, int n) {
+    return new String(new char[n]).replace("\0", s);
+  }
+
+  public static String createStringOfLength(int n, boolean quoted) {
+    if (quoted) {
+      return "\"" + repeatStringNTimes("a", n) + "\"";
+    }
+    return repeatStringNTimes("a", n);
   }
 }

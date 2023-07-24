@@ -15,6 +15,7 @@ package com.dynatrace.metric.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.dynatrace.testutils.TestUtils;
 import java.time.Instant;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -57,21 +58,17 @@ public class NormalizeTest {
   @Test
   public void testDimensionValuesEscapedOnlyOnce() throws MetricException {
     MetricBuilderFactory metricBuilderFactory = MetricBuilderFactory.builder().build();
-    String expected = "metric1,key=\\ \\,\\=\\\\ count,123 1620392690261";
+    String expected = "metric1,key=\\ \\,\\=\\\\ count,delta=123 1620392690261";
 
     String actual =
         metricBuilderFactory
             .newMetricBuilder("metric1")
             .setDimensions(DimensionList.create(Dimension.create("key", " ,=\\")))
-            .setLongCounterValueTotal(123)
+            .setLongCounterValueDelta(123)
             .setTimestamp(Instant.ofEpochMilli(1620392690261L))
-            .serialize();
+            .serializeMetricLine();
 
     assertEquals(expected, actual);
-  }
-
-  static String repeatStringNTimes(String s, int n) {
-    return new String(new char[n]).replace("\0", s);
   }
 
   private static Stream<Arguments> provideMetricKeys() {
@@ -133,8 +130,8 @@ public class NormalizeTest {
         Arguments.of("invalid example 5", "meträääääÖÖÖc", "metr_c"),
         Arguments.of(
             "invalid truncate key too long",
-            repeatStringNTimes("a", 270),
-            repeatStringNTimes("a", 250)));
+            TestUtils.repeatStringNTimes("a", 270),
+            TestUtils.repeatStringNTimes("a", 250)));
   }
 
   private static Stream<Arguments> provideDimensionKeys() {
@@ -198,8 +195,8 @@ public class NormalizeTest {
         Arguments.of("invalid example 7", "Bla___", "bla___"),
         Arguments.of(
             "invalid truncate key too long",
-            repeatStringNTimes("a", 120),
-            repeatStringNTimes("a", 100)));
+            TestUtils.repeatStringNTimes("a", 120),
+            TestUtils.repeatStringNTimes("a", 100)));
   }
 
   private static Stream<Arguments> provideDimensionValues() {
@@ -232,8 +229,8 @@ public class NormalizeTest {
         Arguments.of("invalid consecutive enclosed unicode NUL", "a\u0000\u0007\u0000b", "a_b"),
         Arguments.of(
             "invalid truncate value too long",
-            repeatStringNTimes("a", 270),
-            repeatStringNTimes("a", 250)));
+            TestUtils.repeatStringNTimes("a", 270),
+            TestUtils.repeatStringNTimes("a", 250)));
   }
 
   private static Stream<Arguments> provideToEscapeValues() {
@@ -248,25 +245,27 @@ public class NormalizeTest {
             "escape consecutive special chars", "  ,,==\\\\", "\\ \\ \\,\\,\\=\\=\\\\\\\\"),
         Arguments.of("escape key-value pair", "key=\"value\"", "key\\=\\\"value\\\""),
         Arguments.of(
-            "escape too long string", repeatStringNTimes("=", 250), repeatStringNTimes("\\=", 125)),
+            "escape too long string",
+            TestUtils.repeatStringNTimes("=", 250),
+            TestUtils.repeatStringNTimes("\\=", 125)),
         Arguments.of(
             "escape sequence not broken apart 1",
-            repeatStringNTimes("a", 249) + "=",
-            repeatStringNTimes("a", 249)),
+            TestUtils.repeatStringNTimes("a", 249) + "=",
+            TestUtils.repeatStringNTimes("a", 249)),
         Arguments.of(
             "escape sequence not broken apart 2",
-            repeatStringNTimes("a", 248) + "==",
-            repeatStringNTimes("a", 248) + "\\="),
+            TestUtils.repeatStringNTimes("a", 248) + "==",
+            TestUtils.repeatStringNTimes("a", 248) + "\\="),
         Arguments.of(
             "escape sequence not broken apart 3",
             // 3 trailing backslashes before escaping
-            repeatStringNTimes("a", 247) + "\\\\\\",
+            TestUtils.repeatStringNTimes("a", 247) + "\\\\\\",
             // 1 escaped trailing backslash
-            repeatStringNTimes("a", 247) + "\\\\"),
+            TestUtils.repeatStringNTimes("a", 247) + "\\\\"),
         Arguments.of(
             "dimension value of only backslashes",
-            repeatStringNTimes("\\", 260),
-            repeatStringNTimes("\\\\", 125)),
+            TestUtils.repeatStringNTimes("\\", 260),
+            TestUtils.repeatStringNTimes("\\\\", 125)),
         Arguments.of("Null must not fail", null, null),
         Arguments.of("Empty must not fail", "", ""));
   }

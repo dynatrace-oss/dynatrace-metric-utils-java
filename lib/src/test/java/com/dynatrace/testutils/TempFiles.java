@@ -23,10 +23,6 @@ public class TempFiles implements Closeable {
   private final Path tempFile1;
   private final Path tempFile2;
 
-  public Path getDirectory() {
-    return directory;
-  }
-
   public String tempFile1Name() {
     return tempFile1.toString();
   }

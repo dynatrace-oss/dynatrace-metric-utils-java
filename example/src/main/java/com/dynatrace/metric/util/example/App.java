@@ -48,7 +48,7 @@ public class App {
               .setDimensions(dimensions)
               .setLongGaugeValue(123)
               .setCurrentTime()
-              .serialize();
+              .serializeMetricLine();
 
       String metricLine2 =
           metricBuilderFactory
@@ -56,7 +56,7 @@ public class App {
               .setDimensions(differentDimensions)
               .setLongGaugeValue(321)
               .setCurrentTime()
-              .serialize();
+              .serializeMetricLine();
 
       System.out.println(metricLine1);
       System.out.println(metricLine2);
@@ -79,7 +79,7 @@ public class App {
                   DimensionList.merge(defaultDims, dimensions, dynatraceMetadataDimensions))
               .setLongGaugeValue(123)
               .setCurrentTime()
-              .serialize();
+              .serializeMetricLine();
 
       String metricLine2 =
           Metric.builder("metric2")
@@ -89,10 +89,42 @@ public class App {
                       defaultDims, differentDimensions, dynatraceMetadataDimensions))
               .setLongGaugeValue(321)
               .setCurrentTime()
-              .serialize();
+              .serializeMetricLine();
 
       System.out.println(metricLine1);
       System.out.println(metricLine2);
+
+    } catch (MetricException me) {
+      System.out.println(me);
+    }
+
+    // =============================================================================================
+    // Metadata
+    // =============================================================================================
+    try {
+      Metric.Builder builder1 =
+          metricBuilderFactory
+              .newMetricBuilder("metric1")
+              .setLongGaugeValue(321)
+              .setUnit("unit")
+              .setDescription("A description of the metric");
+
+      Metric.Builder builder2 =
+          Metric.builder("metric2")
+              .setDoubleCounterValueDelta(321)
+              .setUnit("Byte")
+              .setDescription("This metric measures something in Bytes");
+
+      String metricLine1 = builder1.serializeMetricLine();
+      String metadataLine1 = builder1.serializeMetadataLine();
+
+      String metricLine2 = builder2.serializeMetricLine();
+      String metadataLine2 = builder2.serializeMetadataLine();
+
+      System.out.println(metricLine1);
+      System.out.println(metadataLine1);
+      System.out.println(metricLine2);
+      System.out.println(metadataLine2);
 
     } catch (MetricException me) {
       System.out.println(me);
