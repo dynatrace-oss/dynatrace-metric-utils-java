@@ -1,12 +1,26 @@
+/**
+ * Copyright 2023 Dynatrace LLC
+ *
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dynatrace.metric.util;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.dynatrace.testutils.TestUtils;
-import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class StringValueValidatorTest {
   private static final int MAX_TEST_STRING_LENGTH = 255;
@@ -15,14 +29,16 @@ class StringValueValidatorTest {
   @MethodSource("provideShouldNotNormalizeStringValues")
   void needsToNormalizeStringValue_ValidValues(String name, String value) {
     assertFalse(
-        StringValueValidator.normalizationRequiredStringValue(value, MAX_TEST_STRING_LENGTH));
+        StringValueValidator.normalizationRequiredUnqoutedStringValue(
+            value, MAX_TEST_STRING_LENGTH));
   }
 
   @ParameterizedTest(name = "{index}: {0}, input: {1}")
   @MethodSource("provideShouldNormalizeStringValues")
   void needsToNormalizeStringValue_InvalidValues(String name, String value) {
     assertTrue(
-        StringValueValidator.normalizationRequiredStringValue(value, MAX_TEST_STRING_LENGTH));
+        StringValueValidator.normalizationRequiredUnqoutedStringValue(
+            value, MAX_TEST_STRING_LENGTH));
   }
 
   @ParameterizedTest(name = "{index}: {0}, input: {1}")
@@ -37,6 +53,12 @@ class StringValueValidatorTest {
   void needsToNormalizeQuotedStringValue_InvalidValues(String name, String value) {
     assertTrue(
         StringValueValidator.normalizationRequiredQuotedStringValue(value, MAX_TEST_STRING_LENGTH));
+  }
+
+  @ParameterizedTest(name = "{index}: {0}, input: {1}, expected: {2}")
+  @MethodSource("provideNeedToEscapeDimensionValue")
+  public void testNeedToEscapeDimensionValue(String name, String input, boolean expected) {
+    assertEquals(expected, StringValueValidator.shouldEscapeString(input.codePointAt(0)));
   }
 
   private static Stream<Arguments> provideShouldNotNormalizeStringValues() {
@@ -57,7 +79,7 @@ class StringValueValidatorTest {
         Arguments.of("valid unicode", "\u0132_\u0133_\u0150_\u0156"),
         Arguments.of("valid long value", TestUtils.createStringOfLength(255, false)),
         Arguments.of(
-            "Emojis of category UNASSIGNED APM-360016",
+            "Emojis of category UNASSIGNED",
             "\uD83C\uDDF0\u0038\uD83C\uDDF8\uD83E\uDDEA\uD83E\uDDB8"));
   }
 
@@ -110,7 +132,7 @@ class StringValueValidatorTest {
         Arguments.of("valid unicode", "\"\u0132_\u0133_\u0150_\u0156\""),
         Arguments.of("valid long value", TestUtils.createStringOfLength(253, true)),
         Arguments.of(
-            "Emojis of category UNASSIGNED APM-360016",
+            "Emojis of category UNASSIGNED",
             "\"\uD83C\uDDF0\u0038\uD83C\uDDF8\uD83E\uDDEA\uD83E\uDDB8\""));
   }
 
@@ -138,5 +160,20 @@ class StringValueValidatorTest {
         Arguments.of(
             "invalid leading backslash",
             String.format("\"%s\\\"", TestUtils.createStringOfLength(252, false))));
+  }
+
+  private static Stream<Arguments> provideNeedToEscapeDimensionValue() {
+    return Stream.of(
+        Arguments.of("quote", "\"", true),
+        Arguments.of("space", " ", true),
+        Arguments.of("comma", ",", true),
+        Arguments.of("equals", "=", true),
+        Arguments.of("backslash", "\\", true),
+        Arguments.of("no need to escape: a", "a", false),
+        Arguments.of("no need to escape: z", "z", false),
+        Arguments.of("no need to escape: A", "A", false),
+        Arguments.of("no need to escape: Z", "Z", false),
+        Arguments.of("no need to escape: -", "-", false),
+        Arguments.of("no need to escape: _", "_", false));
   }
 }
