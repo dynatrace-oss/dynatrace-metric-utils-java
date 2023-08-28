@@ -14,7 +14,6 @@
 package com.dynatrace.metric.util;
 
 import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
-
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.HashMap;

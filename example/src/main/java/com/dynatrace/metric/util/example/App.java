@@ -33,7 +33,7 @@ public class App {
     dimensions.put("dim2", "value2");
 
     Map<String, String> differentDimensions =
-      Collections.singletonMap("differentDim", "differentValue");
+        Collections.singletonMap("differentDim", "differentValue");
 
     try {
 
@@ -42,35 +42,35 @@ public class App {
       // =============================================================================================
       // setup metric line pre-configuration with items that can be shared between multiple metrics
       MetricLinePreConfiguration preConfig =
-        MetricLinePreConfiguration.builder()
-          .defaultDimensions(defaultDims)
-          .dynatraceMetadataDimensions()
-          .prefix("prefix")
-          .build();
+          MetricLinePreConfiguration.builder()
+              .defaultDimensions(defaultDims)
+              .dynatraceMetadataDimensions()
+              .prefix("prefix")
+              .build();
 
       // the following code will create this metric line:
       // prefix.metric1,default1=value1,default2=value2,dim2=value2,dim1=value1 gauge,123
       // <timestamp>
       String metricLine1 =
-        MetricLineBuilder.create(preConfig)
-          .metricKey("metric1")
-          .dimensions(dimensions)
-          .gauge()
-          .value(123)
-          .timestamp(Instant.now())
-          .build();
+          MetricLineBuilder.create(preConfig)
+              .metricKey("metric1")
+              .dimensions(dimensions)
+              .gauge()
+              .value(123)
+              .timestamp(Instant.now())
+              .build();
 
       // the following code will create this metric line:
       // prefix.metric2,default1=value1,default2=value2,differentdim=differentValue gauge,321
       // <timestamp>
       String metricLine2 =
-        MetricLineBuilder.create(preConfig)
-          .metricKey("metric2")
-          .dimensions(differentDimensions)
-          .gauge()
-          .value(321)
-          .timestamp(Instant.now())
-          .build();
+          MetricLineBuilder.create(preConfig)
+              .metricKey("metric2")
+              .dimensions(differentDimensions)
+              .gauge()
+              .value(321)
+              .timestamp(Instant.now())
+              .build();
 
       System.out.println(metricLine1);
       System.out.println(metricLine2);
@@ -88,24 +88,24 @@ public class App {
       // the following code will create this metric line:
       // metric1,dim2=value2,dim1=value1 gauge,123 <timestamp>
       String metricLine1 =
-        MetricLineBuilder.create()
-          .metricKey("metric1")
-          .dimensions(dimensions)
-          .gauge()
-          .value(123)
-          .timestamp(Instant.now())
-          .build();
+          MetricLineBuilder.create()
+              .metricKey("metric1")
+              .dimensions(dimensions)
+              .gauge()
+              .value(123)
+              .timestamp(Instant.now())
+              .build();
 
       // the following code will create this metric line:
       // metric2,differentdim=differentValue gauge,321 <timestamp>
       String metricLine2 =
-        MetricLineBuilder.create()
-          .metricKey("metric2")
-          .dimensions(differentDimensions)
-          .gauge()
-          .value(321)
-          .timestamp(Instant.now())
-          .build();
+          MetricLineBuilder.create()
+              .metricKey("metric2")
+              .dimensions(differentDimensions)
+              .gauge()
+              .value(321)
+              .timestamp(Instant.now())
+              .build();
 
       System.out.println(metricLine1);
       System.out.println(metricLine2);
@@ -119,17 +119,17 @@ public class App {
     // =============================================================================================
     try {
       MetricLineBuilder.GaugeStep gaugeBuilder =
-        MetricLineBuilder.create().metricKey("metric1").gauge();
+          MetricLineBuilder.create().metricKey("metric1").gauge();
 
       MetricLineBuilder.CounterStep countBuilder =
-        MetricLineBuilder.create().metricKey("metric1").count();
+          MetricLineBuilder.create().metricKey("metric1").count();
 
       // the following code will create this metric line:
       // metric1 gauge,321
       // #metric1 gauge dt.meta.description=A\ description\ of\ the\ metric,dt.meta.unit=unit
       String metricLine1 = gaugeBuilder.value(321).build();
       String metadataLine1 =
-        gaugeBuilder.metadata().unit("unit").description("A description of the metric").build();
+          gaugeBuilder.metadata().unit("unit").description("A description of the metric").build();
 
       // the following code will create this metric line:
       // metric1 count,delta=321
@@ -137,11 +137,11 @@ public class App {
       // Bytes,dt.meta.unit=Byte
       String metricLine2 = countBuilder.delta(321).build();
       String metadataLine2 =
-        countBuilder
-          .metadata()
-          .unit("Byte")
-          .description("This metric measures something in Bytes")
-          .build();
+          countBuilder
+              .metadata()
+              .unit("Byte")
+              .description("This metric measures something in Bytes")
+              .build();
 
       System.out.println(metricLine1);
       System.out.println(metadataLine1);
@@ -158,7 +158,7 @@ public class App {
   static void testFilePolling() {
     // file is at /var/lib/dynatrace/enrichment/endpoint/endpoint.properties
     final DynatraceFileBasedConfigurationProvider instance =
-      DynatraceFileBasedConfigurationProvider.getInstance();
+        DynatraceFileBasedConfigurationProvider.getInstance();
 
     int counter = 0;
     while (true) {
@@ -166,10 +166,10 @@ public class App {
       System.out.println(String.format("=============== %d ===============", counter++));
       System.out.println("Endpoint: " + instance.getMetricIngestEndpoint());
       System.out.println(
-        "Token:    "
-          + token.substring(
-          0,
-          Math.min(token.length(), 32))); // 32 chars = public portion only if actual token
+          "Token:    "
+              + token.substring(
+                  0,
+                  Math.min(token.length(), 32))); // 32 chars = public portion only if actual token
       try {
         Thread.sleep(5000);
       } catch (InterruptedException e) {

@@ -14,7 +14,6 @@
 package com.dynatrace.metric.util;
 
 import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
