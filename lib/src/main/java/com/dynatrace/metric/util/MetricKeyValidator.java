@@ -134,7 +134,6 @@ final class MetricKeyValidator {
 
   enum State {
     START,
-    INVALID,
     CONSECUTIVE_SECTION_START,
     SECTION,
   }

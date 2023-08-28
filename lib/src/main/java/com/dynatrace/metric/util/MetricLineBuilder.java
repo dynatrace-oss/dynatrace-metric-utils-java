@@ -23,14 +23,14 @@ import java.util.Map;
  */
 public interface MetricLineBuilder {
 
-  /** @return A {@link MetricLineBuilder.MetricKeyStep} with an empty pre-configuration object. */
+  /** @return A {@link MetricKeyStep} with an empty pre-configuration object. */
   static MetricKeyStep create() {
     return MetricLineBuilderImpl.builder(MetricLinePreConfiguration.empty());
   }
 
   /**
    * @param preConfig The pre-configuration object containing shared data.
-   * @return A {@link MetricLineBuilder.MetricKeyStep} with the given pre-configuration object.
+   * @return A {@link MetricKeyStep} with the given pre-configuration object.
    */
   static MetricKeyStep create(MetricLinePreConfiguration preConfig) {
     return MetricLineBuilderImpl.builder(preConfig);
@@ -66,6 +66,12 @@ public interface MetricLineBuilder {
     /**
      * Sets multiple dimensions (see {@link TypeStep#dimension}). Duplicate keys will be
      * overwritten.
+     *
+     * @param dimensions The dimensions, which should be added.
+     * @return A {@link TypeStep}.
+     * @throws MetricException if the dimension limit of {@value
+     *     MetricLineConstants.Limits#MAX_DIMENSIONS_COUNT} would be exceeded after adding this
+     *     dimension.
      */
     TypeStep dimensions(Map<String, String> dimensions) throws MetricException;
 
@@ -87,7 +93,7 @@ public interface MetricLineBuilder {
   interface GaugeStep {
     /**
      * Sets the summary value of a gauge data point. Therefore, it summarizes multiple values e.g.,
-     * values: [1,1,1,1,2,3] --> min: 1, max: 3, sum: 9, count: 6.
+     * values: [1,1,1,1,2,3] - min: 1, max: 3, sum: 9, count: 6.
      *
      * @param min The min value.
      * @param max The max value.

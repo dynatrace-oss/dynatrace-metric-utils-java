@@ -44,8 +44,7 @@ final class DynatraceMetadataEnricher {
   }
 
   /**
-   * This function takes a {@link Properties} object and transforms it into a {@link Map<String,
-   * String>}.
+   * This function takes a {@link Properties} object and transforms it into a {@link Map}.
    *
    * @param properties {@link Properties} to transform
    * @return A {@link Map} of dimensions mapping {@link String} to {@link String}. These represent

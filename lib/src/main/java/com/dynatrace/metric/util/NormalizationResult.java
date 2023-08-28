@@ -20,7 +20,7 @@ import java.util.function.Supplier;
  * contains the normalized metric key/dimension key/value and error/warning that might have occurred
  * during the process.
  */
-public final class NormalizationResult {
+final class NormalizationResult {
   private static final NormalizationResult EMPTY_INVALID =
       new NormalizationResult(null, MessageType.ERROR, null);
 

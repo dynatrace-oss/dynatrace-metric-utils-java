@@ -14,6 +14,7 @@
 package com.dynatrace.metric.util;
 
 import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -106,7 +107,7 @@ public class MetricLinePreConfiguration {
      * Set default dimensions which will be added to all metric lines created using this {@link
      * MetricLinePreConfiguration} object.
      *
-     * @param defaultDimensions A {@link Map<String,String>} containing default dimensions
+     * @param defaultDimensions A {@link Map} containing default dimensions
      * @return this
      * @throws MetricException if the provided {@code defaultDimensions} size exceeds the limit of
      *     {@value MetricLineConstants.Limits#MAX_DIMENSIONS_COUNT}.
@@ -194,12 +195,11 @@ public class MetricLinePreConfiguration {
     }
 
     /**
-     * Attempts to append a new dimension to the specified {@link Map<String,String>
-     * targetDimensions}. This is done by checking if the adding the key does not violate the
-     * provided condition, would exceed the limit of {@value
-     * MetricLineConstants.Limits#MAX_DIMENSIONS_COUNT} dimensions. and if it will cause the metric
-     * line to exceed the {@value MetricLineConstants.Limits#MAX_LINE_LENGTH} length limit. The key
-     * and value are normalized.
+     * Attempts to append a new dimension to the specified {@link Map targetDimensions}. This is
+     * done by checking if the adding the key does not violate the provided condition, would exceed
+     * the limit of {@value MetricLineConstants.Limits#MAX_DIMENSIONS_COUNT} dimensions. and if it
+     * will cause the metric line to exceed the {@value MetricLineConstants.Limits#MAX_LINE_LENGTH}
+     * length limit. The key and value are normalized.
      *
      * @param key The dimension key.
      * @param value The dimension value.

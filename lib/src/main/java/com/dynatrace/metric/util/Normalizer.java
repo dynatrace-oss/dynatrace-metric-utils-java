@@ -16,7 +16,7 @@ package com.dynatrace.metric.util;
 import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
 
 /** Offers normalization methods for metric key, dimension key and dimension value */
-public final class Normalizer {
+final class Normalizer {
 
   private Normalizer() {}
 
@@ -43,7 +43,7 @@ public final class Normalizer {
    * @return The {@link NormalizationResult result}, containing the potentially normalized metric
    *     key along with any error or warnings encountered.
    */
-  public static NormalizationResult normalizeMetricKey(String key) {
+  static NormalizationResult normalizeMetricKey(String key) {
     if (StringValueValidator.isNullOrEmpty(key)) {
       return NormalizationResult.newInvalid();
     }
@@ -148,7 +148,7 @@ public final class Normalizer {
    * @return The {@link NormalizationResult result}, containing the potentially normalized dimension
    *     key along with any error or warnings encountered.
    */
-  public static NormalizationResult normalizeDimensionKey(String key) {
+  static NormalizationResult normalizeDimensionKey(String key) {
     if (StringValueValidator.isNullOrEmpty(key)) {
       return NormalizationResult.newValid(null);
     }
@@ -186,7 +186,6 @@ public final class Normalizer {
             previousCodePointSanitized = true;
             invalidCharsEncountered++;
           }
-
           state = DimensionKeyValidator.State.SECTION;
           break;
         case SECTION:
@@ -220,7 +219,7 @@ public final class Normalizer {
       return NormalizationResult.newInvalid(
           () ->
               String.format(
-                  MetricLineConstants.ValidationMessages.DIMENSION_KEY_NORMALIZED_MESSAGE,
+                  ValidationMessages.DIMENSION_KEY_NORMALIZED_MESSAGE,
                   key,
                   ""));
     }
@@ -231,7 +230,7 @@ public final class Normalizer {
           normalizedDimKey,
           () ->
               String.format(
-                  MetricLineConstants.ValidationMessages.DIMENSION_KEY_NORMALIZED_MESSAGE,
+                  ValidationMessages.DIMENSION_KEY_NORMALIZED_MESSAGE,
                   key,
                   normalizedDimKey));
     }
@@ -243,11 +242,11 @@ public final class Normalizer {
    * Applies normalization to the provided dimension value.
    *
    * @param value The dimension value to normalize.
+   * @param maxDimensionValueLength The maximum value for dimension keys.
    * @return The {@link NormalizationResult result}, containing the potentially normalized dimension
    *     value along with any error or warnings encountered.
    */
-  public static NormalizationResult normalizeDimensionValue(
-      String value, int maxDimensionValueLength) {
+  static NormalizationResult normalizeDimensionValue(String value, int maxDimensionValueLength) {
     if (StringValueValidator.isNullOrEmpty(value)) {
       return NormalizationResult.newValid(CodePoints.EMPTY_STRING);
     }

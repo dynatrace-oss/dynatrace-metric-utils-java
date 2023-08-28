@@ -118,7 +118,6 @@ final class DimensionKeyValidator {
 
   enum State {
     START,
-    CONSECUTIVE_SECTION_START,
     SECTION
   }
 }

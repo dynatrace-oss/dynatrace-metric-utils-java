@@ -14,6 +14,7 @@
 package com.dynatrace.metric.util;
 
 import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
+
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.HashMap;
@@ -360,8 +361,8 @@ class MetricLineBuilderImpl
   }
 
   /**
-   * Serializes given {@link Map<String,String> dimensionsToSerialize}, if the given conditions
-   * allows it, and appends it to provided {@link StringBuilder sb}.
+   * Serializes given {@link Map dimensionsToSerialize}, if the given conditions allows it, and
+   * appends it to provided {@link StringBuilder sb}.
    *
    * @param sb The StringBuilder where the serialized dimensions should be appended to.
    * @param dimensionsToSerialize The dimensions that should be serialized.
