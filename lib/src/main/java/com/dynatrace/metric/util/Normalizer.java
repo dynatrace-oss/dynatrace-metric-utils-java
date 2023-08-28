@@ -413,8 +413,8 @@ final class Normalizer {
                   ValidationMessages.DIMENSION_VALUE_NORMALIZED_MESSAGE,
                   value,
                   normalizedDimValue));
-    } else {
-      return NormalizationResult.newValid(normalizedDimValue);
     }
+
+    return NormalizationResult.newValid(normalizedDimValue);
   }
 }
