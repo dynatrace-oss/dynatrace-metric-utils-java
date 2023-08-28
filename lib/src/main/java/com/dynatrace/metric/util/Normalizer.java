@@ -217,7 +217,11 @@ final class Normalizer {
 
     if (sb.length() == 0) {
       return NormalizationResult.newInvalid(
-          () -> String.format(ValidationMessages.DIMENSION_KEY_NORMALIZED_MESSAGE, key, ""));
+          () ->
+              String.format(
+                  ValidationMessages.DIMENSION_KEY_NORMALIZED_MESSAGE,
+                  key,
+                  CodePoints.EMPTY_STRING));
     }
 
     String normalizedDimKey = sb.toString();
