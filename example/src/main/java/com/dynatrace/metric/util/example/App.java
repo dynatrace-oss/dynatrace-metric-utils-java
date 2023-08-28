@@ -13,50 +13,63 @@
  */
 package com.dynatrace.metric.util.example;
 
+import static java.util.Map.entry;
+
 import com.dynatrace.file.util.DynatraceFileBasedConfigurationProvider;
-import com.dynatrace.metric.util.*;
+import com.dynatrace.metric.util.MetricException;
+import com.dynatrace.metric.util.MetricLineBuilder;
+import com.dynatrace.metric.util.MetricLinePreConfiguration;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Map;
 
 public class App {
   public static void main(String[] args) {
-    DimensionList defaultDims =
-        DimensionList.create(
-            Dimension.create("default1", "value1"), Dimension.create("default2", "value2"));
+    Map<String, String> defaultDims =
+      Map.ofEntries(entry("default1", "value1"), entry("default2", "value2"));
 
-    DimensionList dimensions =
-        DimensionList.create(
-            Dimension.create("dim1", "value1"), Dimension.create("dim2", "value2"));
+    Map<String, String> dimensions =
+      Map.ofEntries(entry("dim1", "value1"), entry("dim2", "value2"));
 
-    DimensionList differentDimensions =
-        DimensionList.create(Dimension.create("differentDim", "differentValue"));
-    // =============================================================================================
-    // Version 1: using the MetricBuilderFactory
-    // =============================================================================================
-    // setup metric builder factory with items that can be shared between multiple metrics
-    MetricBuilderFactory metricBuilderFactory =
-        MetricBuilderFactory.builder()
-            .withDefaultDimensions(defaultDims)
-            .withDynatraceMetadata()
-            .withPrefix("prefix")
-            .build();
+    Map<String, String> differentDimensions =
+      Collections.singletonMap("differentDim", "differentValue");
 
     try {
-      // the following code will create this metric line:
-      // prefix.metric1,dim2=value2,default1=value1,dim1=value1,default2=value2 count,123 1616416882
-      String metricLine1 =
-          metricBuilderFactory
-              .newMetricBuilder("metric1")
-              .setDimensions(dimensions)
-              .setLongGaugeValue(123)
-              .setCurrentTime()
-              .serializeMetricLine();
 
+      // =============================================================================================
+      // Version 1: using the MetricLineBuilder with MetricLinePreConfiguration
+      // =============================================================================================
+      // setup metric line pre-configuration with items that can be shared between multiple metrics
+      MetricLinePreConfiguration preConfig =
+        MetricLinePreConfiguration.builder()
+          .defaultDimensions(defaultDims)
+          .dynatraceMetadataDimensions()
+          .prefix("prefix")
+          .build();
+
+      // the following code will create this metric line:
+      // prefix.metric1,default1=value1,default2=value2,dim2=value2,dim1=value1 gauge,123
+      // <timestamp>
+      String metricLine1 =
+        MetricLineBuilder.create(preConfig)
+          .metricKey("metric1")
+          .dimensions(dimensions)
+          .gauge()
+          .value(123)
+          .timestamp(Instant.now())
+          .build();
+
+      // the following code will create this metric line:
+      // prefix.metric2,default1=value1,default2=value2,differentdim=differentValue gauge,321
+      // <timestamp>
       String metricLine2 =
-          metricBuilderFactory
-              .newMetricBuilder("metric2")
-              .setDimensions(differentDimensions)
-              .setLongGaugeValue(321)
-              .setCurrentTime()
-              .serializeMetricLine();
+        MetricLineBuilder.create(preConfig)
+          .metricKey("metric2")
+          .dimensions(differentDimensions)
+          .gauge()
+          .value(321)
+          .timestamp(Instant.now())
+          .build();
 
       System.out.println(metricLine1);
       System.out.println(metricLine2);
@@ -66,30 +79,32 @@ public class App {
     }
 
     // =============================================================================================
-    // Version 2: using the Metrics.Builder directly
+    // Version 2: using the MetricLineBuilder without MetricLinePreConfiguration
     // =============================================================================================
-    // this approach leaves reading and merging the dimensions to the user.
-    DimensionList dynatraceMetadataDimensions = DimensionList.fromDynatraceMetadata();
+    // this approach leaves using shared attributes out
 
     try {
+      // the following code will create this metric line:
+      // metric1,dim2=value2,dim1=value1 gauge,123 <timestamp>
       String metricLine1 =
-          Metric.builder("metric1")
-              .setPrefix("prefix")
-              .setDimensions(
-                  DimensionList.merge(defaultDims, dimensions, dynatraceMetadataDimensions))
-              .setLongGaugeValue(123)
-              .setCurrentTime()
-              .serializeMetricLine();
+        MetricLineBuilder.create()
+          .metricKey("metric1")
+          .dimensions(dimensions)
+          .gauge()
+          .value(123)
+          .timestamp(Instant.now())
+          .build();
 
+      // the following code will create this metric line:
+      // metric2,differentdim=differentValue gauge,321 <timestamp>
       String metricLine2 =
-          Metric.builder("metric2")
-              .setPrefix("prefix")
-              .setDimensions(
-                  DimensionList.merge(
-                      defaultDims, differentDimensions, dynatraceMetadataDimensions))
-              .setLongGaugeValue(321)
-              .setCurrentTime()
-              .serializeMetricLine();
+        MetricLineBuilder.create()
+          .metricKey("metric2")
+          .dimensions(differentDimensions)
+          .gauge()
+          .value(321)
+          .timestamp(Instant.now())
+          .build();
 
       System.out.println(metricLine1);
       System.out.println(metricLine2);
@@ -102,24 +117,30 @@ public class App {
     // Metadata
     // =============================================================================================
     try {
-      Metric.Builder builder1 =
-          metricBuilderFactory
-              .newMetricBuilder("metric1")
-              .setLongGaugeValue(321)
-              .setUnit("unit")
-              .setDescription("A description of the metric");
+      MetricLineBuilder.GaugeStep gaugeBuilder =
+        MetricLineBuilder.create().metricKey("metric1").gauge();
 
-      Metric.Builder builder2 =
-          Metric.builder("metric2")
-              .setDoubleCounterValueDelta(321)
-              .setUnit("Byte")
-              .setDescription("This metric measures something in Bytes");
+      MetricLineBuilder.CounterStep countBuilder =
+        MetricLineBuilder.create().metricKey("metric1").count();
 
-      String metricLine1 = builder1.serializeMetricLine();
-      String metadataLine1 = builder1.serializeMetadataLine();
+      // the following code will create this metric line:
+      // metric1 gauge,321
+      // #metric1 gauge dt.meta.description=A\ description\ of\ the\ metric,dt.meta.unit=unit
+      String metricLine1 = gaugeBuilder.value(321).build();
+      String metadataLine1 =
+        gaugeBuilder.metadata().unit("unit").description("A description of the metric").build();
 
-      String metricLine2 = builder2.serializeMetricLine();
-      String metadataLine2 = builder2.serializeMetadataLine();
+      // the following code will create this metric line:
+      // metric1 count,delta=321
+      // #metric1 count dt.meta.description=This\ metric\ measures\ something\ in\
+      // Bytes,dt.meta.unit=Byte
+      String metricLine2 = countBuilder.delta(321).build();
+      String metadataLine2 =
+        countBuilder
+          .metadata()
+          .unit("Byte")
+          .description("This metric measures something in Bytes")
+          .build();
 
       System.out.println(metricLine1);
       System.out.println(metadataLine1);
@@ -136,19 +157,18 @@ public class App {
   static void testFilePolling() {
     // file is at /var/lib/dynatrace/enrichment/endpoint/endpoint.properties
     final DynatraceFileBasedConfigurationProvider instance =
-        DynatraceFileBasedConfigurationProvider.getInstance();
+      DynatraceFileBasedConfigurationProvider.getInstance();
 
     int counter = 0;
     while (true) {
-
       String token = instance.getMetricIngestToken();
       System.out.println(String.format("=============== %d ===============", counter++));
       System.out.println("Endpoint: " + instance.getMetricIngestEndpoint());
       System.out.println(
-          "Token:    "
-              + token.substring(
-                  0,
-                  Math.min(token.length(), 32))); // 32 chars = public portion only if actual token
+        "Token:    "
+          + token.substring(
+          0,
+          Math.min(token.length(), 32))); // 32 chars = public portion only if actual token
       try {
         Thread.sleep(5000);
       } catch (InterruptedException e) {
