@@ -13,23 +13,24 @@
  */
 package com.dynatrace.metric.util.example;
 
-import static java.util.Map.entry;
-
 import com.dynatrace.file.util.DynatraceFileBasedConfigurationProvider;
 import com.dynatrace.metric.util.MetricException;
 import com.dynatrace.metric.util.MetricLineBuilder;
 import com.dynatrace.metric.util.MetricLinePreConfiguration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 public class App {
   public static void main(String[] args) {
-    Map<String, String> defaultDims =
-      Map.ofEntries(entry("default1", "value1"), entry("default2", "value2"));
+    Map<String, String> defaultDims = new HashMap<>();
+    defaultDims.put("default1", "value1");
+    defaultDims.put("default2", "value2");
 
-    Map<String, String> dimensions =
-      Map.ofEntries(entry("dim1", "value1"), entry("dim2", "value2"));
+    Map<String, String> dimensions = new HashMap<>();
+    dimensions.put("dim1", "value1");
+    dimensions.put("dim2", "value2");
 
     Map<String, String> differentDimensions =
       Collections.singletonMap("differentDim", "differentValue");
