@@ -70,17 +70,16 @@ public class MetricLinePreConfiguration {
   }
 
   /**
-   * Create a new {@link MetricLinePreConfigurationBuilder} that can be used to set up a {@link
-   * MetricLinePreConfiguration}.
+   * Create a new {@link Builder} that can be used to set up a {@link MetricLinePreConfiguration}.
    *
-   * @return The created {@link MetricLinePreConfigurationBuilder} instance.
+   * @return The created {@link Builder} instance.
    */
-  public static MetricLinePreConfigurationBuilder builder() {
-    return new MetricLinePreConfigurationBuilder();
+  public static Builder builder() {
+    return new Builder();
   }
 
   /** Builder class for {@link MetricLinePreConfiguration} objects. */
-  public static class MetricLinePreConfigurationBuilder {
+  public static class Builder {
 
     private Map<String, String> defaultDimensions = null;
     private boolean withDynatraceMetadataDimensions = false;
@@ -88,7 +87,7 @@ public class MetricLinePreConfiguration {
     private int dimensionCount = 0;
     private int serializationLength = 0;
 
-    private MetricLinePreConfigurationBuilder() {}
+    private Builder() {}
 
     /**
      * Set a common prefix that will be prepended to all metric keys that are using the {@link
@@ -97,7 +96,7 @@ public class MetricLinePreConfiguration {
      * @param prefix The prefix to be added to metric keys.
      * @return this
      */
-    public MetricLinePreConfigurationBuilder prefix(String prefix) {
+    public Builder prefix(String prefix) {
       this.prefix = prefix;
       return this;
     }
@@ -111,8 +110,7 @@ public class MetricLinePreConfiguration {
      * @throws MetricException if the provided {@code defaultDimensions} size exceeds the limit of
      *     {@value MetricLineConstants.Limits#MAX_DIMENSIONS_COUNT}.
      */
-    public MetricLinePreConfigurationBuilder defaultDimensions(
-        Map<String, String> defaultDimensions) throws MetricException {
+    public Builder defaultDimensions(Map<String, String> defaultDimensions) throws MetricException {
       if (defaultDimensions.size() > MetricLineConstants.Limits.MAX_DIMENSIONS_COUNT) {
         throw new MetricException(ValidationMessages.TOO_MANY_DIMENSIONS_MESSAGE);
       }
@@ -128,19 +126,18 @@ public class MetricLinePreConfiguration {
      *
      * @return this
      */
-    public MetricLinePreConfigurationBuilder dynatraceMetadataDimensions() {
+    public Builder dynatraceMetadataDimensions() {
       this.withDynatraceMetadataDimensions = true;
       return this;
     }
 
     /**
-     * Build the {@link MetricLinePreConfiguration} using the data provided by this {@link
-     * MetricLinePreConfigurationBuilder}. Necessary normalization is done.
+     * Build the {@link MetricLinePreConfiguration} using the data provided by this {@link Builder}.
+     * Necessary normalization is done.
      *
      * @return A {@link MetricLinePreConfiguration} that can be used by {@link MetricLineBuilder}
      *     objects.
-     * @throws MetricException see {@link MetricLinePreConfigurationBuilder#dimension(String,
-     *     String, Map, Predicate)}
+     * @throws MetricException see {@link Builder#dimension(String, String, Map, Predicate)}
      */
     public MetricLinePreConfiguration build() throws MetricException {
       Map<String, String> normalizedDefaultDimensions = new HashMap<>();
@@ -205,8 +202,7 @@ public class MetricLinePreConfiguration {
      * @param targetDimensions The dimensions where the dimension should be added to.
      * @param shouldBeIgnored A condition which determines for each dimension key, if it should be
      *     added.
-     * @throws MetricException see {@link
-     *     MetricLinePreConfigurationBuilder#tryAddDimensionTo(String, String, Map)}
+     * @throws MetricException see {@link Builder#tryAddDimensionTo(String, String, Map)}
      */
     private void dimension(
         String key,

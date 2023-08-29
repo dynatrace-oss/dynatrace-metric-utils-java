@@ -134,7 +134,7 @@ class MetricBuilderTest {
 
   @Test
   void testSetPrefixTwice() {
-    MetricLinePreConfiguration.MetricLinePreConfigurationBuilder preConfigBuilder =
+    MetricLinePreConfiguration.Builder preConfigBuilder =
         assertDoesNotThrow(() -> MetricLinePreConfiguration.builder().prefix("prefix"));
     assertDoesNotThrow(() -> preConfigBuilder.prefix("prefix2"));
 
@@ -327,7 +327,7 @@ class MetricBuilderTest {
 
   @Test
   void testSetDefaultDimensionsTwice() {
-    MetricLinePreConfiguration.MetricLinePreConfigurationBuilder preConfigurationBuilder =
+    MetricLinePreConfiguration.Builder preConfigurationBuilder =
         assertDoesNotThrow(
             () ->
                 MetricLinePreConfiguration.builder()
@@ -408,7 +408,7 @@ class MetricBuilderTest {
           .when(DynatraceMetadataEnricher::getDynatraceMetadata)
           .thenReturn(Collections.singletonMap("dim3", "metadataVal"));
 
-      MetricLinePreConfiguration.MetricLinePreConfigurationBuilder preConfig =
+      MetricLinePreConfiguration.Builder preConfig =
           assertDoesNotThrow(
               () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
 
@@ -443,7 +443,7 @@ class MetricBuilderTest {
           .when(DynatraceMetadataEnricher::getDynatraceMetadata)
           .thenReturn(Collections.singletonMap("dim51", "metadataVal"));
 
-      MetricLinePreConfiguration.MetricLinePreConfigurationBuilder preConfig =
+      MetricLinePreConfiguration.Builder preConfig =
           assertDoesNotThrow(
               () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
 
@@ -469,7 +469,7 @@ class MetricBuilderTest {
           .when(DynatraceMetadataEnricher::getDynatraceMetadata)
           .thenReturn(Collections.singletonMap("dim3", "metadataVal"));
 
-      MetricLinePreConfiguration.MetricLinePreConfigurationBuilder preConfig =
+      MetricLinePreConfiguration.Builder preConfig =
           assertDoesNotThrow(
               () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
 
