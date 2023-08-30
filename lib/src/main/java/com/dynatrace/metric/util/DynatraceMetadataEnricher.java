@@ -39,7 +39,7 @@ final class DynatraceMetadataEnricher {
    *     value are discarded.
    */
   static Map<String, String> getDynatraceMetadata() {
-    return createHashMapFromProperties(
+    return createMapFromProperties(
         getPropertiesWithIndirection(INDIRECTION_FILE_NAME, ALTERNATIVE_METADATA_FILENAME));
   }
 
@@ -51,7 +51,7 @@ final class DynatraceMetadataEnricher {
    *     the property entries, where empty keys or values were omitted. Dimensions are not
    *     normalized.
    */
-  static Map<String, String> createHashMapFromProperties(Properties properties) {
+  static Map<String, String> createMapFromProperties(Properties properties) {
     Map<String, String> targetMap = new HashMap<>();
 
     for (Map.Entry<Object, Object> entry : properties.entrySet()) {

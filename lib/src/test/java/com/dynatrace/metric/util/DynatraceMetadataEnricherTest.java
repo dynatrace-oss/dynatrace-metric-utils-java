@@ -37,7 +37,7 @@ class DynatraceMetadataEnricherTest {
     properties.setProperty("prop.a", "value.a");
     properties.setProperty("prop.b", "value.b");
 
-    Map<String, String> entries = DynatraceMetadataEnricher.createHashMapFromProperties(properties);
+    Map<String, String> entries = DynatraceMetadataEnricher.createMapFromProperties(properties);
 
     // Has one entry with key "prop.a"
     assertTrue(entries.containsKey("prop.a"));
@@ -58,7 +58,7 @@ class DynatraceMetadataEnricherTest {
   void invalidProperties(String key, String value) {
     Properties properties = new Properties();
     properties.setProperty(key, value);
-    assertTrue(DynatraceMetadataEnricher.createHashMapFromProperties(properties).isEmpty());
+    assertTrue(DynatraceMetadataEnricher.createMapFromProperties(properties).isEmpty());
   }
 
   @Test

@@ -52,8 +52,8 @@ public interface MetricLineBuilder {
   interface TypeStep {
 
     /**
-     * Sets a dimension of the metric line. The key and value will be normalized.
-     * If a value is already present for that key, it will be overwritten.
+     * Sets a dimension of the metric line. The key and value will be normalized. If a value is
+     * already present for that key, it will be overwritten.
      *
      * @param key dimension key.
      * @param value dimension value.
@@ -93,8 +93,8 @@ public interface MetricLineBuilder {
 
   interface GaugeStep {
     /**
-     * Sets the summary value of a gauge data point. It summarizes multiple values e.g.,
-     * values: [1,1,1,1,2,3] - min: 1, max: 3, sum: 9, count: 6.
+     * Sets the summary value of a gauge data point. It summarizes multiple values e.g., values:
+     * [1,1,1,1,2,3] - min: 1, max: 3, sum: 9, count: 6.
      *
      * @param min The min value.
      * @param max The max value.
@@ -199,8 +199,8 @@ public interface MetricLineBuilder {
     /**
      * Serializes the metadata line after normalization of provided properties.
      *
-     * @return The metadata line as a {@link String} if properties are set, and {@code
-     *     null} otherwise.
+     * @return The metadata line as a {@link String} if properties are set, and {@code null}
+     *     otherwise.
      */
     String build();
   }

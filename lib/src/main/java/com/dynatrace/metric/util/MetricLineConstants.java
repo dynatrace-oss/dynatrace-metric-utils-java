@@ -105,7 +105,7 @@ final class MetricLineConstants {
     static final String DIMENSION_NOT_SERIALIZED_OF_EMPTY_VALUE =
         "[%s] Dimension value for dimension key '%s' is null or empty";
     static final String SKIP_EMPTY_DYNATRACE_METADATA_DIMENSIONS =
-        "Received empty Dynatrace metadata dimensions. Continuing without metadata.";
+        "Received empty Dynatrace metadata dimensions. Continuing without Dynatrace metadata.";
     static final String SKIP_EMPTY_DEFAULT_DIMENSIONS =
         "Received empty default dimensions. Continuing without default dimensions.";
     static final String DIMENSION_DROPPED_KEY_OVERWRITTEN_MESSAGE =

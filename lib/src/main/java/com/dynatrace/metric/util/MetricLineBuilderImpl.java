@@ -90,13 +90,12 @@ class MetricLineBuilderImpl
       this.metricKey = normalizationResult.getResult();
     }
 
-    if (this.descriptorLength + this.metricKey.length()
-        > MetricLineConstants.Limits.MAX_LINE_LENGTH) {
+    this.descriptorLength += this.metricKey.length();
+    if (this.descriptorLength > MetricLineConstants.Limits.MAX_LINE_LENGTH) {
       throw new MetricException(
           String.format(ValidationMessages.MAX_LINE_LENGTH_REACHED_WITH_METRIC_KEY_MESSAGE, key));
     }
 
-    this.descriptorLength += this.metricKey.length();
     return this;
   }
 
@@ -274,7 +273,7 @@ class MetricLineBuilderImpl
 
   @Override
   public String build() throws MetricException {
-    StringBuilder serializedMetricLine =
+    StringBuilder lineBuilder =
         new StringBuilder(
             this.descriptorLength
                 + Character.charCount(CodePoints.BLANK)
@@ -283,7 +282,7 @@ class MetricLineBuilderImpl
                 + this.payloadBuilder.length());
 
     // serialize metric key
-    serializedMetricLine.append(this.metricKey);
+    lineBuilder.append(this.metricKey);
 
     // serialize dimensions
     // To avoid merging expenses of keys that occur in multiple dimension-maps, we already filtered
@@ -291,25 +290,25 @@ class MetricLineBuilderImpl
     // lower-order importance of defaultDimensions, we ignore all keys that are also existing in the
     // dimensions-map (defaultDimensions < dimensions < dynatraceMetadataDimensions).
     serializeDimensionMapAndAppend(
-        serializedMetricLine, this.preConfig.getDefaultDimensions(), this.dimensions::containsKey);
-    serializeDimensionMapAndAppend(serializedMetricLine, this.dimensions, (key) -> false);
+        lineBuilder, this.preConfig.getDefaultDimensions(), this.dimensions::containsKey);
+    serializeDimensionMapAndAppend(lineBuilder, this.dimensions, (key) -> false);
     serializeDimensionMapAndAppend(
-        serializedMetricLine, this.preConfig.getDynatraceMetadataDimensions(), (key) -> false);
+        lineBuilder, this.preConfig.getDynatraceMetadataDimensions(), (key) -> false);
 
     // serialize type and payload
-    serializedMetricLine // prefix.metric.key,dim1=val1,...
+    lineBuilder // prefix.metric.key,dim1=val1,...
         .appendCodePoint(CodePoints.BLANK) // ' '
         .append(this.type) // gauge
         .appendCodePoint(CodePoints.COMMA) // ,
         .append(this.payloadBuilder); // 10.5 timestamp
 
-    if (serializedMetricLine.length() > MetricLineConstants.Limits.MAX_LINE_LENGTH) {
+    if (lineBuilder.length() > MetricLineConstants.Limits.MAX_LINE_LENGTH) {
       throw new MetricException(
           String.format(
               ValidationMessages.MAX_LINE_LENGTH_REACHED_WITH_METRIC_KEY_MESSAGE, this.metricKey));
     }
 
-    return serializedMetricLine.toString();
+    return lineBuilder.toString();
   }
 
   /**
@@ -359,8 +358,8 @@ class MetricLineBuilderImpl
   }
 
   /**
-   * Serializes given {@link Map dimensionsToSerialize} if the given {@link Predicate} evaluates to {@code false}, and
-   * appends it to provided {@link StringBuilder sb}.
+   * Serializes given {@link Map dimensionsToSerialize} if the given {@link Predicate} evaluates to
+   * {@code false}, and appends it to provided {@link StringBuilder sb}.
    *
    * @param sb The StringBuilder where the serialized dimensions should be appended to.
    * @param dimensionsToSerialize The dimensions that should be serialized.
@@ -397,13 +396,13 @@ class MetricLineBuilderImpl
   }
 
   /**
-   * A builder implementation for metadata lines, to separate {@link MetricLineBuilder} objects from
-   * {@link MetadataLineBuilder} objects. This allows working with different instances to
-   * reduce interference. Creation is only possible through {@link
-   * MetricLineBuilderImpl#metadata()}, which guarantees that necessary information is shared
-   * between the {@link MetricLineBuilder} and the {@link MetadataLineBuilder}, as intended through the subclass
-   * format. The builder performs validation and normalization before serialization to ensure valid
-   * metadata lines for ingestion into Dynatrace API.
+   * A builder implementation for metadata lines, to separate {@link MetricLineBuilderImpl} objects from
+   * {@link MetadataLineBuilderImpl} objects. This allows working with different instances to reduce
+   * interference. Creation is only possible through {@link MetricLineBuilderImpl#metadata()}, which
+   * guarantees that necessary information is shared between the {@link MetricLineBuilderImpl} and the
+   * {@link MetadataLineBuilderImpl}, as intended through the subclass format. The builder performs
+   * validation and normalization before serialization to ensure valid metadata lines for ingestion
+   * into Dynatrace API.
    */
   public class MetadataLineBuilderImpl implements MetricLineBuilder.MetadataStep {
     private String unit = null;

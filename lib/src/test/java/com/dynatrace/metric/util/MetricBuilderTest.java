@@ -599,6 +599,33 @@ class MetricBuilderTest {
   }
 
   @Test
+  void testOverwritingNormalizedDimensionKey() throws MetricException {
+    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
+        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
+      String expected = "prefix.name,dim_=metadataVal count,delta=1";
+
+      mockEnricher
+          .when(DynatraceMetadataEnricher::getDynatraceMetadata)
+          .thenReturn(Collections.singletonMap("dim@", "metadataVal"));
+
+      String actual =
+          MetricLineBuilder.create(
+                  MetricLinePreConfiguration.builder()
+                      .prefix("prefix")
+                      .defaultDimensions(Collections.singletonMap("dim@", "defaultVal"))
+                      .dynatraceMetadataDimensions()
+                      .build())
+              .metricKey("name")
+              .dimensions(Collections.singletonMap("dim@", "dynamicVal"))
+              .count()
+              .delta(1)
+              .build();
+
+      assertEquals(expected, actual);
+    }
+  }
+
+  @Test
   void testDontAddExistingMetadataInformation() throws MetricException {
     try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
         Mockito.mockStatic(DynatraceMetadataEnricher.class)) {

@@ -175,7 +175,8 @@ public class MetricLinePreConfiguration {
         }
 
         for (Map.Entry<String, String> entry : this.defaultDimensions.entrySet()) {
-	  // key needs to be normalized before checking if it aleady exists, which is why the `containsKey` method needs to be passed in here.
+          // key needs to be normalized before checking if it aleady exists, which is why the
+          // `containsKey` method needs to be passed in here.
           dimension(
               entry.getKey(),
               entry.getValue(),
@@ -193,16 +194,16 @@ public class MetricLinePreConfiguration {
 
     /**
      * Attempts to append a new dimension to the specified {@link Map targetDimensions}. This is
-     * done by checking if adding the key does not violate the provided condition, would exceed
-     * the limit of {@value MetricLineConstants.Limits#MAX_DIMENSIONS_COUNT} dimensions. and if it
-     * will cause the metric line to exceed the {@value MetricLineConstants.Limits#MAX_LINE_LENGTH}
+     * done by checking if adding the key does not violate the provided condition, would exceed the
+     * limit of {@value MetricLineConstants.Limits#MAX_DIMENSIONS_COUNT} dimensions. and if it will
+     * cause the metric line to exceed the {@value MetricLineConstants.Limits#MAX_LINE_LENGTH}
      * length limit. The key and value are normalized.
      *
      * @param key The dimension key.
      * @param value The dimension value.
      * @param targetDimensions The Map that the dimension should be added to.
-     * @param shouldBeIgnored A condition that determines whether a dimension should be ignored, based on the dimension key.
-     *     added.
+     * @param shouldBeIgnored A condition that determines whether a dimension should be ignored,
+     *     based on the dimension key. added.
      * @throws MetricException see {@link Builder#tryAddDimensionTo(String, String, Map)}
      */
     private void dimension(
@@ -249,8 +250,9 @@ public class MetricLinePreConfiguration {
     /**
      * Attempts to append new dimension to the specified dimensions. It does so by checking if this
      * additional dimension, would exceed the limit of {@value
-     * MetricLineConstants.Limits#MAX_DIMENSIONS_COUNT} dimensions. An exception will be thrown if adding the dimension will cause the metric
-     * line to exceed the {@value MetricLineConstants.Limits#MAX_LINE_LENGTH} length limit.
+     * MetricLineConstants.Limits#MAX_DIMENSIONS_COUNT} dimensions. An exception will be thrown if
+     * adding the dimension will cause the metric line to exceed the {@value
+     * MetricLineConstants.Limits#MAX_LINE_LENGTH} length limit.
      *
      * @param normalizedKey The dimension key.
      * @param normalizedValue The dimension value.
@@ -271,20 +273,19 @@ public class MetricLinePreConfiguration {
         throw new MetricException(ValidationMessages.TOO_MANY_DIMENSIONS_MESSAGE);
       }
 
-      int dimSize =
+      this.serializationLength +=
           normalizedKey.length()
               + Character.charCount(CodePoints.EQUALS)
               + normalizedValue.length()
               + Character.charCount(CodePoints.COMMA);
 
-      if (this.serializationLength + dimSize > MetricLineConstants.Limits.MAX_LINE_LENGTH) {
+      if (this.serializationLength > MetricLineConstants.Limits.MAX_LINE_LENGTH) {
         // The addition of the dimension will cause the line to exceed the 50000 limit
         // mark as error so the datapoint is dropped
         throw new MetricException(ValidationMessages.MAX_LINE_LENGTH_REACHED_MESSAGE);
       }
 
       this.dimensionCount++;
-      this.serializationLength += dimSize;
       targetDimensions.put(normalizedKey, normalizedValue);
     }
   }
