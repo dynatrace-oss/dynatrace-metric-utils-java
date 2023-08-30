@@ -396,13 +396,13 @@ class MetricLineBuilderImpl
   }
 
   /**
-   * A builder implementation for metadata lines, to separate {@link MetricLineBuilderImpl} objects from
-   * {@link MetadataLineBuilderImpl} objects. This allows working with different instances to reduce
-   * interference. Creation is only possible through {@link MetricLineBuilderImpl#metadata()}, which
-   * guarantees that necessary information is shared between the {@link MetricLineBuilderImpl} and the
-   * {@link MetadataLineBuilderImpl}, as intended through the subclass format. The builder performs
-   * validation and normalization before serialization to ensure valid metadata lines for ingestion
-   * into Dynatrace API.
+   * A builder implementation for metadata lines, to separate {@link MetricLineBuilderImpl} objects
+   * from {@link MetadataLineBuilderImpl} objects. This allows working with different instances to
+   * reduce interference. Creation is only possible through {@link
+   * MetricLineBuilderImpl#metadata()}, which guarantees that necessary information is shared
+   * between the {@link MetricLineBuilderImpl} and the {@link MetadataLineBuilderImpl}, as intended
+   * through the subclass format. The builder performs validation and normalization before
+   * serialization to ensure valid metadata lines for ingestion into Dynatrace API.
    */
   public class MetadataLineBuilderImpl implements MetricLineBuilder.MetadataStep {
     private String unit = null;
