@@ -35,7 +35,7 @@ final class DynatraceMetadataEnricher {
    * Retrieve Dynatrace metadata. Attempts to read from the indirection file, and falls back to the
    * alternative metadata file if the primary source is not available.
    *
-   * @return A map of not yet normalized dimension. Items with no equal sign, or with empty key or
+   * @return A map of not yet normalized dimensions. Items with no equal sign, empty key or empty
    *     value are discarded.
    */
   static Map<String, String> getDynatraceMetadata() {

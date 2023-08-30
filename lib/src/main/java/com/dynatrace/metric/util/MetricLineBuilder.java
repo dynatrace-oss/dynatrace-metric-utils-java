@@ -53,6 +53,7 @@ public interface MetricLineBuilder {
 
     /**
      * Sets a dimension of the metric line. The key and value will be normalized.
+     * If a value is already present for that key, it will be overwritten.
      *
      * @param key dimension key.
      * @param value dimension value.
@@ -67,7 +68,7 @@ public interface MetricLineBuilder {
      * Sets multiple dimensions (see {@link TypeStep#dimension}). Duplicate keys will be
      * overwritten.
      *
-     * @param dimensions The dimensions, which should be added.
+     * @param dimensions The dimensions to be added.
      * @return A {@link TypeStep}.
      * @throws MetricException if the dimension limit of {@value
      *     MetricLineConstants.Limits#MAX_DIMENSIONS_COUNT} would be exceeded after adding this
@@ -76,7 +77,7 @@ public interface MetricLineBuilder {
     TypeStep dimensions(Map<String, String> dimensions) throws MetricException;
 
     /**
-     * Sets the metric line type to gauge (stat counter or single value).
+     * Sets the metric line type to gauge (summary or single value).
      *
      * @return A {@link GaugeStep} that can be used to set the gauge value.
      */
@@ -92,7 +93,7 @@ public interface MetricLineBuilder {
 
   interface GaugeStep {
     /**
-     * Sets the summary value of a gauge data point. Therefore, it summarizes multiple values e.g.,
+     * Sets the summary value of a gauge data point. It summarizes multiple values e.g.,
      * values: [1,1,1,1,2,3] - min: 1, max: 3, sum: 9, count: 6.
      *
      * @param min The min value.
@@ -117,8 +118,7 @@ public interface MetricLineBuilder {
     TimestampOrBuildStep value(double value) throws MetricException;
 
     /**
-     * Creates a {@code MetadataLineBuilder} object with metric key and type of this {@link
-     * MetricLineBuilder}.
+     * Creates a {@code MetadataLineBuilder} with the metric key and type pre-filled.
      *
      * @return A {@link MetadataStep} object to further configure and serialize a metadata line.
      */
@@ -138,8 +138,7 @@ public interface MetricLineBuilder {
     TimestampOrBuildStep delta(double delta) throws MetricException;
 
     /**
-     * Creates a {@code MetadataLineBuilder} object with metric key and type of this {@link
-     * MetricLineBuilder}
+     * Creates a {@code MetadataLineBuilder} with the metric key and type pre-filled.
      *
      * @return A {@link MetadataStep} object to further configure and serialize a metadata line.
      */
@@ -152,7 +151,7 @@ public interface MetricLineBuilder {
      * Sets the (optional) timestamp of the data point.
      *
      * @param timestamp The timestamp value.
-     * @return A {@link BuildStep} that can be used to set the timestamp or build the metric line.
+     * @return A {@link BuildStep} that can be used to serialize the metric line.
      */
     BuildStep timestamp(Instant timestamp);
   }
@@ -200,8 +199,8 @@ public interface MetricLineBuilder {
     /**
      * Serializes the metadata line after normalization of provided properties.
      *
-     * @return The metadata line as a {@link String} if properties are set, otherwise return {@code
-     *     null}.
+     * @return The metadata line as a {@link String} if properties are set, and {@code
+     *     null} otherwise.
      */
     String build();
   }

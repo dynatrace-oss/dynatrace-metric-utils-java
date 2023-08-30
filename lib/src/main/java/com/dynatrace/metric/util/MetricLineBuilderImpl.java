@@ -29,7 +29,7 @@ class MetricLineBuilderImpl
         MetricLineBuilder.CounterStep,
         MetricLineBuilder.TimestampOrBuildStep,
         MetricLineBuilder.BuildStep {
-  private static final Logger logger = Logger.getLogger(MetricLinePreConfiguration.class.getName());
+  private static final Logger logger = Logger.getLogger(MetricLineBuilderImpl.class.getName());
   private static final AtomicInteger timestampWarningCounter = new AtomicInteger(0);
   private static final int TIMESTAMP_WARNING_THROTTLE_FACTOR = 1000;
   private static final int MINIMUM_CAPACITY = 72; // arbitrary, still better than 16
@@ -55,8 +55,7 @@ class MetricLineBuilderImpl
   }
 
   /**
-   * Create a new {@link MetricLineBuilder.MetricKeyStep}-object that can be used to create a metric
-   * line.
+   * Create a new {@link MetricLineBuilder.MetricKeyStep} that can be used to create a metric line.
    *
    * @param preConfig The pre-configuration object containing shared data.
    * @return The created {@link MetricLineBuilder.MetricKeyStep} instance, with the given {@link
@@ -149,7 +148,7 @@ class MetricLineBuilderImpl
           () -> String.format(PREFIX_STRING, this.metricKey, normalizedValue.getMessage()));
     }
 
-    // only increase the dimensionCount, if this key-value-pair isn't already existing in the
+    // only increase the dimensionCount if this key doesn't already exist in the
     // defaultDimensions to preserve a valid dimensionsCount.
     tryAddDimension(
         normalizedKey,
@@ -360,7 +359,7 @@ class MetricLineBuilderImpl
   }
 
   /**
-   * Serializes given {@link Map dimensionsToSerialize}, if the given conditions allows it, and
+   * Serializes given {@link Map dimensionsToSerialize} if the given {@link Predicate} evaluates to {@code false}, and
    * appends it to provided {@link StringBuilder sb}.
    *
    * @param sb The StringBuilder where the serialized dimensions should be appended to.
@@ -373,6 +372,13 @@ class MetricLineBuilderImpl
       Map<String, String> dimensionsToSerialize,
       Predicate<String> shouldBeIgnored) {
     for (Map.Entry<String, String> entry : dimensionsToSerialize.entrySet()) {
+      // If the provided condition is met, the key-value pair is not serialized, because the same
+      // key has already been serialized or is going to be serialized after. Therefore, this
+      // condition controls that this key isn't serialized multiple times.
+      if (shouldBeIgnored.test(entry.getKey())) {
+        continue;
+      }
+
       if (StringValueValidator.isNullOrEmpty(entry.getValue())) {
         logger.warning(
             () ->
@@ -380,13 +386,6 @@ class MetricLineBuilderImpl
                     ValidationMessages.DIMENSION_NOT_SERIALIZED_OF_EMPTY_VALUE,
                     this.metricKey,
                     entry.getKey()));
-        continue;
-      }
-
-      // If the provided condition is met, the key-value pair is not serialized, because the same
-      // key has already been serialized or is going to be serialized after. Therefore, this
-      // condition controls that this key isn't serialized multiple times.
-      if (shouldBeIgnored.test(entry.getKey())) {
         continue;
       }
 
@@ -398,13 +397,13 @@ class MetricLineBuilderImpl
   }
 
   /**
-   * A builder implementation for metadata lines, to separate {@code MetricLineBuilder-objects} from
-   * {@code MetadataLineBuilder-objects}, to further allow working with different {@code objects} to
+   * A builder implementation for metadata lines, to separate {@link MetricLineBuilder} objects from
+   * {@link MetadataLineBuilder} objects. This allows working with different instances to
    * reduce interference. Creation is only possible through {@link
    * MetricLineBuilderImpl#metadata()}, which guarantees that necessary information is shared
-   * between the metric line builder and the metadata line builder, as intended through the subclass
-   * format. The builder performs validation and normalization, before serialization to ensure valid
-   * metadata lines for ingestion into Dynatrace-API.
+   * between the {@link MetricLineBuilder} and the {@link MetadataLineBuilder}, as intended through the subclass
+   * format. The builder performs validation and normalization before serialization to ensure valid
+   * metadata lines for ingestion into Dynatrace API.
    */
   public class MetadataLineBuilderImpl implements MetricLineBuilder.MetadataStep {
     private String unit = null;

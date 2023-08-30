@@ -47,7 +47,7 @@ final class MetadataLineConstants {
     // warnings
     static final String UNIT_DROPPED_MESSAGE = "[%s] Unit '%s' dropped";
     static final String DESCRIPTION_DROPPED_MESSAGE = "[%s] Description '%s' dropped";
-    static final String DISPLAY_NAME_DROPPED_MESSAGE = "[%s] Description '%s' dropped";
+    static final String DISPLAY_NAME_DROPPED_MESSAGE = "[%s] Display name '%s' dropped";
     static final String METADATA_SERIALIZATION_NOT_POSSIBLE_MESSAGE =
         "No data set to serialize the metadata for the metric '%s'";
   }
