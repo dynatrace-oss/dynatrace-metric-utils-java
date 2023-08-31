@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -37,37 +37,19 @@ class DynatraceMetadataEnricherTest {
     properties.setProperty("prop.a", "value.a");
     properties.setProperty("prop.b", "value.b");
 
-    ArrayList<Dimension> entries =
-        new ArrayList<>(DynatraceMetadataEnricher.createDimensionList(properties));
+    Map<String, String> entries = DynatraceMetadataEnricher.createMapFromProperties(properties);
 
     // Has one entry with key "prop.a"
-    assertEquals(1, entries.stream().filter(entry -> entry.getKey().equals("prop.a")).count());
+    assertTrue(entries.containsKey("prop.a"));
 
     // Entry with key "prop.a" has value "value.a"
-    assertEquals(
-        "value.a",
-        entries.stream()
-            .filter(entry -> entry.getKey().equals("prop.a"))
-            .findFirst()
-            .get()
-            .getValue());
+    assertEquals("value.a", entries.get("prop.a"));
 
     // Has one entry with key "prop.p"
-    assertEquals(1, entries.stream().filter(entry -> entry.getKey().equals("prop.b")).count());
+    assertTrue(entries.containsKey("prop.b"));
 
     // Entry with key "prop.b" has value "value.b"
-    assertEquals(
-        "value.b",
-        entries.stream()
-            .filter(entry -> entry.getKey().equals("prop.b"))
-            .findFirst()
-            .get()
-            .getValue());
-  }
-
-  private static Stream<Arguments> provideInvalidPropertyParameters() {
-    return Stream.of(
-        Arguments.of("key_no_value", ""), Arguments.of("", "value_no_key"), Arguments.of("", ""));
+    assertEquals("value.b", entries.get("prop.b"));
   }
 
   @ParameterizedTest(
@@ -76,7 +58,7 @@ class DynatraceMetadataEnricherTest {
   void invalidProperties(String key, String value) {
     Properties properties = new Properties();
     properties.setProperty(key, value);
-    assertTrue(DynatraceMetadataEnricher.createDimensionList(properties).isEmpty());
+    assertTrue(DynatraceMetadataEnricher.createMapFromProperties(properties).isEmpty());
   }
 
   @Test
@@ -402,5 +384,10 @@ class DynatraceMetadataEnricherTest {
     assertTrue(
         DynatraceMetadataEnricher.fileExistsAndIsReadable(
             "src/test/resources/metadata_file.properties"));
+  }
+
+  private static Stream<Arguments> provideInvalidPropertyParameters() {
+    return Stream.of(
+        Arguments.of("key_no_value", ""), Arguments.of("", "value_no_key"), Arguments.of("", ""));
   }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Dynatrace LLC
+ * Copyright 2023 Dynatrace LLC
  *
  * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy of the License at
@@ -17,56 +17,72 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.dynatrace.testutils.TestUtils;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class NormalizeTest {
+public class NormalizerTest {
 
-  @ParameterizedTest(name = "{index}: {0}, input: {1}, expected: {2}")
-  @MethodSource("provideDimensionKeys")
-  public void testDimensionKey(String name, String input, String expected) {
-    assertEquals(expected, Normalize.dimensionKey(input));
-  }
-
-  @ParameterizedTest(name = "{index}: {0}, input: {1}, expected: {2}")
-  @MethodSource("provideDimensionValues")
-  public void testDimensionValue(String name, String input, String expected) {
-    assertEquals(expected, Normalize.dimensionValue(input));
-  }
+  private static final int MAX_TEST_STRING_LENGTH = 255;
 
   @ParameterizedTest(name = "{index}: {0}, input: {1}, expected: {2}")
   @MethodSource("provideMetricKeys")
   public void testMetricKey(String name, String input, String expected) {
-    assertEquals(expected, Normalize.metricKey(input));
+    assertEquals(expected, Normalizer.normalizeMetricKey(input).getResult());
   }
 
   @ParameterizedTest(name = "{index}: {0}, input: {1}, expected: {2}")
+  @MethodSource("provideDimensionKeys")
+  public void testDimensionKey(String name, String input, String expected) {
+    assertEquals(expected, Normalizer.normalizeDimensionKey(input).getResult());
+  }
+
+  @ParameterizedTest(name = "{index}: {0}, input: {1}, expected: {2}")
+  @MethodSource("provideDimensionValues")
+  public void testGeneralDimensionValue(String name, String input, String expected) {
+    assertEquals(
+        expected,
+        Normalizer.normalizeDimensionValue(
+                input, MetricLineConstants.Limits.MAX_DIMENSION_VALUE_LENGTH)
+            .getResult());
+  }
+
+  @ParameterizedTest(name = "{index}: {0}, input: {1}")
+  @MethodSource("provideUnquotedStringValues")
+  void testNormalizeUnquotedDimensionValues(String name, String input, String expected) {
+    assertEquals(
+        expected, Normalizer.normalizeDimensionValue(input, MAX_TEST_STRING_LENGTH).getResult());
+  }
+
+  @ParameterizedTest(name = "{index}: {0}, input: {1}")
+  @MethodSource("provideQuotedStringValues")
+  void testNormalizeQuotedDimensionValues(String name, String input, String expected) {
+    assertEquals(
+        expected, Normalizer.normalizeDimensionValue(input, MAX_TEST_STRING_LENGTH).getResult());
+  }
+
+  @ParameterizedTest(name = "{index}: {0}, input: {1}")
   @MethodSource("provideToEscapeValues")
-  public void testEscapeDimensionValues(String name, String input, String expected) {
-    assertEquals(expected, Normalize.escapeDimensionValue(input));
-  }
-
-  @ParameterizedTest(name = "{index}: {0}, input: {1}, expected: {2}")
-  @MethodSource("provideNeedToEscapeDimensionValue")
-  public void testNeedToEscapeDimensionValue(String name, String input, boolean expected) {
-    assertEquals(expected, Normalize.needToEscapeDimensionValue(input));
+  void testEscapingDimensionValues(String name, String input, String expected) {
+    assertEquals(
+        expected, Normalizer.normalizeDimensionValue(input, MAX_TEST_STRING_LENGTH).getResult());
   }
 
   @Test
   public void testDimensionValuesEscapedOnlyOnce() throws MetricException {
-    MetricBuilderFactory metricBuilderFactory = MetricBuilderFactory.builder().build();
     String expected = "metric1,key=\\ \\,\\=\\\\ count,delta=123 1620392690261";
 
     String actual =
-        metricBuilderFactory
-            .newMetricBuilder("metric1")
-            .setDimensions(DimensionList.create(Dimension.create("key", " ,=\\")))
-            .setLongCounterValueDelta(123)
-            .setTimestamp(Instant.ofEpochMilli(1620392690261L))
-            .serializeMetricLine();
+        MetricLineBuilder.create()
+            .metricKey("metric1")
+            .dimensions(Collections.singletonMap("key", " ,=\\"))
+            .count()
+            .delta(123)
+            .timestamp(Instant.ofEpochMilli(1620392690261L))
+            .build();
 
     assertEquals(expected, actual);
   }
@@ -95,10 +111,10 @@ public class NormalizeTest {
         Arguments.of("valid trailing hyphen", "dim-", "dim-"),
         Arguments.of("valid trailing hyphens", "dim---", "dim---"),
         Arguments.of("invalid empty", "", null),
-        Arguments.of("invalid only number", "000", "_"),
+        Arguments.of("invalid only number", "000", "_00"),
         Arguments.of("invalid key first section only number", "0.section", "_.section"),
         Arguments.of("invalid leading character", "~key", "_key"),
-        Arguments.of("invalid leading characters", "~0#key", "_key"),
+        Arguments.of("invalid leading characters", "~0#key", "_0_key"),
         Arguments.of("invalid intermittent character", "some~key", "some_key"),
         Arguments.of("invalid intermittent characters", "some#~äkey", "some_key"),
         Arguments.of("invalid two consecutive dots", "a..b", "a.b"),
@@ -116,6 +132,7 @@ public class NormalizeTest {
         Arguments.of("valid mixture dots underscores 2", "_._._.a_._", "_._._.a_._"),
         Arguments.of("invalid empty section", "an..empty.section", "an.empty.section"),
         Arguments.of("invalid characters", "a,,,b  c=d\\e\\ =,f", "a_b_c_d_e_f"),
+        Arguments.of("invalid all characters", "@@@@", "_"),
         Arguments.of(
             "invalid characters long",
             "a!b\"c#d$e%f&g'h(i)j*k+l,m-n.o/p:q;r<s=t>u?v@w[x]y\\z^0 1_2;3{4|5}6~7",
@@ -128,6 +145,7 @@ public class NormalizeTest {
         Arguments.of("invalid example 3", "metriÄ", "metri_"),
         Arguments.of("invalid example 4", "Ätric", "_tric"),
         Arguments.of("invalid example 5", "meträääääÖÖÖc", "metr_c"),
+        Arguments.of("invalid example 5", "a...", "a"),
         Arguments.of(
             "invalid truncate key too long",
             TestUtils.repeatStringNTimes("a", 270),
@@ -152,15 +170,15 @@ public class NormalizeTest {
         Arguments.of("invalid leading hyphen", "-dim", "_dim"),
         Arguments.of("valid trailing hyphen", "dim-", "dim-"),
         Arguments.of("valid trailing hyphens", "dim---", "dim---"),
-        Arguments.of("invalid leading multiple hyphens", "---dim", "_dim"),
+        Arguments.of("invalid leading multiple hyphens", "---dim", "_--dim"),
         Arguments.of("invalid leading colon", ":dim", "_dim"),
         Arguments.of("invalid chars", "~@#ä", "_"),
         Arguments.of("invalid trailing chars", "aaa~@#ä", "aaa_"),
         Arguments.of("valid trailing underscores", "aaa___", "aaa___"),
-        Arguments.of("invalid only numbers", "000", "_"),
+        Arguments.of("invalid only numbers", "000", "_00"),
         Arguments.of("valid compound key", "dim1.value1", "dim1.value1"),
         Arguments.of("invalid compound leading number", "dim.0dim", "dim._dim"),
-        Arguments.of("invalid compound only number", "dim.000", "dim._"),
+        Arguments.of("invalid compound only number", "dim.000", "dim._00"),
         Arguments.of("invalid compound leading invalid char", "dim.~val", "dim._val"),
         Arguments.of("invalid compound trailing invalid char", "dim.val~~", "dim.val_"),
         Arguments.of("invalid compound only invalid char", "dim.~~~", "dim._"),
@@ -172,14 +190,14 @@ public class NormalizeTest {
         Arguments.of("invalid leading dot", ".a", "a"),
         Arguments.of("valid colon in compound", "a.b:c.d", "a.b:c.d"),
         Arguments.of("invalid trailing dot", "a.", "a"),
-        Arguments.of("invalid just a dot", ".", ""),
+        Arguments.of("invalid just a dot", ".", null),
         Arguments.of("invalid trailing dots", "a...", "a"),
         Arguments.of("invalid enclosing dots", ".a.", "a"),
         Arguments.of("invalid leading whitespace", "   a", "_a"),
         Arguments.of("invalid trailing whitespace", "a   ", "a_"),
         Arguments.of("invalid internal whitespace", "a b", "a_b"),
         Arguments.of("invalid internal whitespace", "a    b", "a_b"),
-        Arguments.of("invalid empty", "", ""),
+        Arguments.of("invalid empty", "", null),
         Arguments.of("valid combined key", "dim.val:count.val001", "dim.val:count.val001"),
         Arguments.of("invalid characters", "a,,,b  c=d\\e\\ =,f", "a_b_c_d_e_f"),
         Arguments.of(
@@ -207,12 +225,12 @@ public class NormalizeTest {
         Arguments.of("valid uppercase", "VALUE", "VALUE"),
         Arguments.of("valid colon", "a:3", "a:3"),
         Arguments.of("valid value 2", "~@#ä", "~@#ä"),
-        Arguments.of("valid spaces", "a b", "a b"),
-        Arguments.of("valid comma", "a,b", "a,b"),
-        Arguments.of("valid equals", "a=b", "a=b"),
-        Arguments.of("valid backslash", "a\\b", "a\\b"),
-        Arguments.of("valid multiple special chars", " ,=\\", " ,=\\"),
-        Arguments.of("valid key-value pair", "key=\"value\"", "key=\"value\""),
+        Arguments.of("valid spaces", "a b", "a\\ b"),
+        Arguments.of("valid comma", "a,b", "a\\,b"),
+        Arguments.of("valid equals", "a=b", "a\\=b"),
+        Arguments.of("valid backslash", "a\\b", "a\\\\b"),
+        Arguments.of("valid multiple special chars", " ,=\\", "\\ \\,\\=\\\\"),
+        Arguments.of("valid key-value pair", "key=\"value\"", "key\\=\\\"value\\\""),
         //     \u0000 NUL character, \u0007 bell character
         Arguments.of("invalid unicode", "\u0000a\u0007", "_a_"),
         Arguments.of("invalid unicode space", "a\u0001b", "a_b"),
@@ -233,8 +251,152 @@ public class NormalizeTest {
             TestUtils.repeatStringNTimes("a", 250)));
   }
 
+  private static Stream<Arguments> provideUnquotedStringValues() {
+    return Stream.of(
+        Arguments.of("valid value", "value", "value"),
+        Arguments.of("valid uppercase", "VALUE", "VALUE"),
+        Arguments.of("valid colon", "a:3", "a:3"),
+        Arguments.of("valid special chars", "~@#ä", "~@#ä"),
+        Arguments.of("valid comma", "a,b", "a\\,b"),
+        Arguments.of("valid equals", "a=b", "a\\=b"),
+        Arguments.of("valid spaces", "a b", "a\\ b"),
+        Arguments.of(
+            "valid backslash",
+            "a\\b",
+            "a\\\\b"), // user wants value of a\b, so we escape it to a\\b
+        Arguments.of("valid multiple special chars", " ,=\\", "\\ \\,\\=\\\\"),
+        Arguments.of("valid key-value pair", "key=\"value\"", "key\\=\\\"value\\\""),
+        Arguments.of("valid with leading quote", "\"something", "\\\"something"),
+        Arguments.of("valid with trailing quote", "something\"", "something\\\""),
+        Arguments.of("valid with leading single quote", "'something", "'something"),
+        Arguments.of("valid with trailing single quote", "something'", "something'"),
+        Arguments.of("valid wrapped in single quotes", "'something'", "'something'"),
+        Arguments.of(
+            "valid with quoted and extra", "\"mylist\":[a,b,c]", "\\\"mylist\\\":[a\\,b\\,c]"),
+        //     'Ab' in unicode:
+        Arguments.of("valid unicode", "\u0034\u0066", "\u0034\u0066"),
+        //     A umlaut, a with ring, O umlaut, U umlaut, all valid.
+        Arguments.of("valid unicode", "\u0132_\u0133_\u0150_\u0156", "\u0132_\u0133_\u0150_\u0156"),
+        Arguments.of("invalid empty", "", ""),
+        Arguments.of("invalid null", null, ""),
+        // old version
+        // Arguments.of("invalid empty", "", null),
+        // Arguments.of("invalid null", null, null),
+        Arguments.of("invalid only comma", ",", "\\,"),
+        //     \u0000 NUL character, \u0007 bell character
+        Arguments.of("invalid unicode", "\u0000a\u0007", "_a_"),
+        Arguments.of("invalid unicode space", "a\u0001b", "a_b"),
+        Arguments.of("invalid leading unicode NUL", "\u0000a", "_a"),
+        Arguments.of("invalid trailing unicode NUL", "a\u0000", "a_"),
+        Arguments.of("invalid only unicode", "\u0000\u0000", "_"),
+        Arguments.of("invalid consecutive leading unicode", "\u0000\u0000\u0000a", "_a"),
+        Arguments.of("invalid consecutive trailing unicode", "a\u0000\u0000\u0000", "a_"),
+        Arguments.of("invalid enclosed unicode NUL", "a\u0000b", "a_b"),
+        Arguments.of("invalid consecutive enclosed unicode NUL", "a\u0000\u0007\u0000b", "a_b"),
+        Arguments.of("invalid unicode in quoted string", "a\u0000\u0007\u0000b", "a_b"),
+        Arguments.of("invalid example 1", "value\u0000", "value_"),
+        Arguments.of("invalid example 2", "value\u0000end", "value_end"),
+        Arguments.of("invalid example 3", "\u0000end", "_end"),
+        Arguments.of(
+            "valid long value",
+            TestUtils.createStringOfLength(255, false),
+            TestUtils.createStringOfLength(255, false)),
+        Arguments.of(
+            "invalid truncate value too long",
+            TestUtils.createStringOfLength(256, false),
+            TestUtils.createStringOfLength(255, false)),
+        // we have a = at the 255th pos. Escaping it will cause going overboard - 256. It should not
+        // append it
+        Arguments.of(
+            "invalid truncate value with invalid char at last position",
+            TestUtils.createStringOfLength(255, false) + "\n",
+            TestUtils.createStringOfLength(255, false)),
+        Arguments.of(
+            "invalid truncate at 254th",
+            String.format("%s=", TestUtils.createStringOfLength(254, false)),
+            String.format("%s", TestUtils.createStringOfLength(254, false))));
+  }
+
+  private static Stream<Arguments> provideQuotedStringValues() {
+    return Stream.of(
+        Arguments.of("valid value", "\"value\"", "\"value\""),
+        Arguments.of("valid uppercase", "\"VALUE\"", "\"VALUE\""),
+        Arguments.of("valid colon", "\"a:3\"", "\"a:3\""),
+        Arguments.of("valid special chars", "\"~@#ä\"", "\"~@#ä\""),
+        Arguments.of("valid comma", "\"a,b\"", "\"a,b\""),
+        Arguments.of("valid equals", "\"a=b\"", "\"a=b\""),
+        Arguments.of("valid spaces", "\"a b\"", "\"a b\""),
+        // user wants value of "a\b" so we escape it to "a\\b"
+        Arguments.of("valid backslash", "\"a\\b\"", "\"a\\\\b\""),
+        // user wants value of " ,=\" so we escape it to " ,=\\"
+        Arguments.of("valid multiple special chars", "\" ,=\\\"", "\" ,=\\\\\""),
+        // user wants value of "key="value"" so we escape it to "key=\"value\""
+        Arguments.of("valid key-value pair", "\"key=\"value\"\"", "\"key=\\\"value\\\"\""),
+        Arguments.of("valid with leading quote", "\"\"something\"", "\"\\\"something\""),
+        Arguments.of("valid with trailing quote", "\"something\"\"", "\"something\\\"\""),
+        Arguments.of("valid with quoted and extra", "\"mylist:[a,b,c]\"", "\"mylist:[a,b,c]\""),
+        Arguments.of("valid only comma", "\",\"", "\",\""),
+        //     'Ab' in unicode:
+        Arguments.of("valid unicode", "\"\u0034\u0066\"", "\"\u0034\u0066\""),
+        //     A umlaut, a with ring, O umlaut, U umlaut, all valid.
+        Arguments.of(
+            "valid unicode", "\"\u0132_\u0133_\u0150_\u0156\"", "\"\u0132_\u0133_\u0150_\u0156\""),
+        Arguments.of("invalid empty", "", ""),
+        Arguments.of("invalid null", null, ""),
+        // old version
+        // Arguments.of("invalid empty", "\"\"", null),
+        // Arguments.of("invalid null", null, null),
+        //     \u0000 NUL character, \u0007 bell character
+        Arguments.of("invalid unicode", "\"\u0000a\u0007\"", "\"_a_\""),
+        Arguments.of("invalid unicode space", "\"a\u0001b\"", "\"a_b\""),
+        Arguments.of("invalid leading unicode NUL", "\"\u0000a\"", "\"_a\""),
+        Arguments.of("invalid trailing unicode NUL", "\"a\u0000\"", "\"a_\""),
+        Arguments.of("invalid only unicode", "\"\u0000\u0000\"", "\"_\""),
+        Arguments.of("invalid consecutive leading unicode", "\"\u0000\u0000\u0000a\"", "\"_a\""),
+        Arguments.of("invalid consecutive trailing unicode", "\"a\u0000\u0000\u0000\"", "\"a_\""),
+        Arguments.of("invalid enclosed unicode NUL", "\"a\u0000b\"", "\"a_b\""),
+        Arguments.of(
+            "invalid consecutive enclosed unicode NUL", "\"a\u0000\u0007\u0000b\"", "\"a_b\""),
+        Arguments.of("invalid example 1", "\"value\u0000\"", "\"value_\""),
+        Arguments.of("invalid example 2", "\"value\u0000end\"", "\"value_end\""),
+        Arguments.of("invalid example 3", "\"\u0000end\"", "\"_end\""),
+        Arguments.of(
+            "invalid truncate value too long",
+            TestUtils.createStringOfLength(255, true), // total of 257 with quotes
+            TestUtils.createStringOfLength(253, true) // total of 255 with quotes
+            ),
+        Arguments.of(
+            "invalid truncate value with invalid char at last position",
+            "\"" + TestUtils.createStringOfLength(253, false) + "\n\"",
+            TestUtils.createStringOfLength(253, true)),
+        // we have a \ at the 254th pos. Escaping it will cause going overboard - 256. It should
+        // truncate with a "
+        Arguments.of(
+            "invalid truncate at 254th",
+            String.format("\"%s\\\"", TestUtils.createStringOfLength(252, false)),
+            String.format("\"%s\"", TestUtils.createStringOfLength(252, false))),
+        // we have 254 "a", so adding the last will cause going overboard - 256. It should truncate
+        // with a "
+        Arguments.of(
+            "invalid truncate at 253th",
+            String.format("\"%s\"", TestUtils.createStringOfLength(254, false)),
+            String.format("\"%s\"", TestUtils.createStringOfLength(253, false))));
+  }
+
   private static Stream<Arguments> provideToEscapeValues() {
     return Stream.of(
+        Arguments.of("valid comma", "a,b", "a\\,b"),
+        Arguments.of("valid equals", "a=b", "a\\=b"),
+        Arguments.of("valid spaces", "a b", "a\\ b"),
+        Arguments.of(
+            "valid backslash",
+            "a\\b",
+            "a\\\\b"), // user wants value of a\b, so we escape it to a\\b
+        Arguments.of("valid with leading quote", "\"something", "\\\"something"),
+        // user wants value of "a\b" so we escape it to "a\\b"
+        Arguments.of("valid quoted string with backslash", "\"a\\b\"", "\"a\\\\b\""),
+        // user wants value of " ,=\" so we escape it to " ,=\\"
+        Arguments.of("valid quoted string with multiple special chars", "\" ,=\\\"", "\" ,=\\\\\""),
         Arguments.of("unescaped", "ab", "ab"),
         Arguments.of("escape spaces", "a b", "a\\ b"),
         Arguments.of("escape comma", "a,b", "a\\,b"),
@@ -246,42 +408,27 @@ public class NormalizeTest {
         Arguments.of("escape key-value pair", "key=\"value\"", "key\\=\\\"value\\\""),
         Arguments.of(
             "escape too long string",
-            TestUtils.repeatStringNTimes("=", 250),
-            TestUtils.repeatStringNTimes("\\=", 125)),
+            TestUtils.repeatStringNTimes("=", 255),
+            TestUtils.repeatStringNTimes("\\=", 127)),
         Arguments.of(
             "escape sequence not broken apart 1",
-            TestUtils.repeatStringNTimes("a", 249) + "=",
-            TestUtils.repeatStringNTimes("a", 249)),
+            TestUtils.repeatStringNTimes("a", 254) + "=",
+            TestUtils.repeatStringNTimes("a", 254)),
         Arguments.of(
             "escape sequence not broken apart 2",
-            TestUtils.repeatStringNTimes("a", 248) + "==",
-            TestUtils.repeatStringNTimes("a", 248) + "\\="),
+            TestUtils.repeatStringNTimes("a", 253) + "==",
+            TestUtils.repeatStringNTimes("a", 253) + "\\="),
         Arguments.of(
             "escape sequence not broken apart 3",
             // 3 trailing backslashes before escaping
-            TestUtils.repeatStringNTimes("a", 247) + "\\\\\\",
+            TestUtils.repeatStringNTimes("a", 252) + "\\\\\\",
             // 1 escaped trailing backslash
-            TestUtils.repeatStringNTimes("a", 247) + "\\\\"),
+            TestUtils.repeatStringNTimes("a", 252) + "\\\\"),
         Arguments.of(
             "dimension value of only backslashes",
             TestUtils.repeatStringNTimes("\\", 260),
-            TestUtils.repeatStringNTimes("\\\\", 125)),
-        Arguments.of("Null must not fail", null, null),
+            TestUtils.repeatStringNTimes("\\\\", 127)),
+        Arguments.of("Null must not fail", null, ""),
         Arguments.of("Empty must not fail", "", ""));
-  }
-
-  private static Stream<Arguments> provideNeedToEscapeDimensionValue() {
-    return Stream.of(
-        Arguments.of("quote", "a\"b", true),
-        Arguments.of("space", "a b", true),
-        Arguments.of("comma", "a,b", true),
-        Arguments.of("equals", "a=b", true),
-        Arguments.of("backslash", "a\\b", true),
-        Arguments.of("need to escape multiple", "a\"b c,d=e\\f", true),
-        Arguments.of(
-            "no need to escape: a-Z",
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            false),
-        Arguments.of("no need to escape: other", "_-", false));
   }
 }

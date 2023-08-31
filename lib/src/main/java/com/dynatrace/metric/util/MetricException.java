@@ -13,7 +13,7 @@
  */
 package com.dynatrace.metric.util;
 
-/** Exception used to signal errors during the creation of metric lines. */
+/** Exception used to signal errors during the creation of metric/metadata lines. */
 public final class MetricException extends Exception {
   public MetricException(String message) {
     super(message);
