@@ -87,7 +87,7 @@ MetricLineBuilder.create(preConfig)
    * When setting dimensions with the same dimension key multiple times, the dimension value that was set last is used for that dimension key.
 4. `count` / `gauge`: Sets the type of the metric line.
   Use `gauge()` for gauges and summary statistics, and `count()` for counters.
-5. Sets the value:
+5. Set the value:
    * (`count()` only): `delta` sets a single value that is serialized as `delta=<value>`.
    * (`gauge()` only): `value` sets a single value that is serialized as `<value>`.
    * (`gauge()` only): `summary` sets min, max, sum and count values that are serialized as `min=<min>,max=<max>,sum=<sum>,count=<count>`.
