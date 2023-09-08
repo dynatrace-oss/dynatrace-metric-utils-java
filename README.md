@@ -110,7 +110,7 @@ MetricLineBuilder.create(preConfig)     // the (optional) MetricLinePreConfigura
         .displayName("my display name") // set the display name for the current metric
         .build();                       // create a String from the information set above
 ```
-#### Metadata line creation Stepper
+#### Metadata line creation
 
 1. Create a `MetricLineBuilder` with a metric key and a type.
 2. `metadata()`: Creates a `MetadataLineBuilder` with the metric key and type set above.
