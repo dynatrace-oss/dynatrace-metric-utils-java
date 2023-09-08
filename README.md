@@ -27,7 +27,7 @@ The following settings can be set upon `MetricLinePreConfiguration` construction
 
 * `prefix`: A prefix that is prepended to each metric key (separated by a `.`).
 * `defaultDimensions`: Default dimensions that will be added to every metric using this `MetricLinePreConfiguration` object (see [the section on dimension precedence](#dimension-precedence) below).
-* `dynatraceMetadataDimensions`: With this setting enabled, the library will connect to the Dynatrace OneAgent, if available, and retrieve process and host identifiers. 
+* `dynatraceMetadataDimensions`: With this setting enabled, the library will connect to the Dynatrace OneAgent, if available, and retrieve process and host identifiers.
   These identifiers are added as dimensions on all metrics to correlate them accordingly.
   More information on the underlying feature can be found in the
   [Dynatrace documentation](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/enrich-metrics/).
@@ -45,7 +45,7 @@ MetricLinePreConfiguration preConfig =
         .build();
 ```
 
-This pre-configuration can then be used to create `MetricLineBuilder` instance, which represent one data point before serialization.
+This pre-configuration can then be used to create `MetricLineBuilder` instances, which represent one data point before serialization.
 If the pre-configuration is omitted, **no** Dynatrace metadata, default dimensions or prefix will be set on the new metric.
 To create metric lines from data points, the `MetricLineBuilder` can be used as follows:
 
