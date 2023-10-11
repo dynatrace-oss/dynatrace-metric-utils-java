@@ -13,6 +13,8 @@
  */
 package com.dynatrace.metric.util;
 
+import static com.dynatrace.metric.util.MetricLineConstants.ValidationMessages.THROTTLE_INFO_TEMPLATE;
+
 import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -20,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 class MetricLineBuilderImpl
@@ -29,6 +32,9 @@ class MetricLineBuilderImpl
         MetricLineBuilder.CounterStep,
         MetricLineBuilder.TimestampOrBuildStep,
         MetricLineBuilder.BuildStep {
+  private static boolean metricKeyNormalizationWarnLogged = false;
+  private static boolean dimensionKeyNormalizationWarnLogged = false;
+  private static boolean dimensionValueNormalizationWarnLogged = false;
   private static final Logger logger = Logger.getLogger(MetricLineBuilderImpl.class.getName());
   private static final AtomicInteger timestampWarningCounter = new AtomicInteger(0);
   private static final int TIMESTAMP_WARNING_THROTTLE_FACTOR = 1000;
@@ -81,7 +87,13 @@ class MetricLineBuilderImpl
       NormalizationResult normalizationResult = Normalizer.normalizeMetricKey(this.metricKey);
 
       if (normalizationResult.messageType() == NormalizationResult.MessageType.WARNING) {
-        logger.warning(() -> normalizationResult.getMessage());
+        if (!metricKeyNormalizationWarnLogged) {
+          logger.warning(
+              () -> String.format(THROTTLE_INFO_TEMPLATE, normalizationResult.getMessage()));
+          metricKeyNormalizationWarnLogged = true;
+        } else {
+          logger.fine(() -> normalizationResult.getMessage());
+        }
       } else if (normalizationResult.messageType() == NormalizationResult.MessageType.ERROR) {
         throw new MetricException(
             String.format(ValidationMessages.METRIC_DROPPED_AFTER_NORMALIZATION_MESSAGE, key));
@@ -118,8 +130,14 @@ class MetricLineBuilderImpl
 
       normalizedKey = normalizationResult.getResult();
       if (normalizationResult.messageType() != NormalizationResult.MessageType.NONE) {
-        logger.warning(
-            () -> String.format(PREFIX_STRING, this.metricKey, normalizationResult.getMessage()));
+        Supplier<String> messageSupplier =
+            () -> String.format(PREFIX_STRING, this.metricKey, normalizationResult.getMessage());
+        if (!dimensionKeyNormalizationWarnLogged) {
+          logger.warning(() -> String.format(THROTTLE_INFO_TEMPLATE, messageSupplier.get()));
+          dimensionKeyNormalizationWarnLogged = true;
+        } else {
+          logger.fine(messageSupplier);
+        }
       }
     }
 
@@ -143,8 +161,14 @@ class MetricLineBuilderImpl
         Normalizer.normalizeDimensionValue(
             value, MetricLineConstants.Limits.MAX_DIMENSION_VALUE_LENGTH);
     if (normalizedValue.messageType() != NormalizationResult.MessageType.NONE) {
-      logger.warning(
-          () -> String.format(PREFIX_STRING, this.metricKey, normalizedValue.getMessage()));
+      Supplier<String> messageSupplier =
+          () -> String.format(PREFIX_STRING, this.metricKey, normalizedValue.getMessage());
+      if (!dimensionValueNormalizationWarnLogged) {
+        logger.warning(() -> String.format(THROTTLE_INFO_TEMPLATE, messageSupplier.get()));
+        dimensionValueNormalizationWarnLogged = true;
+      } else {
+        logger.fine(messageSupplier);
+      }
     }
 
     // only increase the dimensionCount if this key doesn't already exist in the

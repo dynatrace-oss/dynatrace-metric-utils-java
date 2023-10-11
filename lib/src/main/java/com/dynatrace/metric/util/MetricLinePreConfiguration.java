@@ -13,11 +13,14 @@
  */
 package com.dynatrace.metric.util;
 
+import static com.dynatrace.metric.util.MetricLineConstants.ValidationMessages.THROTTLE_INFO_TEMPLATE;
+
 import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
@@ -35,6 +38,8 @@ public class MetricLinePreConfiguration {
   private final Map<String, String> defaultDimensions;
   private final String prefix;
   private final int serializationLength;
+  private static boolean dimensionValueNormalizationWarnLogged;
+  private static boolean dimensionKeyNormalizationWarnLogged;
 
   private MetricLinePreConfiguration(
       String prefix,
@@ -175,7 +180,7 @@ public class MetricLinePreConfiguration {
         }
 
         for (Map.Entry<String, String> entry : this.defaultDimensions.entrySet()) {
-          // key needs to be normalized before checking if it aleady exists, which is why the
+          // key needs to be normalized before checking if it already exists, which is why the
           // `containsKey` method needs to be passed in here.
           dimension(
               entry.getKey(),
@@ -223,7 +228,13 @@ public class MetricLinePreConfiguration {
 
         normalizedKey = normalizationResult.getResult();
         if (normalizationResult.messageType() != NormalizationResult.MessageType.NONE) {
-          logger.warning(() -> normalizationResult.getMessage());
+          Supplier<String> messageSupplier = () -> normalizationResult.getMessage();
+          if (!dimensionKeyNormalizationWarnLogged) {
+            logger.warning(() -> String.format(THROTTLE_INFO_TEMPLATE, messageSupplier.get()));
+            dimensionKeyNormalizationWarnLogged = true;
+          } else {
+            logger.fine(messageSupplier);
+          }
         }
       }
 
@@ -241,7 +252,13 @@ public class MetricLinePreConfiguration {
           Normalizer.normalizeDimensionValue(
               value, MetricLineConstants.Limits.MAX_DIMENSION_VALUE_LENGTH);
       if (normalizationResult.messageType() != NormalizationResult.MessageType.NONE) {
-        logger.warning(() -> normalizationResult.getMessage());
+        Supplier<String> messageSupplier = () -> normalizationResult.getMessage();
+        if (!dimensionValueNormalizationWarnLogged) {
+          logger.warning(() -> String.format(THROTTLE_INFO_TEMPLATE, messageSupplier.get()));
+          dimensionValueNormalizationWarnLogged = true;
+        } else {
+          logger.fine(messageSupplier);
+        }
       }
 
       tryAddDimensionTo(normalizedKey, normalizationResult.getResult(), targetDimensions);
