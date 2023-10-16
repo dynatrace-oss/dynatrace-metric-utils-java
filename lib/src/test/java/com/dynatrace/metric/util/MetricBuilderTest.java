@@ -15,8 +15,13 @@ package com.dynatrace.metric.util;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.dynatrace.testutils.StoreRecordsLogHandler;
 import java.time.Instant;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,7 +31,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 class MetricBuilderTest {
-
   @Test
   void testSetDoubleGauge() throws MetricException {
     String expected = "name gauge,1.23";
@@ -699,6 +703,102 @@ class MetricBuilderTest {
             .unit("unit")
             .displayName("displayName")
             .build());
+  }
+
+  @Test
+  void testLogWarnThenDebug_preConfiguration() throws MetricException {
+    // setup
+    Logger logger = Logger.getLogger(MetricLinePreConfiguration.class.getName());
+    Level previousLevel = logger.getLevel();
+    logger.setLevel(Level.FINE);
+
+    // inject a log handler that will collect the logs
+    StoreRecordsLogHandler handler = new StoreRecordsLogHandler();
+    logger.addHandler(handler);
+
+    // using a treemap to make sure the dims stay in order.
+    Map<String, String> defaultDims = new TreeMap<>();
+    defaultDims.put("def\u237Eault1", "va\u0000lue1");
+    defaultDims.put("def\u237Eault2", "va\u0000lue2");
+
+    MetricLinePreConfiguration preConfiguration =
+        MetricLinePreConfiguration.builder().defaultDimensions(defaultDims).build();
+
+    List<LogRecord> records = handler.getRecords();
+    assertEquals(4, records.size());
+    assertEquals(2, records.stream().filter(r -> r.getLevel() == Level.WARNING).count());
+    assertEquals(2, records.stream().filter(r -> r.getLevel() == Level.FINE).count());
+
+    List<String> expected = new ArrayList<>();
+    expected.add(
+        "Dimension key normalized from 'def\u237Eault1' to 'def_ault1'. Further normalization logs for data of the same type will be logged at debug level.");
+    expected.add(
+        "Dimension value normalized from 'va\u0000lue1' to 'va_lue1'. Further normalization logs for data of the same type will be logged at debug level.");
+    expected.add("Dimension key normalized from 'def\u237Eault2' to 'def_ault2'");
+    expected.add("Dimension value normalized from 'va\u0000lue2' to 'va_lue2'");
+    List<String> actual = records.stream().map(LogRecord::getMessage).collect(Collectors.toList());
+    assertLinesMatch(expected, actual);
+
+    // cleanup
+    logger.removeHandler(handler);
+    logger.setLevel(previousLevel);
+  }
+
+  @Test
+  void testLogWarnThenDebug_metricLine() throws MetricException {
+    // setup
+    Logger logger = Logger.getLogger(MetricLineBuilderImpl.class.getName());
+    Level previousLevel = logger.getLevel();
+    logger.setLevel(Level.FINE);
+
+    // inject a log handler that will collect the logs
+    StoreRecordsLogHandler handler = new StoreRecordsLogHandler();
+    logger.addHandler(handler);
+
+    // using a treemap to make sure the dims stay in order.
+    Map<String, String> dims = new TreeMap<>();
+    dims.put("dim\u237E1", "val\u00001");
+
+    String metricLine1 =
+        MetricLineBuilder.create()
+            .metricKey("1my.metric")
+            .dimensions(dims)
+            .gauge()
+            .value(3)
+            .build();
+    String metricLine2 =
+        MetricLineBuilder.create()
+            .metricKey("2another.metric")
+            .dimensions(dims)
+            .count()
+            .delta(3)
+            .build();
+
+    assertEquals("_my.metric,dim_1=val_1 gauge,3", metricLine1);
+    assertEquals("_another.metric,dim_1=val_1 count,delta=3", metricLine2);
+
+    List<LogRecord> records = handler.getRecords();
+    assertEquals(6, records.size());
+    // 1 for metric key, 1 for dim key, 1 for dim value
+    assertEquals(3, records.stream().filter(r -> r.getLevel() == Level.WARNING).count());
+    assertEquals(3, records.stream().filter(r -> r.getLevel() == Level.FINE).count());
+
+    List<String> expected = new ArrayList<>();
+    expected.add(
+        "Metric key normalized from '1my.metric' to '_my.metric'. Further normalization logs for data of the same type will be logged at debug level.");
+    expected.add(
+        "[_my.metric] Dimension key normalized from 'dim\u237E1' to 'dim_1'. Further normalization logs for data of the same type will be logged at debug level.");
+    expected.add(
+        "[_my.metric] Dimension value normalized from 'val\u00001' to 'val_1'. Further normalization logs for data of the same type will be logged at debug level.");
+    expected.add("Metric key normalized from '2another.metric' to '_another.metric'");
+    expected.add("[_another.metric] Dimension key normalized from 'dim\u237E1' to 'dim_1'");
+    expected.add("[_another.metric] Dimension value normalized from 'val\u00001' to 'val_1'");
+    List<String> actual = records.stream().map(LogRecord::getMessage).collect(Collectors.toList());
+    assertLinesMatch(expected, actual);
+
+    // cleanup
+    logger.removeHandler(handler);
+    logger.setLevel(previousLevel);
   }
 
   private void assertListsEqualIgnoreOrder(List<String> expected, List<String> actual) {
