@@ -122,6 +122,6 @@ final class MetricLineConstants {
             + "Only one out of every %d of these messages will be printed.";
 
     static final String THROTTLE_INFO_TEMPLATE =
-        "%s. Further metric key normalization logs will be logged at debug level.";
+        "%s. Further normalization logs for data of the same type will be logged at debug level.";
   }
 }
