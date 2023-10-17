@@ -308,7 +308,7 @@ public class MetricLinePreConfiguration {
   }
 
   // VisibleForTesting
-  static void resetForTest(){
+  static void resetForTest() {
     dimensionKeyNormalizationWarnLogged = false;
     dimensionValueNormalizationWarnLogged = false;
   }
