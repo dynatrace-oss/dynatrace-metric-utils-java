@@ -71,6 +71,13 @@ class MetricLineBuilderImpl
     return new MetricLineBuilderImpl(preConfig);
   }
 
+  // VisibleForTesting
+  static void resetForTest() {
+    metricKeyNormalizationWarnLogged = false;
+    dimensionKeyNormalizationWarnLogged = false;
+    dimensionValueNormalizationWarnLogged = false;
+  }
+
   @Override
   public MetricLineBuilder.TypeStep metricKey(String key) throws MetricException {
     if (StringValueValidator.isNullOrEmpty(key)) {

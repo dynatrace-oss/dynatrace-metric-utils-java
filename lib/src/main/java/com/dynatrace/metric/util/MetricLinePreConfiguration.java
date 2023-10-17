@@ -306,4 +306,10 @@ public class MetricLinePreConfiguration {
       targetDimensions.put(normalizedKey, normalizedValue);
     }
   }
+
+  // VisibleForTesting
+  static void resetForTest(){
+    dimensionKeyNormalizationWarnLogged = false;
+    dimensionValueNormalizationWarnLogged = false;
+  }
 }

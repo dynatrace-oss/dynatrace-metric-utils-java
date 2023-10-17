@@ -14,6 +14,7 @@
 package com.dynatrace.metric.util;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import com.dynatrace.testutils.StoreRecordsLogHandler;
 import java.time.Instant;
@@ -716,6 +717,8 @@ class MetricBuilderTest {
     StoreRecordsLogHandler handler = new StoreRecordsLogHandler();
     logger.addHandler(handler);
 
+    MetricLinePreConfiguration.resetForTest();
+
     // using a treemap to make sure the dims stay in order.
     Map<String, String> defaultDims = new TreeMap<>();
     defaultDims.put("def\u237Eault1", "va\u0000lue1");
@@ -754,6 +757,8 @@ class MetricBuilderTest {
     // inject a log handler that will collect the logs
     StoreRecordsLogHandler handler = new StoreRecordsLogHandler();
     logger.addHandler(handler);
+
+    MetricLineBuilderImpl.resetForTest();
 
     // using a treemap to make sure the dims stay in order.
     Map<String, String> dims = new TreeMap<>();
