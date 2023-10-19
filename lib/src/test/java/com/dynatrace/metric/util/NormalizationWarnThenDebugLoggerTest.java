@@ -1,0 +1,97 @@
+package com.dynatrace.metric.util;
+
+import static org.mockito.Mockito.*;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+class NormalizationWarnThenDebugLoggerTest {
+  private static final NormalizationResult RESULT_1 =
+      NormalizationResult.newWarning("result1", () -> "first warning message");
+  private static final NormalizationResult RESULT_2 =
+      NormalizationResult.newWarning("result2", () -> "second warning message");
+  private static final String METRIC_KEY_1 = "metric.key.first";
+  private static final String METRIC_KEY_2 = "metric.key.second";
+  private static final String DIMENSION_KEY_1 = "dimension.key.first";
+  private static final String DIMENSION_KEY_2 = "dimension.key.second";
+
+  private Logger mockLogger;
+  private NormalizationWarnThenDebugLogger warnThenDebugLogger;
+
+  @BeforeEach
+  void beforeEach() {
+    mockLogger = mock(Logger.class);
+    // In order to verify success in the tests, log records at any log level.
+    when(mockLogger.isLoggable(any(Level.class))).thenReturn(true);
+
+    warnThenDebugLogger = new NormalizationWarnThenDebugLogger(mockLogger);
+  }
+
+  @Test
+  void logMetricKeyMessage_logsWarnThenDebug() {
+    // should be logged at warn
+    warnThenDebugLogger.logMetricKeyMessage(RESULT_1);
+    // should be logged at fine
+    warnThenDebugLogger.logMetricKeyMessage(RESULT_2);
+
+    verify(mockLogger, atLeastOnce()).isLoggable(Level.WARNING);
+    verify(mockLogger, atLeastOnce()).isLoggable(Level.FINE);
+    verify(mockLogger)
+        .warning(
+            RESULT_1.getMessage()
+                + ". Further normalization logs for data of the same type will be logged at debug level.");
+    verify(mockLogger).fine(RESULT_2.getMessage());
+    verifyNoMoreInteractions(mockLogger);
+  }
+
+  @Test
+  void logDimensionKeyMessage_logsWarnThenDebug() {
+    warnThenDebugLogger.logDimensionKeyMessage(METRIC_KEY_1, RESULT_1);
+    warnThenDebugLogger.logDimensionKeyMessage(METRIC_KEY_1, RESULT_2);
+    warnThenDebugLogger.logDimensionKeyMessage(METRIC_KEY_2, RESULT_1);
+
+    verify(mockLogger, atLeastOnce()).isLoggable(Level.WARNING);
+    verify(mockLogger, atLeast(2)).isLoggable(Level.FINE);
+    // first message is logged at warn with the additional info that further logs will be logged at
+    // debug.
+    verify(mockLogger)
+        .warning(
+            String.format(
+                "[%s] %s. %s",
+                METRIC_KEY_1,
+                RESULT_1.getMessage(),
+                "Further normalization logs for data of the same type will be logged at debug level."));
+    // all further messages are logged at debug level, independent of the metric key or message.
+    verify(mockLogger).fine(String.format("[%s] %s", METRIC_KEY_1, RESULT_2.getMessage()));
+    verify(mockLogger).fine(String.format("[%s] %s", METRIC_KEY_2, RESULT_1.getMessage()));
+    verifyNoMoreInteractions(mockLogger);
+  }
+
+  @Test
+  void logDimensionValueMessage_logsWarnThenDebug() {
+    warnThenDebugLogger.logDimensionValueMessage(METRIC_KEY_1, DIMENSION_KEY_1, RESULT_1);
+    warnThenDebugLogger.logDimensionValueMessage(METRIC_KEY_1, DIMENSION_KEY_1, RESULT_2);
+    warnThenDebugLogger.logDimensionValueMessage(METRIC_KEY_2, DIMENSION_KEY_2, RESULT_1);
+
+    verify(mockLogger, atLeastOnce()).isLoggable(Level.WARNING);
+    verify(mockLogger, atLeast(2)).isLoggable(Level.FINE);
+    // first message is logged at warn with the additional info that further logs will be logged at
+    // debug.
+    verify(mockLogger)
+        .warning(
+            String.format(
+                "[%s | %s] %s. %s",
+                METRIC_KEY_1,
+                DIMENSION_KEY_1,
+                RESULT_1.getMessage(),
+                "Further normalization logs for data of the same type will be logged at debug level."));
+    // all further messages are logged at debug level, independent of the metric key or message.
+    verify(mockLogger)
+        .fine(String.format("[%s | %s] %s", METRIC_KEY_1, DIMENSION_KEY_1, RESULT_2.getMessage()));
+    verify(mockLogger)
+        .fine(String.format("[%s | %s] %s", METRIC_KEY_2, DIMENSION_KEY_2, RESULT_1.getMessage()));
+    verifyNoMoreInteractions(mockLogger);
+  }
+}

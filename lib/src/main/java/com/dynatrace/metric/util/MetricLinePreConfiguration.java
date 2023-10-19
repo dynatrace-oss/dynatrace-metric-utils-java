@@ -13,14 +13,11 @@
  */
 package com.dynatrace.metric.util;
 
-import static com.dynatrace.metric.util.MetricLineConstants.ValidationMessages.THROTTLE_INFO_TEMPLATE;
-
 import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
@@ -31,6 +28,10 @@ import java.util.logging.Logger;
  */
 public class MetricLinePreConfiguration {
   private static final Logger logger = Logger.getLogger(MetricLinePreConfiguration.class.getName());
+  private static final NormalizationWarnThenDebugLogger normalizationLogger =
+      new NormalizationWarnThenDebugLogger(logger);
+  private static final String CLASS_NAME_FOR_LOGGING =
+      String.format("{%s}", MetricLinePreConfiguration.class.getSimpleName());
   private static final MetricLinePreConfiguration EMPTY_PRE_CONFIG =
       new MetricLinePreConfiguration(null, Collections.emptyMap(), Collections.emptyMap(), 0);
 
@@ -38,8 +39,6 @@ public class MetricLinePreConfiguration {
   private final Map<String, String> defaultDimensions;
   private final String prefix;
   private final int serializationLength;
-  private static boolean dimensionValueNormalizationWarnLogged;
-  private static boolean dimensionKeyNormalizationWarnLogged;
 
   private MetricLinePreConfiguration(
       String prefix,
@@ -224,17 +223,11 @@ public class MetricLinePreConfiguration {
 
       String normalizedKey = key;
       if (DimensionKeyValidator.normalizationRequired(key)) {
-        NormalizationResult normalizationResult = Normalizer.normalizeDimensionKey(key);
+        NormalizationResult normalizeKeyResult = Normalizer.normalizeDimensionKey(key);
 
-        normalizedKey = normalizationResult.getResult();
-        if (normalizationResult.messageType() != NormalizationResult.MessageType.NONE) {
-          Supplier<String> messageSupplier = () -> normalizationResult.getMessage();
-          if (!dimensionKeyNormalizationWarnLogged) {
-            logger.warning(() -> String.format(THROTTLE_INFO_TEMPLATE, messageSupplier.get()));
-            dimensionKeyNormalizationWarnLogged = true;
-          } else {
-            logger.fine(messageSupplier);
-          }
+        normalizedKey = normalizeKeyResult.getResult();
+        if (normalizeKeyResult.messageType() != NormalizationResult.MessageType.NONE) {
+          normalizationLogger.logDimensionKeyMessage(CLASS_NAME_FOR_LOGGING, normalizeKeyResult);
         }
       }
 
@@ -248,20 +241,15 @@ public class MetricLinePreConfiguration {
         return;
       }
 
-      NormalizationResult normalizationResult =
+      NormalizationResult normalizeValueResult =
           Normalizer.normalizeDimensionValue(
               value, MetricLineConstants.Limits.MAX_DIMENSION_VALUE_LENGTH);
-      if (normalizationResult.messageType() != NormalizationResult.MessageType.NONE) {
-        Supplier<String> messageSupplier = () -> normalizationResult.getMessage();
-        if (!dimensionValueNormalizationWarnLogged) {
-          logger.warning(() -> String.format(THROTTLE_INFO_TEMPLATE, messageSupplier.get()));
-          dimensionValueNormalizationWarnLogged = true;
-        } else {
-          logger.fine(messageSupplier);
-        }
+      if (normalizeValueResult.messageType() != NormalizationResult.MessageType.NONE) {
+        normalizationLogger.logDimensionValueMessage(
+            CLASS_NAME_FOR_LOGGING, normalizedKey, normalizeValueResult);
       }
 
-      tryAddDimensionTo(normalizedKey, normalizationResult.getResult(), targetDimensions);
+      tryAddDimensionTo(normalizedKey, normalizeValueResult.getResult(), targetDimensions);
     }
 
     /**
@@ -305,11 +293,5 @@ public class MetricLinePreConfiguration {
       this.dimensionCount++;
       targetDimensions.put(normalizedKey, normalizedValue);
     }
-  }
-
-  // VisibleForTesting
-  static void resetForTest() {
-    dimensionKeyNormalizationWarnLogged = false;
-    dimensionValueNormalizationWarnLogged = false;
   }
 }

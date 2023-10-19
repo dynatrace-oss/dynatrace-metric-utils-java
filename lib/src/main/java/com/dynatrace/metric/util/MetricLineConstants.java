@@ -121,7 +121,10 @@ final class MetricLineConstants {
             + "Skipping setting timestamp, the current server time will be added upon ingestion. "
             + "Only one out of every %d of these messages will be printed.";
 
+    static final String PREFIX_STRING = "[%s] %s";
     static final String THROTTLE_INFO_TEMPLATE =
         "%s. Further normalization logs for data of the same type will be logged at debug level.";
+    static final String THROTTLE_INFO_WITH_PREFIX =
+        String.format(THROTTLE_INFO_TEMPLATE, PREFIX_STRING);
   }
 }
