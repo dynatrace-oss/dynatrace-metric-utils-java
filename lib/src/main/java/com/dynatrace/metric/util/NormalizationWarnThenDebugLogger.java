@@ -15,14 +15,15 @@ package com.dynatrace.metric.util;
 
 import static com.dynatrace.metric.util.MetricLineConstants.ValidationMessages.*;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class NormalizationWarnThenDebugLogger {
 
-  private boolean metricKeyNormalizationWarnLogged = false;
-  private boolean dimensionKeyNormalizationWarnLogged = false;
-  private boolean dimensionValueNormalizationWarnLogged = false;
+  private final AtomicBoolean metricKeyNormalizationWarnLogged = new AtomicBoolean(false);
+  private final AtomicBoolean dimensionKeyNormalizationWarnLogged = new AtomicBoolean(false);
+  private final AtomicBoolean dimensionValueNormalizationWarnLogged = new AtomicBoolean(false);
   private static final String METRIC_KEY_AND_DIMENSION_KEY_TEMPLATE = "%s | %s";
   private final Logger logger;
 
@@ -31,11 +32,12 @@ class NormalizationWarnThenDebugLogger {
   }
 
   void logMetricKeyMessage(NormalizationResult normalizationResult) {
-    if (!metricKeyNormalizationWarnLogged) {
+    // if the AtomicBoolean is currently false, take this branch of the if and set the boolean to
+    // true.
+    if (metricKeyNormalizationWarnLogged.compareAndSet(false, true)) {
       if (logger.isLoggable(Level.WARNING)) {
         logger.warning(String.format(THROTTLE_INFO_TEMPLATE, normalizationResult.getMessage()));
       }
-      metricKeyNormalizationWarnLogged = true;
     } else {
       if (logger.isLoggable(Level.FINE)) {
         logger.fine(normalizationResult.getMessage());
@@ -44,12 +46,11 @@ class NormalizationWarnThenDebugLogger {
   }
 
   public void logDimensionKeyMessage(String metricKey, NormalizationResult normalizationResult) {
-    if (!dimensionKeyNormalizationWarnLogged) {
+    if (dimensionKeyNormalizationWarnLogged.compareAndSet(false, true)) {
       if (logger.isLoggable(Level.WARNING)) {
         logger.warning(
             String.format(THROTTLE_INFO_WITH_PREFIX, metricKey, normalizationResult.getMessage()));
       }
-      dimensionKeyNormalizationWarnLogged = true;
     } else {
       if (logger.isLoggable(Level.FINE)) {
         logger.fine(String.format(PREFIX_STRING, metricKey, normalizationResult.getMessage()));
@@ -59,14 +60,13 @@ class NormalizationWarnThenDebugLogger {
 
   public void logDimensionValueMessage(
       String metricKey, String dimensionKey, NormalizationResult normalizationResult) {
-    if (!dimensionValueNormalizationWarnLogged) {
+    if (dimensionValueNormalizationWarnLogged.compareAndSet(false, true)) {
       if (logger.isLoggable(Level.WARNING)) {
         String identifier =
             String.format(METRIC_KEY_AND_DIMENSION_KEY_TEMPLATE, metricKey, dimensionKey);
         logger.warning(
             String.format(THROTTLE_INFO_WITH_PREFIX, identifier, normalizationResult.getMessage()));
       }
-      dimensionValueNormalizationWarnLogged = true;
     } else {
       if (logger.isLoggable(Level.FINE)) {
         String identifier =
