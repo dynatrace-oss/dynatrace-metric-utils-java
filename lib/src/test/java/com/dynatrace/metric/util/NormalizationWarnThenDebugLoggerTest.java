@@ -30,12 +30,12 @@ class NormalizationWarnThenDebugLoggerTest {
   private static final String DIMENSION_KEY_1 = "dimension.key.first";
   private static final String DIMENSION_KEY_2 = "dimension.key.second";
 
-  private Logger mockLogger;
+  private final Logger mockLogger = mock(Logger.class);;
   private NormalizationWarnThenDebugLogger warnThenDebugLogger;
 
   @BeforeEach
   void beforeEach() {
-    mockLogger = mock(Logger.class);
+    reset(mockLogger);
     // In order to verify success in the tests, log records at any log level.
     when(mockLogger.isLoggable(any(Level.class))).thenReturn(true);
 
