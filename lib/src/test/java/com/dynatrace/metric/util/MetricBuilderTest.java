@@ -14,7 +14,6 @@
 package com.dynatrace.metric.util;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import java.time.Instant;
 import java.util.*;
@@ -27,6 +26,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 class MetricBuilderTest {
+
   @Test
   void testSetDoubleGauge() throws MetricException {
     String expected = "name gauge,1.23";
