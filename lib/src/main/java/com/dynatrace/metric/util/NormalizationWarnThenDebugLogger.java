@@ -20,9 +20,9 @@ import java.util.logging.Logger;
 
 class NormalizationWarnThenDebugLogger {
 
-  private static boolean metricKeyNormalizationWarnLogged = false;
-  private static boolean dimensionKeyNormalizationWarnLogged = false;
-  private static boolean dimensionValueNormalizationWarnLogged = false;
+  private boolean metricKeyNormalizationWarnLogged = false;
+  private boolean dimensionKeyNormalizationWarnLogged = false;
+  private boolean dimensionValueNormalizationWarnLogged = false;
   private static final String METRIC_KEY_AND_DIMENSION_KEY_TEMPLATE = "%s | %s";
   private final Logger logger;
 
