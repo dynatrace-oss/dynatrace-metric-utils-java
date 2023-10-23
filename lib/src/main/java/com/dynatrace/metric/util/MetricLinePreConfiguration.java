@@ -28,6 +28,10 @@ import java.util.logging.Logger;
  */
 public class MetricLinePreConfiguration {
   private static final Logger logger = Logger.getLogger(MetricLinePreConfiguration.class.getName());
+  private static final NormalizationWarnThenDebugLogger normalizationLogger =
+      new NormalizationWarnThenDebugLogger(logger);
+  private static final String CLASS_NAME_FOR_LOGGING =
+      String.format("{%s}", MetricLinePreConfiguration.class.getSimpleName());
   private static final MetricLinePreConfiguration EMPTY_PRE_CONFIG =
       new MetricLinePreConfiguration(null, Collections.emptyMap(), Collections.emptyMap(), 0);
 
@@ -175,7 +179,7 @@ public class MetricLinePreConfiguration {
         }
 
         for (Map.Entry<String, String> entry : this.defaultDimensions.entrySet()) {
-          // key needs to be normalized before checking if it aleady exists, which is why the
+          // key needs to be normalized before checking if it already exists, which is why the
           // `containsKey` method needs to be passed in here.
           dimension(
               entry.getKey(),
@@ -219,11 +223,11 @@ public class MetricLinePreConfiguration {
 
       String normalizedKey = key;
       if (DimensionKeyValidator.normalizationRequired(key)) {
-        NormalizationResult normalizationResult = Normalizer.normalizeDimensionKey(key);
+        NormalizationResult normalizeKeyResult = Normalizer.normalizeDimensionKey(key);
 
-        normalizedKey = normalizationResult.getResult();
-        if (normalizationResult.messageType() != NormalizationResult.MessageType.NONE) {
-          logger.warning(() -> normalizationResult.getMessage());
+        normalizedKey = normalizeKeyResult.getResult();
+        if (normalizeKeyResult.messageType() != NormalizationResult.MessageType.NONE) {
+          normalizationLogger.logDimensionKeyMessage(CLASS_NAME_FOR_LOGGING, normalizeKeyResult);
         }
       }
 
@@ -237,14 +241,15 @@ public class MetricLinePreConfiguration {
         return;
       }
 
-      NormalizationResult normalizationResult =
+      NormalizationResult normalizeValueResult =
           Normalizer.normalizeDimensionValue(
               value, MetricLineConstants.Limits.MAX_DIMENSION_VALUE_LENGTH);
-      if (normalizationResult.messageType() != NormalizationResult.MessageType.NONE) {
-        logger.warning(() -> normalizationResult.getMessage());
+      if (normalizeValueResult.messageType() != NormalizationResult.MessageType.NONE) {
+        normalizationLogger.logDimensionValueMessage(
+            CLASS_NAME_FOR_LOGGING, normalizedKey, normalizeValueResult);
       }
 
-      tryAddDimensionTo(normalizedKey, normalizationResult.getResult(), targetDimensions);
+      tryAddDimensionTo(normalizedKey, normalizeValueResult.getResult(), targetDimensions);
     }
 
     /**

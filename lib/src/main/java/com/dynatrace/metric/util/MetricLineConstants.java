@@ -92,12 +92,12 @@ final class MetricLineConstants {
         "[%s] " + TOO_MANY_DIMENSIONS_MESSAGE;
 
     // warnings
-    static final String METRIC_KEY_NORMALIZED_MESSAGE = "Metric key normalized from: '%s' to: '%s'";
+    static final String METRIC_KEY_NORMALIZED_MESSAGE = "Metric key normalized from '%s' to '%s'";
 
     static final String DIMENSION_KEY_NORMALIZED_MESSAGE =
-        "Dimension key normalized from: '%s' to: '%s'";
+        "Dimension key normalized from '%s' to '%s'";
     static final String DIMENSION_VALUE_NORMALIZED_MESSAGE =
-        "Dimension value normalized from: '%s' to: '%s'";
+        "Dimension value normalized from '%s' to '%s'";
     static final String DIMENSION_DROPPED_KEY_EMPTY_MESSAGE =
         "Dimension with empty dimension key has been dropped";
     static final String DIMENSION_DROPPED_KEY_EMPTY_WITH_METRIC_KEY_MESSAGE =
@@ -120,5 +120,11 @@ final class MetricLineConstants {
             + "The timestamp represents a time before the year 2000 or after the year 3000. "
             + "Skipping setting timestamp, the current server time will be added upon ingestion. "
             + "Only one out of every %d of these messages will be printed.";
+
+    static final String PREFIX_STRING = "[%s] %s";
+    static final String THROTTLE_INFO_TEMPLATE =
+        "%s. Further normalization logs for data of the same type will be logged at debug level.";
+    static final String THROTTLE_INFO_WITH_PREFIX =
+        String.format(THROTTLE_INFO_TEMPLATE, PREFIX_STRING);
   }
 }

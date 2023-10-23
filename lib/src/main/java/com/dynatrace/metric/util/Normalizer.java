@@ -131,7 +131,7 @@ final class Normalizer {
 
     String normalizedMetricKey = sb.toString();
     if (invalidCharsEncountered > 0 || needsToTruncate) {
-      return NormalizationResult.newValid(
+      return NormalizationResult.newWarning(
           normalizedMetricKey,
           () ->
               String.format(
@@ -226,7 +226,7 @@ final class Normalizer {
 
     String normalizedDimKey = sb.toString();
     if (invalidCharsEncountered > 0 || needsToTruncate) {
-      return NormalizationResult.newValid(
+      return NormalizationResult.newWarning(
           normalizedDimKey,
           () ->
               String.format(
@@ -318,7 +318,7 @@ final class Normalizer {
 
     String normalizedDimValue = sb.toString();
     if (invalidCharsEncountered > 0 || wasTruncated) {
-      return NormalizationResult.newValid(
+      return NormalizationResult.newWarning(
           normalizedDimValue,
           () ->
               String.format(
@@ -410,7 +410,7 @@ final class Normalizer {
     }
     String normalizedDimValue = sb.toString();
     if (invalidCharsEncountered > 0 || wasTruncated) {
-      return NormalizationResult.newValid(
+      return NormalizationResult.newWarning(
           normalizedDimValue,
           () ->
               String.format(

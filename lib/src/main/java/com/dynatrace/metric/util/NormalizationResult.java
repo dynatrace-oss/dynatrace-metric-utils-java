@@ -38,7 +38,7 @@ final class NormalizationResult {
     return new NormalizationResult(result, MessageType.NONE, null);
   }
 
-  static NormalizationResult newValid(String result, Supplier<String> message) {
+  static NormalizationResult newWarning(String result, Supplier<String> message) {
     return new NormalizationResult(result, MessageType.WARNING, message);
   }
 
