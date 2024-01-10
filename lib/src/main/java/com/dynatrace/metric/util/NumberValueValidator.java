@@ -91,9 +91,8 @@ final class NumberValueValidator {
     // val1 slightly < val2 -> val1 - val2 == negative     | result <= tolerance -> true
     // val1 much < val2 -> val1 - val2 == negative         | result <= tolerance -> true
     //
-    // val2 > val2: should only evaluate to true if
-    // - val1 is smaller than val2, or if
-    // - val1 is bigger than val2 but within the tolerance
+    // val1 > val2: should only evaluate to true if
+    // - val1 is bigger than val2 but within the tolerance:
     // val1 slightly > val2 -> val1 - val2 == small number | result <= tolerance -> true
     // val1 much > val2 -> val1 - val2 == larger number    | result > tolerance -> false
     if ((val1 - val2) <= COMPARISON_ABSOLUTE_TOLERANCE) {
