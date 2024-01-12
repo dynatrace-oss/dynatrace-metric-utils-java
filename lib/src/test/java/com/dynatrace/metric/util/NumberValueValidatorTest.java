@@ -32,10 +32,32 @@ public class NumberValueValidatorTest {
   }
 
   @Test
+  void testInconsistentGaugeFields() {
+    // min > avg
+    assertFalse(NumberValueValidator.isSummaryValid(2.5, 3, 6, 3).isValid());
+    assertFalse(NumberValueValidator.isSummaryValid(5, 3, 3, 1).isValid());
+    assertFalse(NumberValueValidator.isSummaryValid(-2, -2, -5, 2).isValid());
+
+    // max < avg
+    assertFalse(NumberValueValidator.isSummaryValid(2, 2, 5, 3).isValid());
+    assertFalse(NumberValueValidator.isSummaryValid(10.5, 10.6, 21.3, 1).isValid());
+    assertFalse(NumberValueValidator.isSummaryValid(-5.3, -4.1, -5, 2).isValid());
+
+    // test tolerances (tolerance == 0.000001);
+    // avg == 2; min <= avg does not hold (but is within tolerance).
+    assertTrue(NumberValueValidator.isSummaryValid(2.0000001, 3, 4, 2).isValid());
+    // avg == -2; min <= avg does not hold (but is within tolerance)
+    assertTrue(NumberValueValidator.isSummaryValid(-1.999999, -1, -4, 2).isValid());
+
+    // avg == 2; max >= avg does not hold (but is within tolerance)
+    assertTrue(NumberValueValidator.isSummaryValid(1.5, 1.999999, 4, 2).isValid());
+    // avg == -2; max >= avg does not hold (but is within tolerance)
+    assertTrue(NumberValueValidator.isSummaryValid(-2.5, -2.0000001, -4, 2).isValid());
+  }
+
+  @Test
   void testSummaryValidator() {
-    assertTrue(() -> NumberValueValidator.isSummaryValid(10.5, 10.6, 21.3, 1).isValid());
     assertTrue(() -> NumberValueValidator.isSummaryValid(-1.3, 4.1, 5, 2).isValid());
-    assertTrue(() -> NumberValueValidator.isSummaryValid(-5.3, -4.1, -5, 2).isValid());
 
     assertTrue(NumberValueValidator.isSummaryValid(0, 0, 0, 0).isValid());
     assertFalse(NumberValueValidator.isSummaryValid(0, 0, 0, -1).isValid());

@@ -73,6 +73,8 @@ final class MetricLineConstants {
     static final String GAUGE_NAN_MESSAGE = "NaN values: min: %f, max %f, sum: %f, count: %d";
     static final String GAUGE_MIN_GREATER_MAX_MESSAGE =
         "max < min: min: %f, max: %f, sum: %f, count: %d";
+    static final String GAUGE_INCONSISTENT_FIELDS_MESSAGE =
+        "inconsistent gauge fields: min <= avg <= max doesn't hold: min: %f, max: %f, sum: %f, count: %d, avg: %f, tolerance: %f";
 
     static final String VALUE_NAN_MESSAGE = "Metric value was NaN";
     static final String VALUE_INFINITE_MESSAGE = "Metric value was infinite (%f)";

@@ -17,6 +17,7 @@ import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
 
 /** Offers validation methods for metric-line values */
 final class NumberValueValidator {
+  private static final double COMPARISON_ABSOLUTE_TOLERANCE = 0.000001D;
 
   private NumberValueValidator() {}
 
@@ -59,7 +60,46 @@ final class NumberValueValidator {
               String.format(
                   ValidationMessages.GAUGE_MIN_GREATER_MAX_MESSAGE, min, max, sum, count));
     }
+
+    double avg = sum / count;
+    if (!(lessOrEqualWithAbsoluteTolerance(min, avg)
+        && lessOrEqualWithAbsoluteTolerance(avg, max))) {
+      // in this case the min <= avg <= max does not hold
+      return BooleanResultMessage.newInvalid(
+          () ->
+              String.format(
+                  ValidationMessages.GAUGE_INCONSISTENT_FIELDS_MESSAGE,
+                  min,
+                  max,
+                  sum,
+                  count,
+                  avg,
+                  COMPARISON_ABSOLUTE_TOLERANCE));
+    }
+
     return BooleanResultMessage.newValid();
+  }
+
+  private static boolean lessOrEqualWithAbsoluteTolerance(double val1, double val2) {
+    // equals
+    if (Double.valueOf(val1).equals(Double.valueOf(val2))) {
+      return true;
+    }
+
+    // not equal, two cases:
+    // val1 < val2: should always evaluate to true
+    // val1 slightly < val2 -> val1 - val2 == negative     | result <= tolerance -> true
+    // val1 much < val2 -> val1 - val2 == negative         | result <= tolerance -> true
+    //
+    // val1 > val2: should only evaluate to true if
+    // - val1 is bigger than val2 but within the tolerance:
+    // val1 slightly > val2 -> val1 - val2 == small number | result <= tolerance -> true
+    // val1 much > val2 -> val1 - val2 == larger number    | result > tolerance -> false
+    if ((val1 - val2) <= COMPARISON_ABSOLUTE_TOLERANCE) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
