@@ -77,7 +77,11 @@ class UnitValidatorTest {
             Arguments.of("valid percent sign", "%"),
             Arguments.of("valid forward slash", "/"),
             Arguments.of("valid underscore", "_"),
-            Arguments.of("valid all combined", "[ab09YZ%/_]"));
+            Arguments.of("valid all combined", "{[ab09YZ%/_]}"),
+            Arguments.of("valid open curly bracket", "{"),
+            Arguments.of("valid closed curly bracket", "}"),
+            Arguments.of("valid text enclosed in curly brackets", "{unit}")
+        );
 
     return Stream.concat(
         lowercaseLetters, Stream.concat(uppercaseLetters, Stream.concat(digits, specialCases)));
@@ -89,9 +93,6 @@ class UnitValidatorTest {
         Arguments.of("invalid NUL char", TestUtils.codePointToString(0)),
         Arguments.of("invalid Dollar sign", "$"),
         Arguments.of("invalid Euro sign", "\u20AC"),
-        Arguments.of("invalid open curly bracket", "{"),
-        Arguments.of("invalid closed curly bracket", "}"),
-        Arguments.of("invalid text enclosed in curly brackets", "{unit}"),
         // these are all characters that might occur in the metric line itself but not in the unit
         // string.
         Arguments.of("invalid space", " "),
