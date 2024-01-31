@@ -51,7 +51,8 @@ final class UnitValidator {
    * @return True if the codepoint is an allowed char, otherwise false.
    */
   private static boolean isAllowedChar(int codePoint) {
-    // Uppercase and lowercase letters, numbers and these special characters (not the comma): %, [, ], {, }, /, _
+    // Uppercase and lowercase letters, numbers and these special characters (not the comma): %, [,
+    // ], {, }, /, _
     return isLetter(codePoint)
         || isNumber(codePoint)
         || codePoint == CodePoints.PERCENT_SIGN

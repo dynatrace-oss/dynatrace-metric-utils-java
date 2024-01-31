@@ -80,8 +80,7 @@ class UnitValidatorTest {
             Arguments.of("valid all combined", "{[ab09YZ%/_]}"),
             Arguments.of("valid open curly bracket", "{"),
             Arguments.of("valid closed curly bracket", "}"),
-            Arguments.of("valid text enclosed in curly brackets", "{unit}")
-        );
+            Arguments.of("valid text enclosed in curly brackets", "{unit}"));
 
     return Stream.concat(
         lowercaseLetters, Stream.concat(uppercaseLetters, Stream.concat(digits, specialCases)));
