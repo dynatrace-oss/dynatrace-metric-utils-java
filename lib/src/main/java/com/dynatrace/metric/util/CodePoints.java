@@ -37,7 +37,9 @@ final class CodePoints {
 
   static final int PERCENT_SIGN = "%".codePointAt(0);
   static final int OPEN_SQUARE_BRACKET = "[".codePointAt(0);
-  static final int CLOSE_SQUARE_BRACKET = "]".codePointAt(0);
+  static final int CLOSED_SQUARE_BRACKET = "]".codePointAt(0);
+  static final int OPEN_CURLY_BRACKET = "{".codePointAt(0);
+  static final int CLOSED_CURLY_BRACKET = "}".codePointAt(0);
   static final int FORWARD_SLASH = "/".codePointAt(0);
 
   static final int UC_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS_START = 0x1F900;
