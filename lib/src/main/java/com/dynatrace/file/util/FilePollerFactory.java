@@ -29,14 +29,14 @@ class FilePollerFactory {
   /**
    * Creates the default {@link FilePoller}.
    *
-   * @implNote This method may choose to use a {@link java.nio.file.WatchService}-based implementation
-   * which can be problematic when used in conjunction with container bind-mounts. If the resulting {@link FilePoller}
-   * will be used in such a manner, consider using {@link FilePollerFactory#getPollBased(String, Duration)}.
-   *
+   * @implNote This method may choose to use a {@link java.nio.file.WatchService}-based
+   *     implementation which can be problematic when used in conjunction with container
+   *     bind-mounts. If the resulting {@link FilePoller} will be used in such a manner, consider
+   *     using {@link FilePollerFactory#getPollBased(String, Duration)}.
    * @param fileName The name of the file to be watched.
-   * @param pollInterval The interval in which the {@link FilePoller} will update, if applicable. Interval MAY not apply
-   *                     to {@link java.nio.file.WatchService} based implementations.
-   *                     Will default to 60s if {@code null} is passed.
+   * @param pollInterval The interval in which the {@link FilePoller} will update, if applicable.
+   *     Interval MAY not apply to {@link java.nio.file.WatchService} based implementations. Will
+   *     default to 60s if {@code null} is passed.
    * @return An object that implements the abstract methods on {@link FilePoller}.
    * @throws IOException if the initialization of the {@link FilePoller} is not successful
    */
