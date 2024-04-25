@@ -32,7 +32,7 @@ class FilePollerFactory {
    * @implNote This method may choose to use a {@link java.nio.file.WatchService}-based
    *     implementation which can be problematic when used in conjunction with container
    *     bind-mounts. If the resulting {@link FilePoller} will be used in such a manner, consider
-   *     using {@link FilePollerFactory#getPollBased(String, Duration)}.
+   *     using {@link FilePollerFactory#getPollBased(String, Duration)} instead.
    * @param fileName The name of the file to be watched.
    * @param pollInterval The interval in which the {@link FilePoller} will update, if applicable.
    *     Interval MAY not apply to {@link java.nio.file.WatchService} based implementations. Will
