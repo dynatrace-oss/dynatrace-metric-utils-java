@@ -56,13 +56,15 @@ public class DynatraceFileBasedConfigurationProvider {
       if (!Files.exists(Paths.get(fileName))) {
         logger.info("File based configuration does not exist, serving default config.");
       } else {
-        poller = FilePollerFactory.getDefault(fileName, pollInterval);
+        poller =
+            FilePollerFactory.getPollBased(
+                fileName, pollInterval != null ? pollInterval : Duration.ofSeconds(60));
       }
     } catch (InvalidPathException e) {
       // This happens on Windows, when the *nix filepath is not valid.
       logger.info(
           () -> String.format("%s is not a valid file path (%s).", fileName, e.getMessage()));
-    } catch (IOException | IllegalArgumentException e) {
+    } catch (IllegalArgumentException e) {
       logger.warning(
           () -> String.format("File polling could not be initialized: %s", e.getMessage()));
     }

@@ -27,19 +27,18 @@ class FilePollerFactory {
   private FilePollerFactory() {}
 
   /**
-   * Creates the default {@link FilePoller} based on the current OS.
+   * Creates the default {@link FilePoller}.
    *
-   * @implNote On Linux and Windows, * the poll mechanism is based on the {@link
-   *     java.nio.file.WatchService WatchService}. For macOS, * where there is no native
-   *     implementation for the {@link java.nio.file.WatchService WatchService} * bindings, this
-   *     method provides a {@link PollBasedFilePoller}, which polls the file of interest *
-   *     periodically (according to the {@code pollInterval}).
+   * @implNote This method may choose to use a {@link java.nio.file.WatchService}-based
+   *     implementation which can be problematic when used in conjunction with container
+   *     bind-mounts. If the resulting {@link FilePoller} will be used in such a manner, consider
+   *     using {@link FilePollerFactory#getPollBased(String, Duration)} instead.
    * @param fileName The name of the file to be watched.
-   * @param pollInterval The interval in which the {@link PollBasedFilePoller} polls for changes.
-   *     Only applicable on macOS. Will default to 60s if {@code null} is passed.
+   * @param pollInterval The interval in which the {@link FilePoller} will update, if applicable.
+   *     Interval MAY not apply to {@link java.nio.file.WatchService} based implementations. Will
+   *     default to 60s if {@code null} is passed.
    * @return An object that implements the abstract methods on {@link FilePoller}.
-   * @throws IOException if the initialization of the {@link WatchServiceBasedFilePoller} is not
-   *     successful.
+   * @throws IOException if the initialization of the {@link FilePoller} is not successful
    */
   static FilePoller getDefault(String fileName, Duration pollInterval) throws IOException {
     if (IS_MAC_OS) {
