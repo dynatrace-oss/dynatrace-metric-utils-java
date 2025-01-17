@@ -16,36 +16,28 @@ package com.dynatrace.file.util;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
+import java.util.zip.CRC32;
 
 class PollBasedFilePoller extends FilePoller {
   private static final Logger LOGGER = Logger.getLogger(PollBasedFilePoller.class.getName());
   private static final String LOG_MESSAGE_FAILED_FILE_READ = "Failed to read file %s. Error: %s";
 
   private final AtomicBoolean changedSinceLastInquiry = new AtomicBoolean(false);
-  private byte[] prevChecksumBytes;
 
   private final ScheduledFuture<?> worker;
   private final ScheduledExecutorService executorService;
 
-  private MessageDigest md5;
+  private final CRC32 crc32 = new CRC32();
+  private long prevChecksumValue = 0;
 
   protected PollBasedFilePoller(Path filePath, Duration pollInterval) {
     super(filePath);
     if (pollInterval == null) {
       throw new IllegalArgumentException("Poll interval cannot be null");
-    }
-
-    try {
-      md5 = MessageDigest.getInstance("MD5");
-    } catch (NoSuchAlgorithmException ignored) {
-      // ignore, since this is not something dependent on the code. MD5 should always be there.
     }
 
     executorService =
@@ -63,9 +55,6 @@ class PollBasedFilePoller extends FilePoller {
     worker =
         executorService.scheduleAtFixedRate(
             this::poll, pollInterval.toNanos(), pollInterval.toNanos(), TimeUnit.NANOSECONDS);
-
-    // read the initial checksum
-    prevChecksumBytes = getChecksumBytes();
   }
 
   @Override
@@ -75,36 +64,33 @@ class PollBasedFilePoller extends FilePoller {
   }
 
   private synchronized void poll() {
-    byte[] latestChecksumBytes = getChecksumBytes();
+    long latestChecksumValue = getChecksumValue();
+    if (latestChecksumValue != prevChecksumValue) {
+      prevChecksumValue = latestChecksumValue;
 
-    if (!Arrays.equals(latestChecksumBytes, prevChecksumBytes)) {
-      prevChecksumBytes = latestChecksumBytes;
-
-      // The file did exist before (prevChecksumBytes != null) but doesn't anymore
-      // (latestChecksumBytes == null).
-      // This code here is only reached when prevChecksumBytes != latestChecksumBytes.
-      // This means the file has been deleted since the last poll, which should not trigger a
-      // state change.
-      if (latestChecksumBytes != null) {
+      // If the latest checksum value is a value other than zero, it means that the file is not
+      // empty.
+      // The if check above ensures that it is also different from the previous checksum, so the
+      // file contents must have been updated.
+      if (latestChecksumValue != 0) {
         changedSinceLastInquiry.set(true);
       }
     }
   }
 
-  private synchronized byte[] getChecksumBytes() {
-    byte[] bytes = null;
+  private synchronized long getChecksumValue() {
+    crc32.reset();
     try {
-      bytes = md5.digest(Files.readAllBytes(absoluteFilePath));
+      byte[] fileBytes = Files.readAllBytes(absoluteFilePath);
+      crc32.update(fileBytes, 0, fileBytes.length);
     } catch (IOException e) {
       LOGGER.warning(() -> String.format(LOG_MESSAGE_FAILED_FILE_READ, absoluteFilePath, e));
-    } finally {
-      md5.reset();
     }
-    return bytes;
+    return crc32.getValue();
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     worker.cancel(true);
     executorService.shutdown();
     try {
