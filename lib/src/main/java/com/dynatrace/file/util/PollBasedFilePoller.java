@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -32,7 +33,7 @@ class PollBasedFilePoller extends FilePoller {
   private final ScheduledExecutorService executorService;
 
   private final CRC32 crc32 = new CRC32();
-  private long prevChecksumValue = 0;
+  private Long prevChecksumValue = null;
 
   protected PollBasedFilePoller(Path filePath, Duration pollInterval) {
     super(filePath);
@@ -64,27 +65,30 @@ class PollBasedFilePoller extends FilePoller {
   }
 
   private synchronized void poll() {
-    long latestChecksumValue = getChecksumValue();
-    if (latestChecksumValue != prevChecksumValue) {
-      prevChecksumValue = latestChecksumValue;
+    Long latestChecksumValue = getChecksumValue();
 
-      // If the latest checksum value is a value other than zero, it means that the file is not
-      // empty.
-      // The if check above ensures that it is also different from the previous checksum, so the
-      // file contents must have been updated.
-      if (latestChecksumValue != 0) {
+    // | latest | previous | outcome                 |
+    // | ------ | -------- | ----------------------- |
+    // | null   | null     | do nothing              |
+    // | null   | !null    | do nothing              |
+    // | !null  | null     | update (no file before) |
+    // | !null  | !null    | update if changed       |
+    if (latestChecksumValue != null) {
+      if (!prevChecksumValue.equals(latestChecksumValue)) {
         changedSinceLastInquiry.set(true);
       }
+      prevChecksumValue = latestChecksumValue;
     }
   }
 
-  private synchronized long getChecksumValue() {
+  private synchronized Long getChecksumValue() {
     crc32.reset();
     try {
       byte[] fileBytes = Files.readAllBytes(absoluteFilePath);
       crc32.update(fileBytes, 0, fileBytes.length);
     } catch (IOException e) {
       LOGGER.warning(() -> String.format(LOG_MESSAGE_FAILED_FILE_READ, absoluteFilePath, e));
+      return null;
     }
     return crc32.getValue();
   }
