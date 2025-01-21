@@ -73,7 +73,7 @@ class PollBasedFilePoller extends FilePoller {
     // | !null  | null     | update (no file before) |
     // | !null  | !null    | update if changed       |
     if (latestChecksumValue != null) {
-      if (!prevChecksumValue.equals(latestChecksumValue)) {
+      if (!latestChecksumValue.equals(prevChecksumValue)) {
         changedSinceLastInquiry.set(true);
       }
       prevChecksumValue = latestChecksumValue;
