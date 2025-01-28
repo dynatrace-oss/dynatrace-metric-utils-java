@@ -75,8 +75,10 @@ class FilePollerTestHelpers {
 
     // create the file again
     Files.createFile(path);
-    await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
+    // creating an empty file does not trigger an update (no new information to be read)
+    await().atMost(1, TimeUnit.SECONDS).until(() -> !poller.fileContentsUpdated());
 
+    // adding new content to the new file will trigger an update.
     Files.write(path, "Some content".getBytes());
     await().atMost(1, TimeUnit.SECONDS).until(poller::fileContentsUpdated);
   }
