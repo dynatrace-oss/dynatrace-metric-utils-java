@@ -14,19 +14,12 @@
 package com.dynatrace.metric.util;
 
 import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
-
-import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
-/**
- * Offers normalization methods for metric key, dimension key and dimension value
- */
+/** Offers normalization methods for metric key, dimension key and dimension value */
 final class Normalizer {
 
-
-  private Normalizer() {
-  }
+  private Normalizer() {}
 
   /**
    * Converts the double value to a string according their pattern. Values with no floating point
@@ -49,7 +42,7 @@ final class Normalizer {
    *
    * @param key The metric key to normalize
    * @return The {@link NormalizationResult result}, containing the potentially normalized metric
-   * key along with any error or warnings encountered.
+   *     key along with any error or warnings encountered.
    */
   static NormalizationResult normalizeMetricKey(String key) {
     if (StringValueValidator.isNullOrEmpty(key)) {
@@ -59,7 +52,7 @@ final class Normalizer {
     final int length = key.length();
     boolean needsToTruncate = length > MetricLineConstants.Limits.MAX_METRIC_KEY_LENGTH;
     final int effectiveLength =
-      needsToTruncate ? MetricLineConstants.Limits.MAX_METRIC_KEY_LENGTH : length;
+        needsToTruncate ? MetricLineConstants.Limits.MAX_METRIC_KEY_LENGTH : length;
     boolean previousCodePointSanitized = false;
     int invalidCharsEncountered = 0;
 
@@ -140,10 +133,10 @@ final class Normalizer {
     String normalizedMetricKey = sb.toString();
     if (invalidCharsEncountered > 0 || needsToTruncate) {
       return NormalizationResult.newWarning(
-        normalizedMetricKey,
-        () ->
-          String.format(
-            ValidationMessages.METRIC_KEY_NORMALIZED_MESSAGE, key, normalizedMetricKey));
+          normalizedMetricKey,
+          () ->
+              String.format(
+                  ValidationMessages.METRIC_KEY_NORMALIZED_MESSAGE, key, normalizedMetricKey));
     }
 
     return NormalizationResult.newValid(normalizedMetricKey);
@@ -154,7 +147,7 @@ final class Normalizer {
    *
    * @param key The dimension key to normalize.
    * @return The {@link NormalizationResult result}, containing the potentially normalized dimension
-   * key along with any error or warnings encountered.
+   *     key along with any error or warnings encountered.
    */
   static NormalizationResult normalizeDimensionKey(String key) {
     if (StringValueValidator.isNullOrEmpty(key)) {
@@ -164,7 +157,7 @@ final class Normalizer {
     final int length = key.length();
     boolean needsToTruncate = length > MetricLineConstants.Limits.MAX_DIMENSION_KEY_LENGTH;
     final int effectiveLength =
-      needsToTruncate ? MetricLineConstants.Limits.MAX_DIMENSION_KEY_LENGTH : length;
+        needsToTruncate ? MetricLineConstants.Limits.MAX_DIMENSION_KEY_LENGTH : length;
     boolean previousCodePointSanitized = false;
     int invalidCharsEncountered = 0;
 
@@ -225,20 +218,20 @@ final class Normalizer {
 
     if (sb.length() == 0) {
       return NormalizationResult.newInvalid(
-        () ->
-          String.format(
-            ValidationMessages.DIMENSION_KEY_NORMALIZED_MESSAGE,
-            key,
-            CodePoints.EMPTY_STRING));
+          () ->
+              String.format(
+                  ValidationMessages.DIMENSION_KEY_NORMALIZED_MESSAGE,
+                  key,
+                  CodePoints.EMPTY_STRING));
     }
 
     String normalizedDimKey = sb.toString();
     if (invalidCharsEncountered > 0 || needsToTruncate) {
       return NormalizationResult.newWarning(
-        normalizedDimKey,
-        () ->
-          String.format(
-            ValidationMessages.DIMENSION_KEY_NORMALIZED_MESSAGE, key, normalizedDimKey));
+          normalizedDimKey,
+          () ->
+              String.format(
+                  ValidationMessages.DIMENSION_KEY_NORMALIZED_MESSAGE, key, normalizedDimKey));
     }
 
     return NormalizationResult.newValid(normalizedDimKey);
@@ -247,10 +240,10 @@ final class Normalizer {
   /**
    * Applies normalization to the provided dimension value.
    *
-   * @param value                   The dimension value to normalize.
+   * @param value The dimension value to normalize.
    * @param maxDimensionValueLength The maximum value for dimension keys.
    * @return The {@link NormalizationResult result}, containing the potentially normalized dimension
-   * value along with any error or warnings encountered.
+   *     value along with any error or warnings encountered.
    */
   static NormalizationResult normalizeDimensionValue(String value, int maxDimensionValueLength) {
     if (StringValueValidator.isNullOrEmpty(value)) {
@@ -258,7 +251,7 @@ final class Normalizer {
     }
 
     boolean isQuoted =
-      value.startsWith(CodePoints.QUOTATION_MARK) && value.endsWith(CodePoints.QUOTATION_MARK);
+        value.startsWith(CodePoints.QUOTATION_MARK) && value.endsWith(CodePoints.QUOTATION_MARK);
     if (isQuoted) {
       return normalizeQuotedDimValue(value, maxDimensionValueLength);
     }
@@ -272,7 +265,7 @@ final class Normalizer {
 
     // in a quoted string, quotes do not count towards the string character limit
     boolean isQuoted =
-      value.startsWith(CodePoints.QUOTATION_MARK) && value.endsWith(CodePoints.QUOTATION_MARK);
+        value.startsWith(CodePoints.QUOTATION_MARK) && value.endsWith(CodePoints.QUOTATION_MARK);
 
     int numValidBytes = 0;
     boolean needsNormalization = false;
@@ -321,7 +314,6 @@ final class Normalizer {
       }
     }
 
-
     // do normalization
     StringBuilder builder = new StringBuilder(numValidBytes + 2);
     builder.append(CodePoints.QUOTATION_MARK);
@@ -332,7 +324,8 @@ final class Normalizer {
       final int codePoint = value.codePointAt(i);
       final int codePointLength = Character.charCount(codePoint);
 
-      // special handling: only newlines are considered, since the resulting string will be quoted either way.
+      // special handling: only newlines are considered, since the resulting string will be quoted
+      // either way.
       if (codePoint == CodePoints.NEWLINE) {
         if (i + CodePoints.ESCAPED_NEWLINE.length() > maxLength) {
           break;
@@ -360,53 +353,58 @@ final class Normalizer {
 
     String normalized = builder.toString();
     if (normalized.length() == 2) {
-      return NormalizationResult.newInvalid(() -> "no valid characters after normalization (input: " + value + ")");
-    } else return NormalizationResult.newWarning(normalized,
-      () -> String.format(ValidationMessages.METADATA_VALUE_NORMALIZED_MESSAGE, value, normalized));
+      return NormalizationResult.newInvalid(
+          () -> "no valid characters after normalization (input: " + value + ")");
+    } else
+      return NormalizationResult.newWarning(
+          normalized,
+          () ->
+              String.format(
+                  ValidationMessages.METADATA_VALUE_NORMALIZED_MESSAGE, value, normalized));
   }
 
   private static boolean codePointNeedsEscaping(int codePoint) {
-    return codePoint == "\n".codePointAt(0) ||
-           codePoint == " ".codePointAt(0) ||
-           codePoint == ",".codePointAt(0) ||
-           codePoint == "=".codePointAt(0) ||
-           codePoint == "\"".codePointAt(0) ||
-           codePoint == "\\".codePointAt(0);
+    return codePoint == "\n".codePointAt(0)
+        || codePoint == " ".codePointAt(0)
+        || codePoint == ",".codePointAt(0)
+        || codePoint == "=".codePointAt(0)
+        || codePoint == "\"".codePointAt(0)
+        || codePoint == "\\".codePointAt(0);
   }
 
   private static boolean isInvalidCharForMetadata(int codePoint) {
     int type = Character.getType(codePoint);
 
-    // unassigned characters outside the range of Unicode 10.0 "Supplemental Symbols and Pictographs" are not allowed.
+    // unassigned characters outside the range of Unicode 10.0 "Supplemental Symbols and
+    // Pictographs" are not allowed.
     if (type == Character.UNASSIGNED) {
       // Unicode version 10 allowed Supplemental Symbols and pictographs
       // https://www.unicode.org/charts/PDF/Unicode-10.0/U100-1F900.pdf
-      return codePoint <= CodePoints.UC_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS_START ||
-             codePoint >= CodePoints.UC_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS_END;
+      return codePoint <= CodePoints.UC_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS_START
+          || codePoint >= CodePoints.UC_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS_END;
     }
 
-    return
-      type == Character.CONTROL ||
-      type == Character.PRIVATE_USE ||
-      type == Character.SURROGATE ||
-      type == Character.LINE_SEPARATOR ||
-      type == Character.PARAGRAPH_SEPARATOR ||
-      codePoint == "\"".codePointAt(0);
+    return type == Character.CONTROL
+        || type == Character.PRIVATE_USE
+        || type == Character.SURROGATE
+        || type == Character.LINE_SEPARATOR
+        || type == Character.PARAGRAPH_SEPARATOR
+        || codePoint == "\"".codePointAt(0);
   }
 
   /**
    * Applies normalization to an unquoted string dimension value.
    *
-   * @param value                   The unquoted dimension value.
+   * @param value The unquoted dimension value.
    * @param maxDimensionValueLength The maximum value to compare to. E.g. The maximum value for
-   *                                dimensions.
+   *     dimensions.
    * @return The {@link NormalizationResult result}, containing the potentially normalized dimension
-   * value along with any error or warnings encountered.
+   *     value along with any error or warnings encountered.
    */
   private static NormalizationResult normalizeUnquotedStringDimValue(
-    String value, int maxDimensionValueLength) {
+      String value, int maxDimensionValueLength) {
     if (!StringValueValidator.normalizationRequiredUnqoutedStringValue(
-      value, maxDimensionValueLength)) {
+        value, maxDimensionValueLength)) {
       return NormalizationResult.newValid(value);
     }
 
@@ -425,7 +423,7 @@ final class Normalizer {
           continue;
         }
         if (!StringValueValidator.canAppendToValue(
-          sb.length(), CodePoints.UNDERSCORE, false, false, maxDimensionValueLength)) {
+            sb.length(), CodePoints.UNDERSCORE, false, false, maxDimensionValueLength)) {
           wasTruncated = true;
           break;
         }
@@ -435,8 +433,8 @@ final class Normalizer {
       } else {
         boolean shouldEscape = StringValueValidator.shouldEscapeString(codePoint);
         boolean canAppend =
-          StringValueValidator.canAppendToValue(
-            sb.length(), codePoint, false, shouldEscape, maxDimensionValueLength);
+            StringValueValidator.canAppendToValue(
+                sb.length(), codePoint, false, shouldEscape, maxDimensionValueLength);
 
         if (!canAppend) {
           wasTruncated = true;
@@ -456,12 +454,12 @@ final class Normalizer {
     String normalizedDimValue = sb.toString();
     if (invalidCharsEncountered > 0 || wasTruncated) {
       return NormalizationResult.newWarning(
-        normalizedDimValue,
-        () ->
-          String.format(
-            ValidationMessages.DIMENSION_VALUE_NORMALIZED_MESSAGE,
-            value,
-            normalizedDimValue));
+          normalizedDimValue,
+          () ->
+              String.format(
+                  ValidationMessages.DIMENSION_VALUE_NORMALIZED_MESSAGE,
+                  value,
+                  normalizedDimValue));
     }
 
     return NormalizationResult.newValid(normalizedDimValue);
@@ -470,16 +468,16 @@ final class Normalizer {
   /**
    * Applies normalization to the quoted string dimension value.
    *
-   * @param value                   The quoted dimension value.
+   * @param value The quoted dimension value.
    * @param maxDimensionValueLength The maximum value to compare too. E.g. The maximum value for
-   *                                dimensions.
+   *     dimensions.
    * @return The {@link NormalizationResult result}, containing the potentially normalized dimension
-   * value along with any error or warnings encountered.
+   *     value along with any error or warnings encountered.
    */
   private static NormalizationResult normalizeQuotedDimValue(
-    String value, int maxDimensionValueLength) {
+      String value, int maxDimensionValueLength) {
     if (!StringValueValidator.normalizationRequiredQuotedStringValue(
-      value, maxDimensionValueLength)) {
+        value, maxDimensionValueLength)) {
       return NormalizationResult.newValid(value);
     }
 
@@ -511,7 +509,7 @@ final class Normalizer {
               break;
             }
             if (!StringValueValidator.canAppendToValue(
-              sb.length(), CodePoints.UNDERSCORE, true, false, maxDimensionValueLength)) {
+                sb.length(), CodePoints.UNDERSCORE, true, false, maxDimensionValueLength)) {
               wasTruncated = true;
               break;
             }
@@ -522,8 +520,8 @@ final class Normalizer {
           }
           boolean shouldEscape = StringValueValidator.shouldEscapeQuotedString(codePoint);
           boolean canAppend =
-            StringValueValidator.canAppendToValue(
-              sb.length(), codePoint, true, shouldEscape, maxDimensionValueLength);
+              StringValueValidator.canAppendToValue(
+                  sb.length(), codePoint, true, shouldEscape, maxDimensionValueLength);
 
           if (!canAppend) {
             wasTruncated = true;
@@ -548,12 +546,12 @@ final class Normalizer {
     String normalizedDimValue = sb.toString();
     if (invalidCharsEncountered > 0 || wasTruncated) {
       return NormalizationResult.newWarning(
-        normalizedDimValue,
-        () ->
-          String.format(
-            ValidationMessages.DIMENSION_VALUE_NORMALIZED_MESSAGE,
-            value,
-            normalizedDimValue));
+          normalizedDimValue,
+          () ->
+              String.format(
+                  ValidationMessages.DIMENSION_VALUE_NORMALIZED_MESSAGE,
+                  value,
+                  normalizedDimValue));
     }
 
     return NormalizationResult.newValid(normalizedDimValue);
