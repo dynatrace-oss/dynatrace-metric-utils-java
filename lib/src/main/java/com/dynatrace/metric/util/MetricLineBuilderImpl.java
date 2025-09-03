@@ -447,7 +447,7 @@ class MetricLineBuilderImpl
                       this.description));
         } else {
           NormalizationResult normalizationResult =
-              Normalizer.normalizeDimensionValue(
+              Normalizer.normalizeMetadataString(
                   this.description, MetadataLineConstants.Limits.MAX_DESCRIPTION_LENGTH);
           if (normalizationResult.messageType() != NormalizationResult.MessageType.NONE) {
             logger.warning(
@@ -503,7 +503,7 @@ class MetricLineBuilderImpl
                       this.displayName));
         } else {
           NormalizationResult normalizationResult =
-              Normalizer.normalizeDimensionValue(
+              Normalizer.normalizeMetadataString(
                   this.displayName, MetadataLineConstants.Limits.MAX_DISPLAY_NAME_LENGTH);
           if (normalizationResult.messageType() != NormalizationResult.MessageType.NONE) {
             logger.warning(

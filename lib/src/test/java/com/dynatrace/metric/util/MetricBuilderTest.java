@@ -666,7 +666,7 @@ class MetricBuilderTest {
 
     assertEquals("prefix.name gauge,3", builder.value(3.).build());
     assertEquals(
-        "#prefix.name gauge dt.meta.description=my\\ description\\ goes\\ here",
+        "#prefix.name gauge dt.meta.description=\"my description goes here\"",
         builder.metadata().description("my description goes here").build());
   }
 
@@ -679,7 +679,7 @@ class MetricBuilderTest {
 
     assertEquals("prefix.name gauge,3", builder.value(3.).build());
     assertEquals(
-        "#prefix.name gauge dt.meta.displayName=my\\ displayName\\ goes\\ here",
+        "#prefix.name gauge dt.meta.displayName=\"my displayName goes here\"",
         builder.metadata().displayName("my displayName goes here").build());
   }
 
@@ -692,7 +692,7 @@ class MetricBuilderTest {
 
     assertEquals("prefix.name gauge,3", builder.value(3.).build());
     assertEquals(
-        "#prefix.name gauge dt.meta.description=my\\ description\\ goes\\ here,dt.meta.unit=unit,dt.meta.displayName=displayName",
+        "#prefix.name gauge dt.meta.description=\"my description goes here\",dt.meta.unit=unit,dt.meta.displayName=displayName",
         builder
             .metadata()
             .description("my description goes here")
