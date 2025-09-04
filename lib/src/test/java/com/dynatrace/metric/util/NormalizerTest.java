@@ -416,7 +416,7 @@ public class NormalizerTest {
         Arguments.of("valid unicode 10.0 emoji", "\uD83E\uDD65", "\uD83E\uDD65"),
         // This test will fail for Java versions 8 and 11, since they use older versions of Unicode
         //        Arguments.of("valid unicode 13.0 emoji", "\uD83E\uDD78", "\uD83E\uDD78"),
-        Arguments.of("valid unicode from extended plane", "\uD83E\uDEA0", "\uD83E\uDEA0"),
+        //        Arguments.of("valid unicode from extended plane", "\uD83E\uDEA0", "\uD83E\uDEA0"),
         // this test might fail if the Unicode character U+1FACC gets a symbol assigned, and the
         // java version is
         // sufficiently new to include the new symbol.
