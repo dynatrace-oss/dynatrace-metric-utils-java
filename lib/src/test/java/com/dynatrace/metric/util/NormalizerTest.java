@@ -420,9 +420,8 @@ public class NormalizerTest {
         // this test might fail if the Unicode character U+1FACC gets a symbol assigned, and the
         // java version is
         // sufficiently new to include the new symbol.
-        //        Arguments.of(
-        //            "invalid unassigned unicode outside the Supplemental range", "\uD83E\uDECC",
-        // null),
+        Arguments.of(
+            "invalid unassigned unicode outside the Supplemental range", "\uD83E\uDECC", null),
         // multiple codepoints are combined into one emoji, in this case two people and two kids are
         // a family emoji
         Arguments.of(
