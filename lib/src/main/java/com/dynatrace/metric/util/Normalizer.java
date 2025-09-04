@@ -280,13 +280,13 @@ final class Normalizer {
       final int codePoint = value.codePointAt(i);
       final int codePointLength = Character.charCount(codePoint);
 
+      // code point is valid but needs escaping
       if (codePointNeedsEscaping(codePoint)) {
         needsEscaping = true;
       }
 
-      // newline is a control character, which is disallowed, but newline is the exception
-      // descriptions can have newlines in them
-      if (isInvalidCharForMetadata(codePoint)) {
+      // code point is not valid, and needs normalizing (e.g. unicode control char)
+      if (codePointNeedsNormalizing(codePoint)) {
         // if there are control characters, note that normalization is necessary but don't break yet
         // this way we know how many characters there will be in the output
         needsNormalization = true;
@@ -319,7 +319,7 @@ final class Normalizer {
     builder.append(CodePoints.QUOTATION_MARK);
     Supplier<String> warningMessageSupplier = null;
 
-    // dont need to escape anything since were working in a quoted string.
+    // don't need to escape anything since were working in a quoted string.
     for (int i = start; i < end; ) {
       final int codePoint = value.codePointAt(i);
       final int codePointLength = Character.charCount(codePoint);
@@ -327,20 +327,19 @@ final class Normalizer {
       // special handling: only newlines are considered, since the resulting string will be quoted
       // either way.
       if (codePoint == CodePoints.NEWLINE) {
+        // check if the escaped character fits, exit if it does not.
         if (i + CodePoints.ESCAPED_NEWLINE.length() > maxLength) {
           break;
         }
         builder.append(CodePoints.ESCAPED_NEWLINE);
       } else if (codePoint == CodePoints.QUOTE) {
+        // check if the escaped character fits, exit if it does not.
         if (i + CodePoints.ESCAPED_QUOTES.length() > maxLength) {
           break;
         }
         builder.append(CodePoints.ESCAPED_QUOTES);
-      } else if (isInvalidCharForMetadata(codePoint)) {
-        // skip current code point if it's invalid
-        i += codePointLength;
-        continue;
-      } else {
+      } else if (!codePointNeedsNormalizing(codePoint)) {
+        // code point is valid, check if it fits, then add.
         if (i + codePointLength > maxLength) {
           break;
         }
@@ -372,7 +371,7 @@ final class Normalizer {
         || codePoint == CodePoints.BACKSLASH;
   }
 
-  private static boolean isInvalidCharForMetadata(int codePoint) {
+  private static boolean codePointNeedsNormalizing(int codePoint) {
     int type = Character.getType(codePoint);
 
     // unassigned characters outside the range of Unicode 10.0 "Supplemental Symbols and
