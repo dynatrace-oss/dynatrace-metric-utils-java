@@ -364,12 +364,12 @@ final class Normalizer {
   }
 
   private static boolean codePointNeedsEscaping(int codePoint) {
-    return codePoint == "\n".codePointAt(0)
-        || codePoint == " ".codePointAt(0)
-        || codePoint == ",".codePointAt(0)
-        || codePoint == "=".codePointAt(0)
-        || codePoint == "\"".codePointAt(0)
-        || codePoint == "\\".codePointAt(0);
+    return codePoint == CodePoints.NEWLINE
+        || codePoint == CodePoints.BLANK
+        || codePoint == CodePoints.COMMA
+        || codePoint == CodePoints.EQUALS
+        || codePoint == CodePoints.QUOTE
+        || codePoint == CodePoints.BACKSLASH;
   }
 
   private static boolean isInvalidCharForMetadata(int codePoint) {
@@ -389,7 +389,7 @@ final class Normalizer {
         || type == Character.SURROGATE
         || type == Character.LINE_SEPARATOR
         || type == Character.PARAGRAPH_SEPARATOR
-        || codePoint == "\"".codePointAt(0);
+        || codePoint == CodePoints.QUOTE;
   }
 
   /**
