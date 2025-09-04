@@ -415,13 +415,14 @@ public class NormalizerTest {
         // use older versions of Unicode and thus not have the newer symbols
         Arguments.of("valid unicode 10.0 emoji", "\uD83E\uDD65", "\uD83E\uDD65"),
         // This test will fail for Java versions 8 and 11, since they use older versions of Unicode
-//        Arguments.of("valid unicode 13.0 emoji", "\uD83E\uDD78", "\uD83E\uDD78"),
+        //        Arguments.of("valid unicode 13.0 emoji", "\uD83E\uDD78", "\uD83E\uDD78"),
         Arguments.of("valid unicode from extended plane", "\uD83E\uDEA0", "\uD83E\uDEA0"),
         // this test might fail if the Unicode character U+1FACC gets a symbol assigned, and the
         // java version is
         // sufficiently new to include the new symbol.
-//        Arguments.of(
-//            "invalid unassigned unicode outside the Supplemental range", "\uD83E\uDECC", null),
+        //        Arguments.of(
+        //            "invalid unassigned unicode outside the Supplemental range", "\uD83E\uDECC",
+        // null),
         // multiple codepoints are combined into one emoji, in this case two people and two kids are
         // a family emoji
         Arguments.of(
