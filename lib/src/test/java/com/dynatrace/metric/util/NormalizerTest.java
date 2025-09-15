@@ -483,8 +483,7 @@ public class NormalizerTest {
             TestUtils.repeatStringNTimes("a", 270),
             "\"" + TestUtils.repeatStringNTimes("a", MAX_TEST_STRING_LENGTH) + "\""),
         // we have a '\n' at the 255th pos. Escaping it will cause going overboard - 256. It should
-        // not
-        // append it
+        // not append it
         Arguments.of(
             "invalid truncate value with invalid char at last position",
             TestUtils.createStringOfLength(254, false) + "\n",
