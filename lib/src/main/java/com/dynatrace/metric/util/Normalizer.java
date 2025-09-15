@@ -319,7 +319,7 @@ final class Normalizer {
     builder.append(CodePoints.QUOTATION_MARK);
     Supplier<String> warningMessageSupplier = null;
 
-    // don't need to escape anything since were working in a quoted string.
+    // don't need to escape anything since we're working in a quoted string.
     for (int i = start; i < end; ) {
       final int codePoint = value.codePointAt(i);
       final int codePointLength = Character.charCount(codePoint);
