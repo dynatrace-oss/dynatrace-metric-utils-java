@@ -71,6 +71,13 @@ public class NormalizerTest {
         expected, Normalizer.normalizeDimensionValue(input, MAX_TEST_STRING_LENGTH).getResult());
   }
 
+  @ParameterizedTest(name = "{index}: {0}, input: {1}, expected: {2}")
+  @MethodSource("provideMetadataValues")
+  void testMetadataNormalization(String name, String input, String expected) {
+    assertEquals(
+        expected, Normalizer.normalizeMetadataString(input, MAX_TEST_STRING_LENGTH).getResult());
+  }
+
   @Test
   public void testDimensionValuesEscapedOnlyOnce() throws MetricException {
     String expected = "metric1,key=\\ \\,\\=\\\\ count,delta=123 1620392690261";
@@ -381,6 +388,124 @@ public class NormalizerTest {
             "invalid truncate at 253th",
             String.format("\"%s\"", TestUtils.createStringOfLength(254, false)),
             String.format("\"%s\"", TestUtils.createStringOfLength(253, false))));
+  }
+
+  public static Stream<Arguments> provideMetadataValues() {
+    return Stream.of(
+        // UNQUOTED INPUT
+        Arguments.of("valid value", "value", "value"),
+        Arguments.of("valid empty", "", ""),
+        Arguments.of("pass null", null, ""),
+        Arguments.of("valid uppercase", "VALUE", "VALUE"),
+        Arguments.of("valid colon", "a:3", "a:3"),
+        Arguments.of("valid value 2", "~@#ä", "~@#ä"),
+        Arguments.of("valid spaces", "a b", "\"a b\""),
+        Arguments.of("valid comma", "a,b", "\"a,b\""),
+        Arguments.of("valid equals", "a=b", "\"a=b\""),
+        Arguments.of("valid backslash", "a\\b", "\"a\\b\""),
+        Arguments.of("valid multiple special chars", " ,=\\", "\" ,=\\\""),
+        Arguments.of("valid key-value pair", "key=\"value\"", "\"key=\\\"value\\\"\""),
+        Arguments.of("valid newline", "a\nb", "\"a\\nb\""),
+        Arguments.of("valid only newline", "\n", "\"\\n\""),
+        Arguments.of("valid already escaped newline", "a\\nb", "\"a\\nb\""),
+        //     \u0000 NUL character, \u0007 bell character
+        Arguments.of("invalid unicode", "\u0000a\u0007", "\"a\""),
+        Arguments.of("invalid unicode space", "a\u0001b", "\"ab\""),
+        Arguments.of("valid unicode", "\u0041\u0062", "Ab"),
+        Arguments.of("valid unicode emoji", "\uD83D\uDE00", "\uD83D\uDE00"),
+        // these tests might fail depending on the java version used for building, because older
+        // versions of Java might use older versions of Unicode and thus not have the newer symbols
+        Arguments.of("valid unicode 10.0 emoji", "\uD83E\uDD65", "\uD83E\uDD65"),
+        // This test will fail for Java versions 8 and 11, since they use older versions of Unicode
+        //        Arguments.of("valid unicode 13.0 emoji", "\uD83E\uDD78", "\uD83E\uDD78"),
+        // This test will fail for Java versions 8 and 11, since they use older versions of Unicode
+        // Arguments.of("valid unicode from extended plane", "\uD83E\uDEA0", "\uD83E\uDEA0"),
+        // this test might fail if the Unicode character U+1FACC gets a symbol assigned, and the
+        // java version is sufficiently new to include the new symbol.
+        Arguments.of(
+            "invalid unassigned unicode outside the Supplemental range", "\uD83E\uDECC", null),
+        // multiple codepoints are combined into one emoji, in this case two people and two kids are
+        // a family emoji
+        Arguments.of(
+            "valid unicode with multiple codepoints",
+            "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC67",
+            "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC67"),
+        Arguments.of("invalid leading unicode NUL", "\u0000a", "\"a\""),
+        Arguments.of("invalid only unicode", "\u0000\u0000", null),
+        Arguments.of("invalid consecutive leading unicode", "\u0000\u0000\u0000a", "\"a\""),
+        Arguments.of("invalid consecutive trailing unicode", "a\u0000\u0000\u0000", "\"a\""),
+        Arguments.of("invalid trailing unicode NUL", "a\u0000", "\"a\""),
+        Arguments.of("invalid enclosed unicode NUL", "a\u0000b", "\"ab\""),
+        Arguments.of("invalid consecutive enclosed unicode NUL", "a\u0000\u0007\u0000b", "\"ab\""),
+        Arguments.of("valid with leading quote", "\"something", "\"\\\"something\""),
+        Arguments.of("valid with trailing quote", "something\"", "\"something\\\"\""),
+        Arguments.of("valid with leading single quote", "'something", "'something"),
+        Arguments.of("valid with trailing single quote", "something'", "something'"),
+        Arguments.of("valid wrapped in single quotes", "'something'", "'something'"),
+        Arguments.of(
+            "valid with quoted and extra", "\"mylist\":[a,b,c]", "\"\\\"mylist\\\":[a,b,c]\""),
+
+        // QUOTED INPUT
+        Arguments.of("valid value", "\"value\"", "\"value\""),
+        Arguments.of("valid uppercase", "\"VALUE\"", "\"VALUE\""),
+        Arguments.of("valid colon", "\"a:3\"", "\"a:3\""),
+        Arguments.of("valid special chars", "\"~@#ä\"", "\"~@#ä\""),
+        Arguments.of("valid comma", "\"a,b\"", "\"a,b\""),
+        Arguments.of("valid equals", "\"a=b\"", "\"a=b\""),
+        Arguments.of("valid spaces", "\"a b\"", "\"a b\""),
+        Arguments.of("valid backslash", "\"a\\b\"", "\"a\\b\""),
+        Arguments.of("valid multiple special chars", "\" ,=\\\"", "\" ,=\\\""),
+        Arguments.of("valid key-value pair", "\"key=\"value\"\"", "\"key=\\\"value\\\"\""),
+        Arguments.of("valid with leading quote", "\"\"something\"", "\"\\\"something\""),
+        Arguments.of("valid with trailing quote", "\"something\"\"", "\"something\\\"\""),
+        Arguments.of("valid with quoted and extra", "\"mylist:[a,b,c]\"", "\"mylist:[a,b,c]\""),
+        Arguments.of("valid only comma", "\",\"", "\",\""),
+        //     'Ab' in unicode:
+        Arguments.of("valid unicode", "\"\u0034\u0066\"", "\"\u0034\u0066\""),
+        //     A umlaut, a with ring, O umlaut, U umlaut, all valid.
+        Arguments.of(
+            "valid unicode", "\"\u0132_\u0133_\u0150_\u0156\"", "\"\u0132_\u0133_\u0150_\u0156\""),
+        Arguments.of("valid newline", "\"a\nb\"", "\"a\\nb\""),
+        Arguments.of("valid only newline", "\"\n\"", "\"\\n\""),
+        Arguments.of("valid already escaped newline", "\"a\\nb\"", "\"a\\nb\""),
+        Arguments.of("invalid null", null, ""),
+        Arguments.of("invalid unicode", "\"\u0000a\u0007\"", "\"a\""),
+        Arguments.of("invalid unicode space", "\"a\u0001b\"", "\"ab\""),
+        Arguments.of("invalid leading unicode NUL", "\"\u0000a\"", "\"a\""),
+        Arguments.of("invalid trailing unicode NUL", "\"a\u0000\"", "\"a\""),
+        Arguments.of("invalid only unicode", "\"\u0000\u0000\"", null),
+        Arguments.of("invalid consecutive leading unicode", "\"\u0000\u0000\u0000a\"", "\"a\""),
+        Arguments.of("invalid consecutive trailing unicode", "\"a\u0000\u0000\u0000\"", "\"a\""),
+        Arguments.of("invalid enclosed unicode NUL", "\"a\u0000b\"", "\"ab\""),
+        Arguments.of(
+            "invalid consecutive enclosed unicode NUL", "\"a\u0000\u0007\u0000b\"", "\"ab\""),
+        Arguments.of("invalid example 1", "\"value\u0000\"", "\"value\""),
+        Arguments.of("invalid example 2", "\"value\u0000end\"", "\"valueend\""),
+        Arguments.of("invalid example 3", "\"\u0000end\"", "\"end\""),
+
+        // TRUNCATION
+        Arguments.of(
+            "invalid truncate value too long",
+            TestUtils.repeatStringNTimes("a", 270),
+            "\"" + TestUtils.repeatStringNTimes("a", MAX_TEST_STRING_LENGTH) + "\""),
+        // we have a '\n' at the 255th pos. Escaping it will cause going overboard - 256. It should
+        // not append it
+        Arguments.of(
+            "invalid truncate value with invalid char at last position",
+            TestUtils.createStringOfLength(254, false) + "\n",
+            TestUtils.createStringOfLength(254, true)),
+        Arguments.of(
+            "valid do not truncate or quote value",
+            TestUtils.createStringOfLength(255, false),
+            TestUtils.createStringOfLength(255, false)),
+        Arguments.of(
+            "valid do not truncate unicode with single character",
+            TestUtils.createStringOfLength(254, false) + "\u0041",
+            TestUtils.createStringOfLength(254, false) + "A"),
+        Arguments.of(
+            "invalid truncate unicode with multiple characters",
+            TestUtils.createStringOfLength(254, false) + "\uD83D\uDE00",
+            TestUtils.createStringOfLength(254, true)));
   }
 
   private static Stream<Arguments> provideToEscapeValues() {

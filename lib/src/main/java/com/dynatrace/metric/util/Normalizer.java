@@ -14,6 +14,7 @@
 package com.dynatrace.metric.util;
 
 import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
+import java.util.function.Supplier;
 
 /** Offers normalization methods for metric key, dimension key and dimension value */
 final class Normalizer {
@@ -255,6 +256,139 @@ final class Normalizer {
       return normalizeQuotedDimValue(value, maxDimensionValueLength);
     }
     return normalizeUnquotedStringDimValue(value, maxDimensionValueLength);
+  }
+
+  static NormalizationResult normalizeMetadataString(String value, int maxLength) {
+    if (StringValueValidator.isNullOrEmpty(value)) {
+      return NormalizationResult.newValid(CodePoints.EMPTY_STRING);
+    }
+
+    // in a quoted string, quotes do not count towards the string character limit
+    boolean isQuoted =
+        value.startsWith(CodePoints.QUOTATION_MARK) && value.endsWith(CodePoints.QUOTATION_MARK);
+
+    int numValidBytes = 0;
+    boolean needsNormalization = false;
+    boolean needsEscaping = false;
+
+    // if quoted, start at index 1 (the one after the quote)
+    int start = isQuoted ? 1 : 0;
+    // if quoted, stop at length - 1 (the last byte before the quote)
+    int end = isQuoted ? value.length() - 1 : value.length();
+
+    for (int i = start; i < end; ) {
+      final int codePoint = value.codePointAt(i);
+      final int codePointLength = Character.charCount(codePoint);
+
+      // code point is valid but needs escaping
+      if (codePointNeedsEscaping(codePoint)) {
+        needsEscaping = true;
+      }
+
+      // code point is not valid, and needs normalizing (e.g. unicode control char)
+      if (codePointNeedsNormalizing(codePoint)) {
+        // if there are control characters, note that normalization is necessary but don't break yet
+        // this way we know how many characters there will be in the output
+        needsNormalization = true;
+      } else {
+        // if the char is valid, count up
+        numValidBytes += codePointLength;
+        // if the maxLength is reached, break.
+        if (numValidBytes > maxLength) {
+          needsNormalization = true;
+          break;
+        }
+      }
+      i += codePointLength;
+    }
+
+    // return early if no normalization is needed.
+    if (!needsNormalization) {
+      // if the string is already quoted or doesn't need escaping, return as is
+      if (isQuoted || !needsEscaping) {
+        return NormalizationResult.newValid(value);
+      } else {
+        // not quoted, needs escaping, but no normalization (e.g., it contains a '=' character).
+        // turn the string into a quoted string, where the '=' sign does not need escaping.
+        return NormalizationResult.newValid("\"" + value + "\"");
+      }
+    }
+
+    // do normalization
+    StringBuilder builder = new StringBuilder(numValidBytes + 2);
+    builder.append(CodePoints.QUOTATION_MARK);
+    Supplier<String> warningMessageSupplier = null;
+
+    // don't need to escape anything since we're working in a quoted string.
+    for (int i = start; i < end; ) {
+      final int codePoint = value.codePointAt(i);
+      final int codePointLength = Character.charCount(codePoint);
+
+      // special handling: only newlines are considered, since the resulting string will be quoted
+      // either way.
+      if (codePoint == CodePoints.NEWLINE) {
+        // check if the escaped character fits, exit if it does not.
+        if (i + CodePoints.ESCAPED_NEWLINE.length() > maxLength) {
+          break;
+        }
+        builder.append(CodePoints.ESCAPED_NEWLINE);
+      } else if (codePoint == CodePoints.QUOTE) {
+        // check if the escaped character fits, exit if it does not.
+        if (i + CodePoints.ESCAPED_QUOTES.length() > maxLength) {
+          break;
+        }
+        builder.append(CodePoints.ESCAPED_QUOTES);
+      } else if (!codePointNeedsNormalizing(codePoint)) {
+        // code point is valid, check if it fits, then add.
+        if (i + codePointLength > maxLength) {
+          break;
+        }
+        builder.appendCodePoint(codePoint);
+      }
+
+      i += codePointLength;
+    }
+    builder.append(CodePoints.QUOTATION_MARK);
+
+    String normalized = builder.toString();
+    if (normalized.length() == 2) {
+      return NormalizationResult.newInvalid(
+          () -> "no valid characters after normalization (input: " + value + ")");
+    } else
+      return NormalizationResult.newWarning(
+          normalized,
+          () ->
+              String.format(
+                  ValidationMessages.METADATA_VALUE_NORMALIZED_MESSAGE, value, normalized));
+  }
+
+  private static boolean codePointNeedsEscaping(int codePoint) {
+    return codePoint == CodePoints.NEWLINE
+        || codePoint == CodePoints.BLANK
+        || codePoint == CodePoints.COMMA
+        || codePoint == CodePoints.EQUALS
+        || codePoint == CodePoints.QUOTE
+        || codePoint == CodePoints.BACKSLASH;
+  }
+
+  private static boolean codePointNeedsNormalizing(int codePoint) {
+    int type = Character.getType(codePoint);
+
+    // unassigned characters outside the range of Unicode 10.0 "Supplemental Symbols and
+    // Pictographs" are not allowed.
+    if (type == Character.UNASSIGNED) {
+      // Unicode version 10 allowed Supplemental Symbols and pictographs
+      // https://www.unicode.org/charts/PDF/Unicode-10.0/U100-1F900.pdf
+      return codePoint <= CodePoints.UC_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS_START
+          || codePoint >= CodePoints.UC_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS_END;
+    }
+
+    return type == Character.CONTROL
+        || type == Character.PRIVATE_USE
+        || type == Character.SURROGATE
+        || type == Character.LINE_SEPARATOR
+        || type == Character.PARAGRAPH_SEPARATOR
+        || codePoint == CodePoints.QUOTE;
   }
 
   /**

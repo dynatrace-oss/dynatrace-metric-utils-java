@@ -105,8 +105,15 @@ class MetadataBuilderTest {
                 "do_not_normalize_description",
                 "do_not_normalize_description"),
             Tuple.of(
-                "description to normalize/escape", "escape description", "escape\\ description"),
-            Tuple.of("all invalid characters description", "\u0000", "_"),
+                "description to normalize/escape", "escape description", "\"escape description\""),
+            Tuple.of("all invalid characters description", "\u0000", null),
+            Tuple.of(
+                "multiline description", "multiline\ndescription", "\"multiline\\ndescription\""),
+            Tuple.of("description with emoji (no escaping needed)", "\uD83E\uDD20", "\uD83E\uDD20"),
+            Tuple.of(
+                "description with emoji (with char to escape)",
+                "\uD83E\uDD20 \uD83C\uDF1E",
+                "\"\uD83E\uDD20 \uD83C\uDF1E\""),
             Tuple.of("empty description", "", null),
             Tuple.of("empty quoted description", "\"\"", null),
             Tuple.of("null description", null, null));
@@ -127,9 +134,16 @@ class MetadataBuilderTest {
             Tuple.of(
                 "displayName to normalize/escape",
                 "escape display name",
-                "escape\\ display\\ name"),
-            Tuple.of("all invalid characters displayName", "\u0000", "_"),
+                "\"escape display name\""),
+            Tuple.of("all invalid characters displayName", "\u0000", null),
             Tuple.of("empty displayName", "", null),
+            Tuple.of(
+                "multiline displayName", "multiline\ndisplayName", "\"multiline\\ndisplayName\""),
+            Tuple.of("displayName with emoji (no escaping needed)", "\uD83E\uDD20", "\uD83E\uDD20"),
+            Tuple.of(
+                "displayName with emoji and escapable char",
+                "\uD83C\uDF35 \uD83C\uDF1E",
+                "\"\uD83C\uDF35 \uD83C\uDF1E\""),
             Tuple.of("empty quoted displayName", "\"\"", null),
             Tuple.of("null displayName", null, null));
 

@@ -100,6 +100,8 @@ final class MetricLineConstants {
         "Dimension key normalized from '%s' to '%s'";
     static final String DIMENSION_VALUE_NORMALIZED_MESSAGE =
         "Dimension value normalized from '%s' to '%s'";
+    static final String METADATA_VALUE_NORMALIZED_MESSAGE =
+        "Metadata value normalized from '%s' to '%s'";
     static final String DIMENSION_DROPPED_KEY_EMPTY_MESSAGE =
         "Dimension with empty dimension key has been dropped";
     static final String DIMENSION_DROPPED_KEY_EMPTY_WITH_METRIC_KEY_MESSAGE =

@@ -20,6 +20,7 @@ final class CodePoints {
   static final int EQUALS = "=".codePointAt(0);
   static final int BLANK = " ".codePointAt(0);
   static final int COLON = ":".codePointAt(0);
+  static final int NEWLINE = "\n".codePointAt(0);
 
   static final int ZERO = "0".codePointAt(0);
   static final int NINE = "9".codePointAt(0);
@@ -47,6 +48,8 @@ final class CodePoints {
 
   static final String QUOTATION_MARK = "\"";
   static final String EMPTY_STRING = "";
+  static final String ESCAPED_NEWLINE = "\\n";
+  static final String ESCAPED_QUOTES = "\\\"";
 
   private CodePoints() {}
 }
