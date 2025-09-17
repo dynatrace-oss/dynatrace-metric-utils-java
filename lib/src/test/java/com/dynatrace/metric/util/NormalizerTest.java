@@ -407,6 +407,7 @@ public class NormalizerTest {
         Arguments.of("valid key-value pair", "key=\"value\"", "\"key=\\\"value\\\"\""),
         Arguments.of("valid newline", "a\nb", "\"a\\nb\""),
         Arguments.of("valid only newline", "\n", "\"\\n\""),
+        Arguments.of("valid already escaped newline", "a\\nb", "\"a\\nb\""),
         //     \u0000 NUL character, \u0007 bell character
         Arguments.of("invalid unicode", "\u0000a\u0007", "\"a\""),
         Arguments.of("invalid unicode space", "a\u0001b", "\"ab\""),
@@ -466,6 +467,7 @@ public class NormalizerTest {
             "valid unicode", "\"\u0132_\u0133_\u0150_\u0156\"", "\"\u0132_\u0133_\u0150_\u0156\""),
         Arguments.of("valid newline", "\"a\nb\"", "\"a\\nb\""),
         Arguments.of("valid only newline", "\"\n\"", "\"\\n\""),
+        Arguments.of("valid already escaped newline", "\"a\\nb\"", "\"a\\nb\""),
         Arguments.of("invalid null", null, ""),
         Arguments.of("invalid unicode", "\"\u0000a\u0007\"", "\"a\""),
         Arguments.of("invalid unicode space", "\"a\u0001b\"", "\"ab\""),
