@@ -119,10 +119,10 @@ public class App {
     // =============================================================================================
     try {
       MetricLineBuilder.GaugeStep gaugeBuilder =
-          MetricLineBuilder.create().metricKey("metric1").gauge();
+          MetricLineBuilder.create().metricKey("metric.with.normalized.long.displayName").gauge();
 
       MetricLineBuilder.CounterStep countBuilder =
-          MetricLineBuilder.create().metricKey("metric1").count();
+          MetricLineBuilder.create().metricKey("metric.with.normalized.long.dimension").dimension("long.dim", "lakumtujekeupykcbgodawgcqxgxtwkdehnjlypenguwuqqujsfwtmlrmcskwgputonfifyrmuyghjrjlnfpxhhygkdydxxvqdjrxeyzhpavhjrodqacnipujlovrfddenshjcwskpulcwwygosxnhsboyvdqzhjrmktjmbbmnhgejuglhaiqqbcegnziplgferdfstmlmcfmjqokviblweyxjtglhigxhyhebxnknixualadsrrchukoxkxaiunatdfobudcwgxihsovhouotzkykbfbbrlslcmkmjmkyujdfobudcwgxihsovhouotzkykbfbbrlslcmkmjmkyuj").count();
 
       // the following code will create this metric line:
       // metric1 gauge,321
@@ -140,7 +140,9 @@ public class App {
           countBuilder
               .metadata()
               .unit("Byte")
-              .description("This metric measures something in Bytes")
+//              .description("This metric measures something in Bytes")
+//            .displayName("lakumtujekeupykcbgodawgcqxgxtwkdehnjlypenguwuqqujsfwtmlrmcskwgputonfifyrmuyghjrjlnfpxhhygkdydxxvqdjrxeyzhpavhjrodqacnipujlovrfddenshjcwskpulcwwygosxnhsboyvdqzhjrmktjmbbmnhgejuglhaiqqbcegnziplgferdfstmlmcfmjqokviblweyxjtglhigxhyhebxnknixualadsrrchukoxkxaiunatdfobudcwgxihsovhouotzkykbfbbrlslcmkmjmkyujdfobudcwgxihsovhouotzkykbfbbrlslcmkmjmkyuj")
+//            .description()
               .build();
 
       System.out.println(metricLine1);
