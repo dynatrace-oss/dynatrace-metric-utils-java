@@ -156,7 +156,7 @@ public class NormalizerTest {
         Arguments.of(
             "invalid truncate key too long",
             TestUtils.repeatStringNTimes("a", 270),
-            TestUtils.repeatStringNTimes("a", 250)));
+            TestUtils.repeatStringNTimes("a", 255)));
   }
 
   private static Stream<Arguments> provideDimensionKeys() {
@@ -255,7 +255,7 @@ public class NormalizerTest {
         Arguments.of(
             "invalid truncate value too long",
             TestUtils.repeatStringNTimes("a", 270),
-            TestUtils.repeatStringNTimes("a", 250)));
+            TestUtils.repeatStringNTimes("a", 255)));
   }
 
   private static Stream<Arguments> provideUnquotedStringValues() {
