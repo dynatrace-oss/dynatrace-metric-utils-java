@@ -28,9 +28,9 @@ final class MetricLineConstants {
     static final int MAX_DIMENSIONS_COUNT = 50;
 
     // Exceeding these cause the values to be truncated.
-    static final int MAX_METRIC_KEY_LENGTH = 250;
+    static final int MAX_METRIC_KEY_LENGTH = 255;
     static final int MAX_DIMENSION_KEY_LENGTH = 100;
-    static final int MAX_DIMENSION_VALUE_LENGTH = 250;
+    static final int MAX_DIMENSION_VALUE_LENGTH = 255;
   }
 
   /** Constants for Gauge payload creation. */

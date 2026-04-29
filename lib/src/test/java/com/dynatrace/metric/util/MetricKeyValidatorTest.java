@@ -59,7 +59,7 @@ public class MetricKeyValidatorTest {
         Arguments.of("valid mixture dots underscores 2", "_._._.a_._"),
         Arguments.of("valid combined test", "metric.key-number-1.001"),
         Arguments.of("valid example 1", "MyMetric"),
-        Arguments.of("valid max length key", TestUtils.repeatStringNTimes("a", 250)));
+        Arguments.of("valid max length key", TestUtils.repeatStringNTimes("a", 255)));
   }
 
   private static Stream<Arguments> provideMetricKeys_shouldNormalize() {
@@ -97,6 +97,6 @@ public class MetricKeyValidatorTest {
         Arguments.of("invalid example 3", "metriÄ"),
         Arguments.of("invalid example 4", "Ätric"),
         Arguments.of("invalid example 5", "meträääääÖÖÖc"),
-        Arguments.of("invalid truncate key too long", TestUtils.repeatStringNTimes("a", 251)));
+        Arguments.of("invalid truncate key too long", TestUtils.repeatStringNTimes("a", 256)));
   }
 }
