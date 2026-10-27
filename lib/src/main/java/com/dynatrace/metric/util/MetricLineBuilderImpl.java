@@ -450,8 +450,7 @@ class MetricLineBuilderImpl
               Normalizer.normalizeMetadataString(
                   this.description, MetadataLineConstants.Limits.MAX_DESCRIPTION_LENGTH);
           if (normalizationResult.messageType() != NormalizationResult.MessageType.NONE) {
-            logger.warning(
-                () -> String.format(PREFIX_STRING, metricKey, normalizationResult.getMessage()));
+            normalizationLogger.logMetadataMessage(metricKey, normalizationResult);
           }
 
           String normalizedDescription = normalizationResult.getResult();
@@ -506,8 +505,7 @@ class MetricLineBuilderImpl
               Normalizer.normalizeMetadataString(
                   this.displayName, MetadataLineConstants.Limits.MAX_DISPLAY_NAME_LENGTH);
           if (normalizationResult.messageType() != NormalizationResult.MessageType.NONE) {
-            logger.warning(
-                () -> String.format(PREFIX_STRING, metricKey, normalizationResult.getMessage()));
+            normalizationLogger.logMetadataMessage(metricKey, normalizationResult);
           }
 
           String normalizedDisplayName = normalizationResult.getResult();

@@ -107,4 +107,24 @@ class NormalizationWarnThenDebugLoggerTest {
         .fine(String.format("[%s | %s] %s", METRIC_KEY_2, DIMENSION_KEY_2, RESULT_1.getMessage()));
     verifyNoMoreInteractions(mockLogger);
   }
+
+  @Test
+  void logMetadataMessage_logsWarnThenDebug() {
+    warnThenDebugLogger.logMetadataMessage(METRIC_KEY_1, RESULT_1);
+    warnThenDebugLogger.logMetadataMessage(METRIC_KEY_1, RESULT_2);
+    warnThenDebugLogger.logMetadataMessage(METRIC_KEY_2, RESULT_1);
+
+    verify(mockLogger, atLeastOnce()).isLoggable(Level.WARNING);
+    verify(mockLogger, atLeast(2)).isLoggable(Level.FINE);
+    verify(mockLogger)
+        .warning(
+            String.format(
+                "[%s] %s. %s",
+                METRIC_KEY_1,
+                RESULT_1.getMessage(),
+                "Further normalization logs for data of the same type will be logged at debug level."));
+    verify(mockLogger).fine(String.format("[%s] %s", METRIC_KEY_1, RESULT_2.getMessage()));
+    verify(mockLogger).fine(String.format("[%s] %s", METRIC_KEY_2, RESULT_1.getMessage()));
+    verifyNoMoreInteractions(mockLogger);
+  }
 }

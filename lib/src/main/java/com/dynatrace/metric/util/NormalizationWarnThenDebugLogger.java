@@ -24,6 +24,7 @@ class NormalizationWarnThenDebugLogger {
   private final AtomicBoolean metricKeyNormalizationWarnLogged = new AtomicBoolean(false);
   private final AtomicBoolean dimensionKeyNormalizationWarnLogged = new AtomicBoolean(false);
   private final AtomicBoolean dimensionValueNormalizationWarnLogged = new AtomicBoolean(false);
+  private final AtomicBoolean metadataNormalizationWarnLogged = new AtomicBoolean(false);
   private static final String METRIC_KEY_AND_DIMENSION_KEY_TEMPLATE = "%s | %s";
   private final Logger logger;
 
@@ -72,6 +73,19 @@ class NormalizationWarnThenDebugLogger {
         String identifier =
             String.format(METRIC_KEY_AND_DIMENSION_KEY_TEMPLATE, metricKey, dimensionKey);
         logger.fine(String.format(PREFIX_STRING, identifier, normalizationResult.getMessage()));
+      }
+    }
+  }
+
+  void logMetadataMessage(String metricKey, NormalizationResult normalizationResult) {
+    if (metadataNormalizationWarnLogged.compareAndSet(false, true)) {
+      if (logger.isLoggable(Level.WARNING)) {
+        logger.warning(
+            String.format(THROTTLE_INFO_WITH_PREFIX, metricKey, normalizationResult.getMessage()));
+      }
+    } else {
+      if (logger.isLoggable(Level.FINE)) {
+        logger.fine(String.format(PREFIX_STRING, metricKey, normalizationResult.getMessage()));
       }
     }
   }
