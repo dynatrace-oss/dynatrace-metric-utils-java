@@ -27,7 +27,6 @@ dependencies {
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 spotless {
