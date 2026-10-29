@@ -7,6 +7,11 @@ updates:
       - "/example"
     schedule:
       interval: "weekly"
+    # Majors require newer JVMs than the supported Java 8 baseline (JUnit 6,
+    # Mockito 5, Gradle 9) or break the pinned google-java-format (Spotless 8).
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       gradle-dependencies:
         patterns:
