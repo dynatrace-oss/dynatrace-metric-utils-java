@@ -64,12 +64,16 @@ public class MetricLinePreConfiguration {
     return prefix;
   }
 
-  /** @return The length of the String, if you would serialize all attributes */
+  /**
+   * @return The length of the String, if you would serialize all attributes
+   */
   int preConfigSerializedLength() {
     return serializationLength;
   }
 
-  /** @return an empty {@link MetricLinePreConfiguration}-object. */
+  /**
+   * @return an empty {@link MetricLinePreConfiguration}-object.
+   */
   static MetricLinePreConfiguration empty() {
     return EMPTY_PRE_CONFIG;
   }
