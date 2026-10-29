@@ -102,6 +102,12 @@ final class DynatraceMetadataEnricher {
    * @return true if the file exists and is readable and false otherwise.
    */
   static boolean fileExistsAndIsReadable(String filePath) {
+    // since Java 25, an empty path resolves to the working directory and would be reported as
+    // existing.
+    if (filePath == null || filePath.isEmpty()) {
+      return false;
+    }
+
     try {
       File file = new File(filePath);
       if (file.exists() && Files.isReadable(file.toPath())) {
