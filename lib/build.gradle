@@ -19,7 +19,7 @@ plugins {
     id 'com.diffplug.spotless' version '8.10.4'
 }
 
-group 'com.dynatrace.metric.util'
+group = 'com.dynatrace.metric.util'
 version = '2.5.0'
 
 repositories {
@@ -30,6 +30,7 @@ dependencies {
     // Use JUnit test framework.
     testImplementation(platform('org.junit:junit-bom:5.7.0'))
     testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
     testImplementation("org.awaitility:awaitility:4.1.1")
 }
@@ -51,7 +52,7 @@ java {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId 'dynatrace-metric-utils-java'
+            artifactId = 'dynatrace-metric-utils-java'
 
             from components.java
 
@@ -86,11 +87,11 @@ publishing {
     }
     repositories {
         maven {
-            name 'sonatype'
-            url 'https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/'
+            name = 'sonatype'
+            url = 'https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/'
             credentials {
-                username findProperty('sonatypeUsername')
-                password findProperty('sonatypePassword')
+                username = findProperty('sonatypeUsername')
+                password = findProperty('sonatypePassword')
             }
         }
     }
