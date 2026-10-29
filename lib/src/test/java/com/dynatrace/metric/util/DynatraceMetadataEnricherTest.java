@@ -91,16 +91,11 @@ class DynatraceMetadataEnricherTest {
     // this should not be used. If it is, it will not exist and throw an exception, breaking the
     // test.
     String nonExistentAlternativeFilename = generateNonExistentFilename();
-    Properties expected = new Properties();
-    expected.setProperty("key1", "value1");
-    expected.setProperty("key2", "value2");
-    expected.setProperty("key3", "value3");
 
     Properties results =
         DynatraceMetadataEnricher.getPropertiesWithIndirection(
             "src/test/resources/indirection.properties", nonExistentAlternativeFilename);
-    assertEquals(expected, results);
-    assertNotSame(expected, results);
+    assertEquals(expectedMetadata(), results);
   }
 
   @Test
@@ -117,16 +112,10 @@ class DynatraceMetadataEnricherTest {
   void testGetPropertiesWithIndirection_IndirectionFileDoesNotExistAlternativeExists() {
     String filename = generateNonExistentFilename();
 
-    Properties expected = new Properties();
-    expected.setProperty("key1", "value1");
-    expected.setProperty("key2", "value2");
-    expected.setProperty("key3", "value3");
-
     Properties result =
-        DynatraceMetadataEnricher.getPropertiesWithIndirection(
-            filename, "src/test/resources/metadata_file.properties");
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(filename, METADATA_FILE);
 
-    assertEquals(expected, result);
+    assertEquals(expectedMetadata(), result);
   }
 
   @Test
@@ -148,8 +137,8 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetPropertiesWithIndirection_IndirectionFileUnreadableAndAlternativeDoesNotExist() {
-    // a directory cannot be read as a file
+  void testGetPropertiesWithIndirection_IndirectionPathIsDirectoryAndAlternativeDoesNotExist() {
+    // a directory cannot be opened as a file, so this behaves like a missing indirection file
     Properties result =
         DynatraceMetadataEnricher.getPropertiesWithIndirection(
             tempDir.toString(), generateNonExistentFilename());
@@ -157,8 +146,8 @@ class DynatraceMetadataEnricherTest {
   }
 
   @Test
-  void testGetPropertiesWithIndirection_IndirectionFileUnreadableAndAlternativeExists() {
-    // a directory cannot be read as a file
+  void testGetPropertiesWithIndirection_IndirectionPathIsDirectoryAndAlternativeExists() {
+    // a directory cannot be opened as a file, so this behaves like a missing indirection file
     Properties result =
         DynatraceMetadataEnricher.getPropertiesWithIndirection(tempDir.toString(), METADATA_FILE);
     assertEquals(expectedMetadata(), result);

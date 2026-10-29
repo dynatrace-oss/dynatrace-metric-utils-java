@@ -405,7 +405,9 @@ class MetricBuilderTest {
             () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
 
     // preConfig will still have exact 50 dimensions (dim3 will be overwritten)
-    preConfig.dynatraceMetadataDimensions(Collections.singletonMap("dim3", "metadataVal"));
+    preConfig
+        .dynatraceMetadataSource(Collections.singletonMap("dim3", "metadataVal"))
+        .dynatraceMetadataDimensions();
 
     MetricLinePreConfiguration config = assertDoesNotThrow(() -> preConfig.build());
     assertThrows(
@@ -433,7 +435,9 @@ class MetricBuilderTest {
             () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
 
     // adding the preConfig should exceed the dimension limit
-    preConfig.dynatraceMetadataDimensions(Collections.singletonMap("dim51", "metadataVal"));
+    preConfig
+        .dynatraceMetadataSource(Collections.singletonMap("dim51", "metadataVal"))
+        .dynatraceMetadataDimensions();
 
     assertThrows(MetricException.class, () -> preConfig.build());
   }
@@ -452,7 +456,9 @@ class MetricBuilderTest {
             () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
 
     // preConfig will still have exact 50 dimensions (dim3 will be overwritten)
-    preConfig.dynatraceMetadataDimensions(Collections.singletonMap("dim3", "metadataVal"));
+    preConfig
+        .dynatraceMetadataSource(Collections.singletonMap("dim3", "metadataVal"))
+        .dynatraceMetadataDimensions();
 
     assertDoesNotThrow(() -> preConfig.build());
   }
@@ -511,8 +517,9 @@ class MetricBuilderTest {
                 MetricLinePreConfiguration.builder()
                     .prefix("prefix")
                     .defaultDimensions(Collections.singletonMap("defaultDim1", "defaultVal1"))
-                    .dynatraceMetadataDimensions(
+                    .dynatraceMetadataSource(
                         Collections.singletonMap("metadataDim1", "metadataVal1"))
+                    .dynatraceMetadataDimensions()
                     .build())
             .metricKey("name")
             .dimensions(Collections.singletonMap("dim1", "val1"))
@@ -547,7 +554,8 @@ class MetricBuilderTest {
                 MetricLinePreConfiguration.builder()
                     .prefix("prefix")
                     .defaultDimensions(defaultDimensions)
-                    .dynatraceMetadataDimensions(Collections.singletonMap("dim3", "metadataVal3"))
+                    .dynatraceMetadataSource(Collections.singletonMap("dim3", "metadataVal3"))
+                    .dynatraceMetadataDimensions()
                     .build())
             .metricKey("name")
             .dimensions(dimensions)
@@ -571,7 +579,8 @@ class MetricBuilderTest {
                 MetricLinePreConfiguration.builder()
                     .prefix("prefix")
                     .defaultDimensions(Collections.singletonMap("dim@", "defaultVal"))
-                    .dynatraceMetadataDimensions(Collections.singletonMap("dim@", "metadataVal"))
+                    .dynatraceMetadataSource(Collections.singletonMap("dim@", "metadataVal"))
+                    .dynatraceMetadataDimensions()
                     .build())
             .metricKey("name")
             .dimensions(Collections.singletonMap("dim@", "dynamicVal"))
@@ -587,7 +596,12 @@ class MetricBuilderTest {
     String expectedLine = "prefix.name count,delta=1";
 
     String actual =
-        MetricLineBuilder.create(MetricLinePreConfiguration.builder().prefix("prefix").build())
+        MetricLineBuilder.create(
+                MetricLinePreConfiguration.builder()
+                    .prefix("prefix")
+                    // not added, since dynatraceMetadataDimensions() is not called
+                    .dynatraceMetadataSource(Collections.singletonMap("dim1", "metadataVal1"))
+                    .build())
             .metricKey("name")
             .count()
             .delta(1)

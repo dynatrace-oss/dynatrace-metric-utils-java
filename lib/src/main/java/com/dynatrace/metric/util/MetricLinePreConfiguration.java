@@ -87,8 +87,9 @@ public class MetricLinePreConfiguration {
   public static class Builder {
 
     private Map<String, String> defaultDimensions = null;
-    // null means that no Dynatrace metadata is added.
-    private Supplier<Map<String, String>> dynatraceMetadataSupplier = null;
+    private boolean withDynatraceMetadataDimensions = false;
+    private Supplier<Map<String, String>> dynatraceMetadataSource =
+        DynatraceMetadataEnricher::getDynatraceMetadata;
     private String prefix;
     private int dimensionCount = 0;
     private int serializationLength = 0;
@@ -133,13 +134,17 @@ public class MetricLinePreConfiguration {
      * @return this
      */
     public Builder dynatraceMetadataDimensions() {
-      this.dynatraceMetadataSupplier = DynatraceMetadataEnricher::getDynatraceMetadata;
+      this.withDynatraceMetadataDimensions = true;
       return this;
     }
 
-    /** Use the given metadata instead of reading it from the Dynatrace metadata files. */
-    Builder dynatraceMetadataDimensions(Map<String, String> dynatraceMetadata) {
-      this.dynatraceMetadataSupplier = () -> dynatraceMetadata;
+    /**
+     * Read Dynatrace metadata from the given map instead of the Dynatrace metadata files. Only used
+     * in tests; the metadata is still only added if {@link #dynatraceMetadataDimensions()} is
+     * called.
+     */
+    Builder dynatraceMetadataSource(Map<String, String> dynatraceMetadata) {
+      this.dynatraceMetadataSource = () -> dynatraceMetadata;
       return this;
     }
 
@@ -159,8 +164,8 @@ public class MetricLinePreConfiguration {
       this.serializationLength = 0;
 
       // First, add all dynatraceMetadataDimensions.
-      if (this.dynatraceMetadataSupplier != null) {
-        Map<String, String> dynatraceMetadataDimensions = this.dynatraceMetadataSupplier.get();
+      if (this.withDynatraceMetadataDimensions) {
+        Map<String, String> dynatraceMetadataDimensions = this.dynatraceMetadataSource.get();
 
         if (dynatraceMetadataDimensions.isEmpty()) {
           logger.warning(() -> ValidationMessages.SKIP_EMPTY_DYNATRACE_METADATA_DIMENSIONS);
