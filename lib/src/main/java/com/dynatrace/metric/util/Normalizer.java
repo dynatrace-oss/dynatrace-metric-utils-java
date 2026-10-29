@@ -14,7 +14,6 @@
 package com.dynatrace.metric.util;
 
 import com.dynatrace.metric.util.MetricLineConstants.ValidationMessages;
-import java.util.function.Supplier;
 
 /** Offers normalization methods for metric key, dimension key and dimension value */
 final class Normalizer {
@@ -317,7 +316,8 @@ final class Normalizer {
     // do normalization
     StringBuilder builder = new StringBuilder(numValidBytes + 2);
     builder.append(CodePoints.QUOTATION_MARK);
-    Supplier<String> warningMessageSupplier = null;
+    // escaping alone is lossless, so only warn if characters were dropped or the value truncated.
+    boolean lossy = false;
 
     // don't need to escape anything since we're working in a quoted string.
     for (int i = start; i < end; ) {
@@ -329,21 +329,27 @@ final class Normalizer {
       if (codePoint == CodePoints.NEWLINE) {
         // check if the escaped character fits, exit if it does not.
         if (i + CodePoints.ESCAPED_NEWLINE.length() > maxLength) {
+          lossy = true;
           break;
         }
         builder.append(CodePoints.ESCAPED_NEWLINE);
       } else if (codePoint == CodePoints.QUOTE) {
         // check if the escaped character fits, exit if it does not.
         if (i + CodePoints.ESCAPED_QUOTES.length() > maxLength) {
+          lossy = true;
           break;
         }
         builder.append(CodePoints.ESCAPED_QUOTES);
       } else if (!codePointNeedsNormalizing(codePoint)) {
         // code point is valid, check if it fits, then add.
         if (i + codePointLength > maxLength) {
+          lossy = true;
           break;
         }
         builder.appendCodePoint(codePoint);
+      } else {
+        // invalid code point is dropped
+        lossy = true;
       }
 
       i += codePointLength;
@@ -354,12 +360,14 @@ final class Normalizer {
     if (normalized.length() == 2) {
       return NormalizationResult.newInvalid(
           () -> "no valid characters after normalization (input: " + value + ")");
-    } else
-      return NormalizationResult.newWarning(
-          normalized,
-          () ->
-              String.format(
-                  ValidationMessages.METADATA_VALUE_NORMALIZED_MESSAGE, value, normalized));
+    }
+    if (!lossy) {
+      return NormalizationResult.newValid(normalized);
+    }
+    return NormalizationResult.newWarning(
+        normalized,
+        () ->
+            String.format(ValidationMessages.METADATA_VALUE_NORMALIZED_MESSAGE, value, normalized));
   }
 
   private static boolean codePointNeedsEscaping(int codePoint) {
