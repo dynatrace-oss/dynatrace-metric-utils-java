@@ -16,7 +16,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'com.diffplug.spotless' version '6.7.1'
+    id 'com.diffplug.spotless' version '8.10.4'
 }
 
 group 'com.dynatrace.metric.util'
@@ -104,14 +104,8 @@ signing {
 }
 
 spotless {
-    format 'misc', {
-        target '*.gradle', '*.md', '.gitignore'
-
-        trimTrailingWhitespace()
-        indentWithSpaces(4)
-        endWithNewline()
-    }
     java {
-        googleJavaFormat('1.7')
+        // the formatter version is managed by spotless
+        googleJavaFormat()
     }
 }
