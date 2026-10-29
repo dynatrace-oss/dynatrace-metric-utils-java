@@ -35,8 +35,17 @@ dependencies {
     testImplementation("org.awaitility:awaitility:4.1.1")
 }
 
+// Gradle runs on a recent JDK. Pass -PtestJavaVersion=<n> to run the tests on that Java version
+// instead (it must be installed), e.g. ./gradlew test -PtestJavaVersion=8
+def testJavaVersion = findProperty('testJavaVersion')
+
 test {
     useJUnitPlatform()
+    if (testJavaVersion) {
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(testJavaVersion as int)
+        }
+    }
     testLogging {
         events "passed", "skipped", "failed"
     }
@@ -45,8 +54,13 @@ test {
 java {
     withJavadocJar()
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+// build with any recent JDK, but only allow the Java 8 API
+tasks.withType(JavaCompile).configureEach {
+    options.release = 8
+    // newer JDKs warn that release 8 is obsolete
+    options.compilerArgs << '-Xlint:-options'
 }
 
 publishing {
