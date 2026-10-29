@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
@@ -86,7 +87,8 @@ public class MetricLinePreConfiguration {
   public static class Builder {
 
     private Map<String, String> defaultDimensions = null;
-    private boolean withDynatraceMetadataDimensions = false;
+    // null means that no Dynatrace metadata is added.
+    private Supplier<Map<String, String>> dynatraceMetadataSupplier = null;
     private String prefix;
     private int dimensionCount = 0;
     private int serializationLength = 0;
@@ -131,7 +133,13 @@ public class MetricLinePreConfiguration {
      * @return this
      */
     public Builder dynatraceMetadataDimensions() {
-      this.withDynatraceMetadataDimensions = true;
+      this.dynatraceMetadataSupplier = DynatraceMetadataEnricher::getDynatraceMetadata;
+      return this;
+    }
+
+    /** Use the given metadata instead of reading it from the Dynatrace metadata files. */
+    Builder dynatraceMetadataDimensions(Map<String, String> dynatraceMetadata) {
+      this.dynatraceMetadataSupplier = () -> dynatraceMetadata;
       return this;
     }
 
@@ -151,9 +159,8 @@ public class MetricLinePreConfiguration {
       this.serializationLength = 0;
 
       // First, add all dynatraceMetadataDimensions.
-      if (this.withDynatraceMetadataDimensions) {
-        Map<String, String> dynatraceMetadataDimensions =
-            DynatraceMetadataEnricher.getDynatraceMetadata();
+      if (this.dynatraceMetadataSupplier != null) {
+        Map<String, String> dynatraceMetadataDimensions = this.dynatraceMetadataSupplier.get();
 
         if (dynatraceMetadataDimensions.isEmpty()) {
           logger.warning(() -> ValidationMessages.SKIP_EMPTY_DYNATRACE_METADATA_DIMENSIONS);
