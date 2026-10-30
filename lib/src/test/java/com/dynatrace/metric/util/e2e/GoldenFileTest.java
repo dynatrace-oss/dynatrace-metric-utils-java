@@ -105,6 +105,22 @@ class GoldenFileTest {
     // ===== timestamps =====
     cases.put("timestamp", () -> metric("my.gauge").gauge().value(1).timestamp(TIMESTAMP).build());
     cases.put(
+        "timestamp with nanoseconds",
+        () ->
+            metric("my.gauge")
+                .gauge()
+                .value(1)
+                .timestamp(Instant.ofEpochSecond(1_700_000_000L, 123_456_789L))
+                .build());
+    cases.put(
+        "timestamp in the future",
+        () ->
+            metric("my.gauge")
+                .gauge()
+                .value(1)
+                .timestamp(Instant.ofEpochSecond(4_102_444_800L))
+                .build());
+    cases.put(
         "timestamp before 2000 is dropped",
         () -> metric("my.gauge").gauge().value(1).timestamp(Instant.ofEpochSecond(0)).build());
     cases.put(
@@ -141,6 +157,9 @@ class GoldenFileTest {
     cases.put("key with uppercase", () -> metric("My.Metric").gauge().value(1).build());
     cases.put("key with empty section", () -> metric("my..metric").gauge().value(1).build());
     cases.put("key truncated", () -> metric(repeat("a", 300)).gauge().value(1).build());
+    cases.put("key at max length", () -> metric(repeat("a", 255)).gauge().value(1).build());
+    cases.put("key one over max length", () -> metric(repeat("a", 256)).gauge().value(1).build());
+    cases.put("key with lone surrogate", () -> metric("my\uD800key").gauge().value(1).build());
     cases.put("empty key", () -> metric("").gauge().value(1).build());
     cases.put("null key", () -> metric((String) null).gauge().value(1).build());
     cases.put("key invalid after normalization", () -> metric("!@#").gauge().value(1).build());
@@ -168,6 +187,14 @@ class GoldenFileTest {
         "dimension value with control characters",
         () -> withDimension("dim", "line\nbreak\ttab\u0000null"));
     cases.put("dimension value with unicode", () -> withDimension("dim", "äöüß"));
+    cases.put("dimension key at max length", () -> withDimension(repeat("k", 100), "value"));
+    cases.put("dimension key one over max length", () -> withDimension(repeat("k", 101), "value"));
+    cases.put("dimension value at max length", () -> withDimension("dim", repeat("v", 255)));
+    cases.put("dimension value one over max length", () -> withDimension("dim", repeat("v", 256)));
+    cases.put(
+        "dimension value truncated inside surrogate pair",
+        () -> withDimension("dim", repeat("v", 254) + "😊"));
+    cases.put("dimension value with lone surrogate", () -> withDimension("dim", "a\uD800b"));
     cases.put("dimension value truncated", () -> withDimension("dim", repeat("v", 300)));
     cases.put(
         "dimension value truncated before escape",
@@ -181,6 +208,13 @@ class GoldenFileTest {
                 .gauge()
                 .value(1)
                 .build());
+    cases.put(
+        "dimensions at max count",
+        // the order of dimensions is not specified, so only count them
+        () -> {
+          String line = metric("my.metric").dimensions(dims(50)).gauge().value(1).build();
+          return (line.split(" ")[0].split(",").length - 1) + " dimensions";
+        });
     cases.put(
         "too many dimensions",
         () -> metric("my.metric").dimensions(dims(51)).gauge().value(1).build());
