@@ -22,8 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 class MetricBuilderTest {
 
@@ -402,30 +400,25 @@ class MetricBuilderTest {
       dimensions.put(key, val);
     }
 
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(DynatraceMetadataEnricher::getDynatraceMetadata)
-          .thenReturn(Collections.singletonMap("dim3", "metadataVal"));
+    MetricLinePreConfiguration.Builder preConfig =
+        assertDoesNotThrow(
+            () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
 
-      MetricLinePreConfiguration.Builder preConfig =
-          assertDoesNotThrow(
-              () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
+    // preConfig will still have exact 50 dimensions (dim3 will be overwritten)
+    preConfig
+        .dynatraceMetadataSource(Collections.singletonMap("dim3", "metadataVal"))
+        .dynatraceMetadataDimensions();
 
-      // preConfig will still have exact 50 dimensions (dim3 will be overwritten)
-      preConfig.dynatraceMetadataDimensions();
-
-      MetricLinePreConfiguration config = assertDoesNotThrow(() -> preConfig.build());
-      assertThrows(
-          MetricException.class,
-          () ->
-              MetricLineBuilder.create(config)
-                  .metricKey("my.metric")
-                  .dimensions(Collections.singletonMap("key", "value")));
-      assertThrows(
-          MetricException.class,
-          () -> MetricLineBuilder.create(config).metricKey("my.metric").dimension("key", "value"));
-    }
+    MetricLinePreConfiguration config = assertDoesNotThrow(() -> preConfig.build());
+    assertThrows(
+        MetricException.class,
+        () ->
+            MetricLineBuilder.create(config)
+                .metricKey("my.metric")
+                .dimensions(Collections.singletonMap("key", "value")));
+    assertThrows(
+        MetricException.class,
+        () -> MetricLineBuilder.create(config).metricKey("my.metric").dimension("key", "value"));
   }
 
   @Test
@@ -437,21 +430,16 @@ class MetricBuilderTest {
       dimensions.put(key, val);
     }
 
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(DynatraceMetadataEnricher::getDynatraceMetadata)
-          .thenReturn(Collections.singletonMap("dim51", "metadataVal"));
+    MetricLinePreConfiguration.Builder preConfig =
+        assertDoesNotThrow(
+            () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
 
-      MetricLinePreConfiguration.Builder preConfig =
-          assertDoesNotThrow(
-              () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
+    // adding the preConfig should exceed the dimension limit
+    preConfig
+        .dynatraceMetadataSource(Collections.singletonMap("dim51", "metadataVal"))
+        .dynatraceMetadataDimensions();
 
-      // adding the preConfig should exceed the dimension limit
-      preConfig.dynatraceMetadataDimensions();
-
-      assertThrows(MetricException.class, () -> preConfig.build());
-    }
+    assertThrows(MetricException.class, () -> preConfig.build());
   }
 
   @Test
@@ -463,21 +451,16 @@ class MetricBuilderTest {
       dimensions.put(key, val);
     }
 
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(DynatraceMetadataEnricher::getDynatraceMetadata)
-          .thenReturn(Collections.singletonMap("dim3", "metadataVal"));
+    MetricLinePreConfiguration.Builder preConfig =
+        assertDoesNotThrow(
+            () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
 
-      MetricLinePreConfiguration.Builder preConfig =
-          assertDoesNotThrow(
-              () -> MetricLinePreConfiguration.builder().defaultDimensions(dimensions));
+    // preConfig will still have exact 50 dimensions (dim3 will be overwritten)
+    preConfig
+        .dynatraceMetadataSource(Collections.singletonMap("dim3", "metadataVal"))
+        .dynatraceMetadataDimensions();
 
-      // preConfig will still have exact 50 dimensions (dim3 will be overwritten)
-      preConfig.dynatraceMetadataDimensions();
-
-      assertDoesNotThrow(() -> preConfig.build());
-    }
+    assertDoesNotThrow(() -> preConfig.build());
   }
 
   @ParameterizedTest(name = "{index}: {0}, key: {1}, value: {2}")
@@ -525,125 +508,106 @@ class MetricBuilderTest {
 
   @Test
   void testSetDefaultAndDynamicAndMetadataDimensions() throws MetricException {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(DynatraceMetadataEnricher::getDynatraceMetadata)
-          .thenReturn(Collections.singletonMap("metadataDim1", "metadataVal1"));
+    String expectedBase = "prefix.name count,delta=1";
+    List<String> expectedDims =
+        Arrays.asList("defaultdim1=defaultVal1", "dim1=val1", "metadatadim1=metadataVal1");
 
-      String expectedBase = "prefix.name count,delta=1";
-      List<String> expectedDims =
-          Arrays.asList("defaultdim1=defaultVal1", "dim1=val1", "metadatadim1=metadataVal1");
+    String actual =
+        MetricLineBuilder.create(
+                MetricLinePreConfiguration.builder()
+                    .prefix("prefix")
+                    .defaultDimensions(Collections.singletonMap("defaultDim1", "defaultVal1"))
+                    .dynatraceMetadataSource(
+                        Collections.singletonMap("metadataDim1", "metadataVal1"))
+                    .dynatraceMetadataDimensions()
+                    .build())
+            .metricKey("name")
+            .dimensions(Collections.singletonMap("dim1", "val1"))
+            .count()
+            .delta(1)
+            .build();
 
-      String actual =
-          MetricLineBuilder.create(
-                  MetricLinePreConfiguration.builder()
-                      .prefix("prefix")
-                      .defaultDimensions(Collections.singletonMap("defaultDim1", "defaultVal1"))
-                      .dynatraceMetadataDimensions()
-                      .build())
-              .metricKey("name")
-              .dimensions(Collections.singletonMap("dim1", "val1"))
-              .count()
-              .delta(1)
-              .build();
+    String actualBase = actual.split(",", 2)[0] + " " + actual.split(" ")[1];
+    List<String> actualDims = Arrays.asList(actual.split(",", 2)[1].split(" ")[0].split(","));
 
-      String actualBase = actual.split(",", 2)[0] + " " + actual.split(" ")[1];
-      List<String> actualDims = Arrays.asList(actual.split(",", 2)[1].split(" ")[0].split(","));
-
-      assertEquals(expectedBase, actualBase);
-      assertListsEqualIgnoreOrder(expectedDims, actualDims);
-    }
+    assertEquals(expectedBase, actualBase);
+    assertListsEqualIgnoreOrder(expectedDims, actualDims);
   }
 
   @Test
   void testOverwriting() throws MetricException {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(DynatraceMetadataEnricher::getDynatraceMetadata)
-          .thenReturn(Collections.singletonMap("dim3", "metadataVal3"));
+    String expectedBase = "prefix.name count,delta=1";
+    List<String> expectedDims =
+        Arrays.asList("dim1=defaultVal1", "dim2=dynamicVal2", "dim3=metadataVal3");
 
-      String expectedBase = "prefix.name count,delta=1";
-      List<String> expectedDims =
-          Arrays.asList("dim1=defaultVal1", "dim2=dynamicVal2", "dim3=metadataVal3");
+    Map<String, String> defaultDimensions = new HashMap<>();
+    defaultDimensions.put("dim1", "defaultVal1");
+    defaultDimensions.put("dim2", "defaultVal2");
+    defaultDimensions.put("dim3", "defaultVal3");
 
-      Map<String, String> defaultDimensions = new HashMap<>();
-      defaultDimensions.put("dim1", "defaultVal1");
-      defaultDimensions.put("dim2", "defaultVal2");
-      defaultDimensions.put("dim3", "defaultVal3");
+    Map<String, String> dimensions = new HashMap<>();
+    dimensions.put("dim2", "dynamicVal2");
+    dimensions.put("dim3", "dynamicVal3");
 
-      Map<String, String> dimensions = new HashMap<>();
-      dimensions.put("dim2", "dynamicVal2");
-      dimensions.put("dim3", "dynamicVal3");
+    String actual =
+        MetricLineBuilder.create(
+                MetricLinePreConfiguration.builder()
+                    .prefix("prefix")
+                    .defaultDimensions(defaultDimensions)
+                    .dynatraceMetadataSource(Collections.singletonMap("dim3", "metadataVal3"))
+                    .dynatraceMetadataDimensions()
+                    .build())
+            .metricKey("name")
+            .dimensions(dimensions)
+            .count()
+            .delta(1)
+            .build();
 
-      String actual =
-          MetricLineBuilder.create(
-                  MetricLinePreConfiguration.builder()
-                      .prefix("prefix")
-                      .defaultDimensions(defaultDimensions)
-                      .dynatraceMetadataDimensions()
-                      .build())
-              .metricKey("name")
-              .dimensions(dimensions)
-              .count()
-              .delta(1)
-              .build();
+    String actualBase = actual.split(",", 2)[0] + " " + actual.split(" ")[1];
+    List<String> actualDims = Arrays.asList(actual.split(",", 2)[1].split(" ")[0].split(","));
 
-      String actualBase = actual.split(",", 2)[0] + " " + actual.split(" ")[1];
-      List<String> actualDims = Arrays.asList(actual.split(",", 2)[1].split(" ")[0].split(","));
-
-      assertEquals(expectedBase, actualBase);
-      assertListsEqualIgnoreOrder(expectedDims, actualDims);
-    }
+    assertEquals(expectedBase, actualBase);
+    assertListsEqualIgnoreOrder(expectedDims, actualDims);
   }
 
   @Test
   void testOverwritingNormalizedDimensionKey() throws MetricException {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      String expected = "prefix.name,dim_=metadataVal count,delta=1";
+    String expected = "prefix.name,dim_=metadataVal count,delta=1";
 
-      mockEnricher
-          .when(DynatraceMetadataEnricher::getDynatraceMetadata)
-          .thenReturn(Collections.singletonMap("dim@", "metadataVal"));
+    String actual =
+        MetricLineBuilder.create(
+                MetricLinePreConfiguration.builder()
+                    .prefix("prefix")
+                    .defaultDimensions(Collections.singletonMap("dim@", "defaultVal"))
+                    .dynatraceMetadataSource(Collections.singletonMap("dim@", "metadataVal"))
+                    .dynatraceMetadataDimensions()
+                    .build())
+            .metricKey("name")
+            .dimensions(Collections.singletonMap("dim@", "dynamicVal"))
+            .count()
+            .delta(1)
+            .build();
 
-      String actual =
-          MetricLineBuilder.create(
-                  MetricLinePreConfiguration.builder()
-                      .prefix("prefix")
-                      .defaultDimensions(Collections.singletonMap("dim@", "defaultVal"))
-                      .dynatraceMetadataDimensions()
-                      .build())
-              .metricKey("name")
-              .dimensions(Collections.singletonMap("dim@", "dynamicVal"))
-              .count()
-              .delta(1)
-              .build();
-
-      assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
   }
 
   @Test
   void testDontAddExistingMetadataInformation() throws MetricException {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(DynatraceMetadataEnricher::getDynatraceMetadata)
-          .thenReturn(Collections.singletonMap("dim1", "metadataVal1"));
+    String expectedLine = "prefix.name count,delta=1";
 
-      String expectedLine = "prefix.name count,delta=1";
+    String actual =
+        MetricLineBuilder.create(
+                MetricLinePreConfiguration.builder()
+                    .prefix("prefix")
+                    // not added, since dynatraceMetadataDimensions() is not called
+                    .dynatraceMetadataSource(Collections.singletonMap("dim1", "metadataVal1"))
+                    .build())
+            .metricKey("name")
+            .count()
+            .delta(1)
+            .build();
 
-      String actual =
-          MetricLineBuilder.create(MetricLinePreConfiguration.builder().prefix("prefix").build())
-              .metricKey("name")
-              .count()
-              .delta(1)
-              .build();
-
-      assertEquals(expectedLine, actual);
-    }
+    assertEquals(expectedLine, actual);
   }
 
   @Test
