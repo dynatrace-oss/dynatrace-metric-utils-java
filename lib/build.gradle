@@ -27,12 +27,11 @@ repositories {
 }
 
 dependencies {
-    // Use JUnit test framework.
-    testImplementation(platform('org.junit:junit-bom:5.7.0'))
+    // JUnit 6 needs Java 17, so stay on JUnit 5 while the tests run on Java 8.
+    testImplementation(platform('org.junit:junit-bom:5.14.4'))
     testImplementation('org.junit.jupiter:junit-jupiter')
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
-    testImplementation("org.awaitility:awaitility:4.1.1")
+    testImplementation('org.awaitility:awaitility:4.3.0')
 }
 
 // Gradle runs on a recent JDK. Pass -PtestJavaVersion=<n> to run the tests on that Java version

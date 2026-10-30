@@ -1,26 +1,20 @@
 version: 2
 updates:
   - package-ecosystem: "gradle"
-    directories:
-      - "/"
-      - "/lib"
-      - "/example"
+    directory: "/"
     schedule:
-      interval: "weekly"
-    # Majors require newer JVMs than the supported Java 8 baseline (JUnit 6,
-    # Mockito 5, Gradle 9) or break the pinned google-java-format (Spotless 8).
+      interval: "monthly"
+    # JUnit 6 needs Java 17, but the tests also run on Java 8.
     ignore:
-      - dependency-name: "*"
+      - dependency-name: "org.junit:junit-bom"
         update-types: ["version-update:semver-major"]
     groups:
-      gradle-dependencies:
-        patterns:
-          - "*"
+      gradle:
+        patterns: ["*"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       github-actions:
-        patterns:
-          - "*"
+        patterns: ["*"]
