@@ -64,6 +64,11 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << '-Xlint:-options'
 }
 
+javadoc {
+    // don't warn about members without a doc comment, but still check the existing ones
+    options.addBooleanOption('Xdoclint:all,-missing', true)
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
