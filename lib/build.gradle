@@ -40,6 +40,8 @@ def testJavaVersion = findProperty('testJavaVersion')
 
 test {
     useJUnitPlatform()
+    // pass -PupdateGolden to rewrite the expected output of GoldenFileTest
+    systemProperty 'updateGolden', providers.gradleProperty('updateGolden').isPresent()
     if (testJavaVersion) {
         javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(testJavaVersion as int)
@@ -60,6 +62,11 @@ tasks.withType(JavaCompile).configureEach {
     options.release = 8
     // newer JDKs warn that release 8 is obsolete
     options.compilerArgs << '-Xlint:-options'
+}
+
+javadoc {
+    // don't warn about members without a doc comment, but still check the existing ones
+    options.addBooleanOption('Xdoclint:all,-missing', true)
 }
 
 publishing {
