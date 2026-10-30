@@ -40,6 +40,8 @@ def testJavaVersion = findProperty('testJavaVersion')
 
 test {
     useJUnitPlatform()
+    // pass -PupdateGolden to rewrite the expected output of GoldenFileTest
+    systemProperty 'updateGolden', providers.gradleProperty('updateGolden').isPresent()
     if (testJavaVersion) {
         javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(testJavaVersion as int)
