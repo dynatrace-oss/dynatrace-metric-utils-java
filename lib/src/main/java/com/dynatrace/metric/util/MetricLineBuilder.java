@@ -23,7 +23,9 @@ import java.util.Map;
  */
 public interface MetricLineBuilder {
 
-  /** @return A {@link MetricKeyStep} with an empty pre-configuration object. */
+  /**
+   * @return A {@link MetricKeyStep} with an empty pre-configuration object.
+   */
   static MetricKeyStep create() {
     return MetricLineBuilderImpl.builder(MetricLinePreConfiguration.empty());
   }
