@@ -7,64 +7,44 @@ on:
 
 jobs:
   build:
+    name: Java ${{ matrix.java-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        java-version: [ 
-          8,
-          11,
-          17,
-        ]
-        os: [ 
-          ubuntu-latest,
-          windows-latest,
-          macos-latest,
-        ]
-    
-    name: Java ${{ matrix.java-version }} on ${{ matrix.os }}
+        java-version: [ 8, 11, 17, 21, 25 ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Set up JDK ${{ matrix.java-version }}
-        uses: actions/setup-java@v4
+      - name: Set up JDK ${{ matrix.java-version }} for the tests
+        id: test-jdk
+        uses: actions/setup-java@v6
         with:
           distribution: 'corretto'
           java-version: ${{ matrix.java-version }}
 
-      - name: Compile
-        run: ./gradlew assemble
-
-      # this step is required for Java version 16 and up, because some of the internal classes used
-      # for the spotless plugin are no longer accessible. This is the official workaround provided
-      # on the google-java-format github page.
-      # these settings will cause Java 8 to crash, so they are only applied to later versions.
-      - name: Set up Gradle workaround for formatting and testing
-        if: ${{ matrix.java-version >= 16 }}
-        run: |
-          echo 'org.gradle.jvmargs=\
-                  --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
-                  --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
-                  --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
-                  --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
-                  --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED' > gradle.properties
-
-      - name: Test
-        run: ./gradlew check
-
-      - name: Upload JAR
-        # only run this action on ubuntu, since the jar should be the same
-        # for Windows and Linux, and therefore needs not be uploaded twice.
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: actions/upload-artifact@v4
+      # set up last, so it becomes JAVA_HOME and runs Gradle
+      - name: Set up JDK 21 for Gradle
+        uses: actions/setup-java@v6
         with:
-          name: jar (JDK ${{ matrix.java-version }})
-          path: lib/build/libs/*.jar
-          if-no-files-found: error
+          distribution: 'corretto'
+          java-version: 21
 
-      - name: Upload unit test results
-        uses: actions/upload-artifact@v4
+      # also validates the Gradle wrapper
+      - uses: gradle/actions/setup-gradle@v6
+
+      # PowerShell (the Windows default) splits -D arguments at the dots
+      - shell: bash
+        run: >
+          ./gradlew build
+          -PtestJavaVersion=${{ matrix.java-version }}
+          -Dorg.gradle.java.installations.paths="${{ steps.test-jdk.outputs.path }}"
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v7
         with:
-          name: unit-tests-results (JDK ${{ matrix.java-version }} on ${{ matrix.os }})
+          name: test-results (Java ${{ matrix.java-version }} on ${{ matrix.os }})
           path: lib/build/reports/tests/test/

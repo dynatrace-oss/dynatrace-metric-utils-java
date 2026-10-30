@@ -79,6 +79,21 @@ public class NormalizerTest {
   }
 
   @Test
+  void testMetadataEscapingOnlyDoesNotWarn() {
+    NormalizationResult quote =
+        Normalizer.normalizeMetadataString("a\"b c", MAX_TEST_STRING_LENGTH);
+    assertEquals("\"a\\\"b c\"", quote.getResult());
+    assertEquals(NormalizationResult.MessageType.NONE, quote.messageType());
+  }
+
+  @Test
+  void testMetadataDroppedCharsStillWarn() {
+    NormalizationResult result =
+        Normalizer.normalizeMetadataString("a\u0000b", MAX_TEST_STRING_LENGTH);
+    assertEquals(NormalizationResult.MessageType.WARNING, result.messageType());
+  }
+
+  @Test
   public void testDimensionValuesEscapedOnlyOnce() throws MetricException {
     String expected = "metric1,key=\\ \\,\\=\\\\ count,delta=123 1620392690261";
 

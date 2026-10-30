@@ -14,7 +14,7 @@
 
 plugins {
     id 'application'
-    id 'com.diffplug.spotless' version '6.7.1'
+    id 'com.diffplug.spotless' version '8.10.4'
 }
 
 application {
@@ -30,14 +30,8 @@ repositories {
 }
 
 spotless {
-    format 'misc', {
-        target '*.gradle', '*.md', '.gitignore'
-
-        trimTrailingWhitespace()
-        indentWithSpaces(4)
-        endWithNewline()
-    }
     java {
+        // the formatter version is managed by spotless
         googleJavaFormat()
     }
 }

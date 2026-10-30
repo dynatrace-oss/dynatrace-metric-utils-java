@@ -77,7 +77,7 @@ final class StringValueValidator {
             && codePoint <= CodePoints.UC_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS_END) {
           return false;
         }
-        // else fallthrough
+      // else fallthrough
       case Character.CONTROL:
       case Character.FORMAT:
       case Character.PRIVATE_USE:

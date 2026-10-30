@@ -16,7 +16,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'com.diffplug.spotless' version '6.7.1'
+    id 'com.diffplug.spotless' version '8.10.4'
 }
 
 group 'com.dynatrace.metric.util'
@@ -27,17 +27,24 @@ repositories {
 }
 
 dependencies {
-    // Use JUnit test framework.
-    testImplementation(platform('org.junit:junit-bom:5.7.0'))
+    // JUnit 6 needs Java 17, so stay on JUnit 5 while the tests run on Java 8.
+    testImplementation(platform('org.junit:junit-bom:5.14.4'))
     testImplementation('org.junit.jupiter:junit-jupiter')
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
-    testImplementation("org.mockito:mockito-core:4.11.0")
-    testImplementation("org.mockito:mockito-inline:4.11.0")
-    testImplementation("org.awaitility:awaitility:4.1.1")
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+    testImplementation('org.awaitility:awaitility:4.3.0')
 }
+
+// Gradle runs on a recent JDK. Pass -PtestJavaVersion=<n> to run the tests on that Java version
+// instead (it must be installed), e.g. ./gradlew test -PtestJavaVersion=8
+def testJavaVersion = findProperty('testJavaVersion')
 
 test {
     useJUnitPlatform()
+    if (testJavaVersion) {
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(testJavaVersion as int)
+        }
+    }
     testLogging {
         events "passed", "skipped", "failed"
     }
@@ -46,14 +53,19 @@ test {
 java {
     withJavadocJar()
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+// build with any recent JDK, but only allow the Java 8 API
+tasks.withType(JavaCompile).configureEach {
+    options.release = 8
+    // newer JDKs warn that release 8 is obsolete
+    options.compilerArgs << '-Xlint:-options'
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId 'dynatrace-metric-utils-java'
+            artifactId = 'dynatrace-metric-utils-java'
 
             from components.java
 
@@ -88,11 +100,11 @@ publishing {
     }
     repositories {
         maven {
-            name 'sonatype'
-            url 'https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/'
+            name = 'sonatype'
+            url = 'https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/'
             credentials {
-                username findProperty('sonatypeUsername')
-                password findProperty('sonatypePassword')
+                username = findProperty('sonatypeUsername')
+                password = findProperty('sonatypePassword')
             }
         }
     }
@@ -106,14 +118,8 @@ signing {
 }
 
 spotless {
-    format 'misc', {
-        target '*.gradle', '*.md', '.gitignore'
-
-        trimTrailingWhitespace()
-        indentWithSpaces(4)
-        endWithNewline()
-    }
     java {
-        googleJavaFormat('1.7')
+        // the formatter version is managed by spotless
+        googleJavaFormat()
     }
 }

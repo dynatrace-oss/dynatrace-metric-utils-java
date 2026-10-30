@@ -13,9 +13,14 @@
  */
 package com.dynatrace.metric.util;
 
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,17 +34,34 @@ class NormalizationWarnThenDebugLoggerTest {
   private static final String METRIC_KEY_2 = "metric.key.second";
   private static final String DIMENSION_KEY_1 = "dimension.key.first";
   private static final String DIMENSION_KEY_2 = "dimension.key.second";
+  private static final String THROTTLE_INFO =
+      "Further normalization logs for data of the same type will be logged at debug level.";
 
-  private final Logger mockLogger = mock(Logger.class);;
+  // records every log call as "LEVEL: message"
+  private final List<String> logged = new ArrayList<>();
   private NormalizationWarnThenDebugLogger warnThenDebugLogger;
 
   @BeforeEach
   void beforeEach() {
-    reset(mockLogger);
+    Logger logger = Logger.getAnonymousLogger();
+    logger.setUseParentHandlers(false);
     // In order to verify success in the tests, log records at any log level.
-    when(mockLogger.isLoggable(any(Level.class))).thenReturn(true);
+    logger.setLevel(Level.ALL);
+    logger.addHandler(
+        new Handler() {
+          @Override
+          public void publish(LogRecord record) {
+            logged.add(record.getLevel() + ": " + record.getMessage());
+          }
 
-    warnThenDebugLogger = new NormalizationWarnThenDebugLogger(mockLogger);
+          @Override
+          public void flush() {}
+
+          @Override
+          public void close() {}
+        });
+
+    warnThenDebugLogger = new NormalizationWarnThenDebugLogger(logger);
   }
 
   @Test
@@ -49,14 +71,11 @@ class NormalizationWarnThenDebugLoggerTest {
     // should be logged at fine
     warnThenDebugLogger.logMetricKeyMessage(RESULT_2);
 
-    verify(mockLogger, atLeastOnce()).isLoggable(Level.WARNING);
-    verify(mockLogger, atLeastOnce()).isLoggable(Level.FINE);
-    verify(mockLogger)
-        .warning(
-            RESULT_1.getMessage()
-                + ". Further normalization logs for data of the same type will be logged at debug level.");
-    verify(mockLogger).fine(RESULT_2.getMessage());
-    verifyNoMoreInteractions(mockLogger);
+    assertEquals(
+        Arrays.asList(
+            "WARNING: " + RESULT_1.getMessage() + ". " + THROTTLE_INFO,
+            "FINE: " + RESULT_2.getMessage()),
+        logged);
   }
 
   @Test
@@ -65,21 +84,16 @@ class NormalizationWarnThenDebugLoggerTest {
     warnThenDebugLogger.logDimensionKeyMessage(METRIC_KEY_1, RESULT_2);
     warnThenDebugLogger.logDimensionKeyMessage(METRIC_KEY_2, RESULT_1);
 
-    verify(mockLogger, atLeastOnce()).isLoggable(Level.WARNING);
-    verify(mockLogger, atLeast(2)).isLoggable(Level.FINE);
     // first message is logged at warn with the additional info that further logs will be logged at
-    // debug.
-    verify(mockLogger)
-        .warning(
+    // debug. All further messages are logged at debug level, independent of the metric key or
+    // message.
+    assertEquals(
+        Arrays.asList(
             String.format(
-                "[%s] %s. %s",
-                METRIC_KEY_1,
-                RESULT_1.getMessage(),
-                "Further normalization logs for data of the same type will be logged at debug level."));
-    // all further messages are logged at debug level, independent of the metric key or message.
-    verify(mockLogger).fine(String.format("[%s] %s", METRIC_KEY_1, RESULT_2.getMessage()));
-    verify(mockLogger).fine(String.format("[%s] %s", METRIC_KEY_2, RESULT_1.getMessage()));
-    verifyNoMoreInteractions(mockLogger);
+                "WARNING: [%s] %s. %s", METRIC_KEY_1, RESULT_1.getMessage(), THROTTLE_INFO),
+            String.format("FINE: [%s] %s", METRIC_KEY_1, RESULT_2.getMessage()),
+            String.format("FINE: [%s] %s", METRIC_KEY_2, RESULT_1.getMessage())),
+        logged);
   }
 
   @Test
@@ -88,24 +102,19 @@ class NormalizationWarnThenDebugLoggerTest {
     warnThenDebugLogger.logDimensionValueMessage(METRIC_KEY_1, DIMENSION_KEY_1, RESULT_2);
     warnThenDebugLogger.logDimensionValueMessage(METRIC_KEY_2, DIMENSION_KEY_2, RESULT_1);
 
-    verify(mockLogger, atLeastOnce()).isLoggable(Level.WARNING);
-    verify(mockLogger, atLeast(2)).isLoggable(Level.FINE);
     // first message is logged at warn with the additional info that further logs will be logged at
-    // debug.
-    verify(mockLogger)
-        .warning(
+    // debug. All further messages are logged at debug level, independent of the metric key or
+    // message.
+    assertEquals(
+        Arrays.asList(
             String.format(
-                "[%s | %s] %s. %s",
-                METRIC_KEY_1,
-                DIMENSION_KEY_1,
-                RESULT_1.getMessage(),
-                "Further normalization logs for data of the same type will be logged at debug level."));
-    // all further messages are logged at debug level, independent of the metric key or message.
-    verify(mockLogger)
-        .fine(String.format("[%s | %s] %s", METRIC_KEY_1, DIMENSION_KEY_1, RESULT_2.getMessage()));
-    verify(mockLogger)
-        .fine(String.format("[%s | %s] %s", METRIC_KEY_2, DIMENSION_KEY_2, RESULT_1.getMessage()));
-    verifyNoMoreInteractions(mockLogger);
+                "WARNING: [%s | %s] %s. %s",
+                METRIC_KEY_1, DIMENSION_KEY_1, RESULT_1.getMessage(), THROTTLE_INFO),
+            String.format(
+                "FINE: [%s | %s] %s", METRIC_KEY_1, DIMENSION_KEY_1, RESULT_2.getMessage()),
+            String.format(
+                "FINE: [%s | %s] %s", METRIC_KEY_2, DIMENSION_KEY_2, RESULT_1.getMessage())),
+        logged);
   }
 
   @Test
@@ -114,17 +123,12 @@ class NormalizationWarnThenDebugLoggerTest {
     warnThenDebugLogger.logMetadataMessage(METRIC_KEY_1, RESULT_2);
     warnThenDebugLogger.logMetadataMessage(METRIC_KEY_2, RESULT_1);
 
-    verify(mockLogger, atLeastOnce()).isLoggable(Level.WARNING);
-    verify(mockLogger, atLeast(2)).isLoggable(Level.FINE);
-    verify(mockLogger)
-        .warning(
+    assertEquals(
+        Arrays.asList(
             String.format(
-                "[%s] %s. %s",
-                METRIC_KEY_1,
-                RESULT_1.getMessage(),
-                "Further normalization logs for data of the same type will be logged at debug level."));
-    verify(mockLogger).fine(String.format("[%s] %s", METRIC_KEY_1, RESULT_2.getMessage()));
-    verify(mockLogger).fine(String.format("[%s] %s", METRIC_KEY_2, RESULT_1.getMessage()));
-    verifyNoMoreInteractions(mockLogger);
+                "WARNING: [%s] %s. %s", METRIC_KEY_1, RESULT_1.getMessage(), THROTTLE_INFO),
+            String.format("FINE: [%s] %s", METRIC_KEY_1, RESULT_2.getMessage()),
+            String.format("FINE: [%s] %s", METRIC_KEY_2, RESULT_1.getMessage())),
+        logged);
   }
 }

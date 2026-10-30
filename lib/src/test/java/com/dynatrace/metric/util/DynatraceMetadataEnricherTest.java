@@ -16,20 +16,24 @@ package com.dynatrace.metric.util;
 import static com.dynatrace.testutils.TestUtils.generateNonExistentFilename;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 class DynatraceMetadataEnricherTest {
+  private static final String METADATA_FILE = "src/test/resources/metadata_file.properties";
+
+  @TempDir Path tempDir;
 
   @Test
   void validProperties() {
@@ -87,16 +91,11 @@ class DynatraceMetadataEnricherTest {
     // this should not be used. If it is, it will not exist and throw an exception, breaking the
     // test.
     String nonExistentAlternativeFilename = generateNonExistentFilename();
-    Properties expected = new Properties();
-    expected.setProperty("key1", "value1");
-    expected.setProperty("key2", "value2");
-    expected.setProperty("key3", "value3");
 
     Properties results =
         DynatraceMetadataEnricher.getPropertiesWithIndirection(
             "src/test/resources/indirection.properties", nonExistentAlternativeFilename);
-    assertEquals(expected, results);
-    assertNotSame(expected, results);
+    assertEquals(expectedMetadata(), results);
   }
 
   @Test
@@ -113,263 +112,65 @@ class DynatraceMetadataEnricherTest {
   void testGetPropertiesWithIndirection_IndirectionFileDoesNotExistAlternativeExists() {
     String filename = generateNonExistentFilename();
 
-    Properties expected = new Properties();
-    expected.setProperty("key1", "value1");
-    expected.setProperty("key2", "value2");
-    expected.setProperty("key3", "value3");
+    Properties result =
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(filename, METADATA_FILE);
 
+    assertEquals(expectedMetadata(), result);
+  }
+
+  @Test
+  void testGetPropertiesWithIndirection_IndirectionFileEmptyAndAlternativeDoesNotExist()
+      throws IOException {
     Properties result =
         DynatraceMetadataEnricher.getPropertiesWithIndirection(
-            filename, "src/test/resources/metadata_file.properties");
-
-    assertEquals(expected, result);
+            writeFile("indirection.properties", ""), generateNonExistentFilename());
+    assertTrue(result.isEmpty());
   }
 
   @Test
-  void testGetPropertiesWithIndirection_IndirectionFileReturnsNullAndAlternativeDoesNotExist() {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(() -> DynatraceMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-          .thenReturn(null);
-      String nonExistentAlternativeFile = generateNonExistentFilename();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
-                      Mockito.eq(nonExistentAlternativeFile)))
-          .thenCallRealMethod();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
-                      Mockito.anyString(), Mockito.anyString()))
-          .thenCallRealMethod();
-
-      Properties result =
-          DynatraceMetadataEnricher.getPropertiesWithIndirection(
-              "src/test/resources/mock_target.properties", nonExistentAlternativeFile);
-      assertTrue(result.isEmpty());
-    }
+  void testGetPropertiesWithIndirection_IndirectionFileEmptyAndAlternativeExists()
+      throws IOException {
+    Properties result =
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(
+            writeFile("indirection.properties", ""), METADATA_FILE);
+    assertEquals(expectedMetadata(), result);
   }
 
   @Test
-  void testGetPropertiesWithIndirection_IndirectionFileReturnsNullAndAlternativeDoesExist() {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(() -> DynatraceMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-          .thenReturn(null);
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
-                      Mockito.eq("src/test/resources/metadata_file.properties")))
-          .thenCallRealMethod();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
-                      Mockito.anyString(), Mockito.anyString()))
-          .thenCallRealMethod();
-
-      Properties expected = new Properties();
-      expected.setProperty("key1", "value1");
-      expected.setProperty("key2", "value2");
-      expected.setProperty("key3", "value3");
-
-      Properties result =
-          DynatraceMetadataEnricher.getPropertiesWithIndirection(
-              "src/test/resources/mock_target.properties",
-              "src/test/resources/metadata_file.properties");
-
-      assertEquals(expected, result);
-    }
+  void testGetPropertiesWithIndirection_IndirectionPathIsDirectoryAndAlternativeDoesNotExist() {
+    // a directory cannot be opened as a file, so this behaves like a missing indirection file
+    Properties result =
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(
+            tempDir.toString(), generateNonExistentFilename());
+    assertTrue(result.isEmpty());
   }
 
   @Test
-  void testGetPropertiesWithIndirection_IndirectionFileReturnsEmptyAndAlternativeDoesNotExist() {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      // ignore the return value of the testfile and mock the return value of the
-      // getIndirectionFileName call:
-      mockEnricher
-          .when(() -> DynatraceMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-          .thenReturn("");
-      String nonExistentAlternativeFile = generateNonExistentFilename();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
-                      Mockito.eq(nonExistentAlternativeFile)))
-          .thenCallRealMethod();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
-                      Mockito.anyString(), Mockito.anyString()))
-          .thenCallRealMethod();
-
-      Properties result =
-          DynatraceMetadataEnricher.getPropertiesWithIndirection(
-              "src/test/resources/mock_target.properties", nonExistentAlternativeFile);
-      assertTrue(result.isEmpty());
-    }
+  void testGetPropertiesWithIndirection_IndirectionPathIsDirectoryAndAlternativeExists() {
+    // a directory cannot be opened as a file, so this behaves like a missing indirection file
+    Properties result =
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(tempDir.toString(), METADATA_FILE);
+    assertEquals(expectedMetadata(), result);
   }
 
   @Test
-  void testGetPropertiesWithIndirection_IndirectionFileReturnsEmptyAndAlternativeDoesExist() {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(() -> DynatraceMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-          .thenReturn("");
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
-                      Mockito.eq("src/test/resources/metadata_file.properties")))
-          .thenCallRealMethod();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
-                      Mockito.anyString(), Mockito.anyString()))
-          .thenCallRealMethod();
-
-      Properties expected = new Properties();
-      expected.setProperty("key1", "value1");
-      expected.setProperty("key2", "value2");
-      expected.setProperty("key3", "value3");
-
-      Properties result =
-          DynatraceMetadataEnricher.getPropertiesWithIndirection(
-              "src/test/resources/mock_target.properties",
-              "src/test/resources/metadata_file.properties");
-
-      assertEquals(expected, result);
-    }
+  void testGetPropertiesWithIndirection_MetadataFileDoesNotExist() throws IOException {
+    // call with an existing metadata file as alternative.
+    // if the test failed, the alternative file would be read and results would be returned
+    // which in turn would break the test.
+    Properties result =
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(
+            writeFile("indirection.properties", generateNonExistentFilename()), METADATA_FILE);
+    assertTrue(result.isEmpty());
   }
 
   @Test
-  void testGetPropertiesWithIndirection_IndirectionFileThrowsAndAlternativeDoesNotExist() {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      // ignore the return value of the testfile and mock the return value of the
-      // getIndirectionFileName call:
-      mockEnricher
-          .when(() -> DynatraceMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-          .thenThrow(new IOException("test exception"));
-      String nonExistentAlternativeFile = generateNonExistentFilename();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
-                      Mockito.eq(nonExistentAlternativeFile)))
-          .thenCallRealMethod();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
-                      Mockito.anyString(), Mockito.anyString()))
-          .thenCallRealMethod();
-
-      Properties result =
-          DynatraceMetadataEnricher.getPropertiesWithIndirection(
-              "src/test/resources/mock_target.properties", nonExistentAlternativeFile);
-      assertTrue(result.isEmpty());
-    }
-  }
-
-  @Test
-  void testGetPropertiesWithIndirection_IndirectionFileThrowsAndAlternativeDoesExist() {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(() -> DynatraceMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-          .thenThrow(new IOException("test exception"));
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
-                      Mockito.eq("src/test/resources/metadata_file.properties")))
-          .thenCallRealMethod();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
-                      Mockito.anyString(), Mockito.anyString()))
-          .thenCallRealMethod();
-
-      Properties expected = new Properties();
-      expected.setProperty("key1", "value1");
-      expected.setProperty("key2", "value2");
-      expected.setProperty("key3", "value3");
-
-      Properties result =
-          DynatraceMetadataEnricher.getPropertiesWithIndirection(
-              "src/test/resources/mock_target.properties",
-              "src/test/resources/metadata_file.properties");
-
-      assertEquals(expected, result);
-    }
-  }
-
-  @Test
-  void testGetPropertiesWithIndirection_MetadataFileDoesNotExist() {
-    String metadataFilename = generateNonExistentFilename();
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(() -> DynatraceMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-          .thenReturn(metadataFilename);
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.fileExistsAndIsReadable(
-                      Mockito.eq("src/test/resources/metadata_file.properties")))
-          .thenCallRealMethod();
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
-                      Mockito.anyString(), Mockito.anyString()))
-          .thenCallRealMethod();
-
-      // call with an existing indirection target as alternative.
-      // if the test failed, the alternative file would be read and results would be returned
-      // which in turn would break the test.
-      Properties result =
-          DynatraceMetadataEnricher.getPropertiesWithIndirection(
-              "src/test/resources/mock_target.properties",
-              "src/test/resources/metadata_file.properties");
-
-      assertTrue(result.isEmpty());
-    }
-  }
-
-  @Test
-  void testGetPropertiesWithIndirection_EmptyMetadataFile() {
-    try (MockedStatic<DynatraceMetadataEnricher> mockEnricher =
-        Mockito.mockStatic(DynatraceMetadataEnricher.class)) {
-      mockEnricher
-          .when(() -> DynatraceMetadataEnricher.getMetadataFileName(Mockito.any(FileReader.class)))
-          .thenReturn("src/test/resources/mock_target.properties");
-      mockEnricher
-          .when(
-              () ->
-                  DynatraceMetadataEnricher.getPropertiesWithIndirection(
-                      Mockito.anyString(), Mockito.anyString()))
-          .thenCallRealMethod();
-
-      // this should never be used but is required.
-      String alternativeFileName = generateNonExistentFilename();
-
-      Properties result =
-          DynatraceMetadataEnricher.getPropertiesWithIndirection(
-              "src/test/resources/mock_target.properties", alternativeFileName);
-      assertTrue(result.isEmpty());
-    }
+  void testGetPropertiesWithIndirection_EmptyMetadataFile() throws IOException {
+    String metadataFile = writeFile("metadata.properties", "");
+    Properties result =
+        DynatraceMetadataEnricher.getPropertiesWithIndirection(
+            writeFile("indirection.properties", metadataFile), generateNonExistentFilename());
+    assertTrue(result.isEmpty());
   }
 
   @Test
@@ -378,12 +179,21 @@ class DynatraceMetadataEnricherTest {
     assertFalse(DynatraceMetadataEnricher.fileExistsAndIsReadable(""));
     assertFalse(DynatraceMetadataEnricher.fileExistsAndIsReadable(generateNonExistentFilename()));
 
-    assertTrue(
-        DynatraceMetadataEnricher.fileExistsAndIsReadable(
-            "src/test/resources/mock_target.properties"));
-    assertTrue(
-        DynatraceMetadataEnricher.fileExistsAndIsReadable(
-            "src/test/resources/metadata_file.properties"));
+    assertTrue(DynatraceMetadataEnricher.fileExistsAndIsReadable(METADATA_FILE));
+  }
+
+  private String writeFile(String name, String content) throws IOException {
+    Path file = tempDir.resolve(name);
+    Files.write(file, content.getBytes(StandardCharsets.UTF_8));
+    return file.toString();
+  }
+
+  private static Properties expectedMetadata() {
+    Properties expected = new Properties();
+    expected.setProperty("key1", "value1");
+    expected.setProperty("key2", "value2");
+    expected.setProperty("key3", "value3");
+    return expected;
   }
 
   private static Stream<Arguments> provideInvalidPropertyParameters() {

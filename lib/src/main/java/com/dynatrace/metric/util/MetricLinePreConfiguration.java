@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
@@ -63,12 +64,16 @@ public class MetricLinePreConfiguration {
     return prefix;
   }
 
-  /** @return The length of the String, if you would serialize all attributes */
+  /**
+   * @return The length of the String, if you would serialize all attributes
+   */
   int preConfigSerializedLength() {
     return serializationLength;
   }
 
-  /** @return an empty {@link MetricLinePreConfiguration}-object. */
+  /**
+   * @return an empty {@link MetricLinePreConfiguration}-object.
+   */
   static MetricLinePreConfiguration empty() {
     return EMPTY_PRE_CONFIG;
   }
@@ -87,6 +92,8 @@ public class MetricLinePreConfiguration {
 
     private Map<String, String> defaultDimensions = null;
     private boolean withDynatraceMetadataDimensions = false;
+    private Supplier<Map<String, String>> dynatraceMetadataSource =
+        DynatraceMetadataEnricher::getDynatraceMetadata;
     private String prefix;
     private int dimensionCount = 0;
     private int serializationLength = 0;
@@ -136,6 +143,16 @@ public class MetricLinePreConfiguration {
     }
 
     /**
+     * Read Dynatrace metadata from the given map instead of the Dynatrace metadata files. Only used
+     * in tests; the metadata is still only added if {@link #dynatraceMetadataDimensions()} is
+     * called.
+     */
+    Builder dynatraceMetadataSource(Map<String, String> dynatraceMetadata) {
+      this.dynatraceMetadataSource = () -> dynatraceMetadata;
+      return this;
+    }
+
+    /**
      * Build the {@link MetricLinePreConfiguration} using the data provided by this {@link Builder}.
      * Necessary normalization is done.
      *
@@ -152,8 +169,7 @@ public class MetricLinePreConfiguration {
 
       // First, add all dynatraceMetadataDimensions.
       if (this.withDynatraceMetadataDimensions) {
-        Map<String, String> dynatraceMetadataDimensions =
-            DynatraceMetadataEnricher.getDynatraceMetadata();
+        Map<String, String> dynatraceMetadataDimensions = this.dynatraceMetadataSource.get();
 
         if (dynatraceMetadataDimensions.isEmpty()) {
           logger.warning(() -> ValidationMessages.SKIP_EMPTY_DYNATRACE_METADATA_DIMENSIONS);

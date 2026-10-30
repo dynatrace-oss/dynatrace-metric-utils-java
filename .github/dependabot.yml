@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    # JUnit 6 needs Java 17, but the tests also run on Java 8.
+    ignore:
+      - dependency-name: "org.junit:junit-bom"
+        update-types: ["version-update:semver-major"]
+    groups:
+      gradle:
+        patterns: ["*"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      github-actions:
+        patterns: ["*"]
