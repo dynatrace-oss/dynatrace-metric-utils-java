@@ -1,0 +1,135 @@
+=== gauge value
+my.gauge gauge,1.5
+=== gauge integer value
+my.gauge gauge,200
+=== gauge negative value
+my.gauge gauge,-0.25
+=== gauge zero
+my.gauge gauge,0
+=== gauge large value
+my.gauge gauge,10000000000
+=== gauge large fraction
+my.gauge gauge,1.234567000000123E12
+=== gauge max double
+my.gauge gauge,1.7976931348623157E308
+=== gauge min double
+my.gauge gauge,4.9E-324
+=== gauge precision
+my.gauge gauge,1.1234567890123457
+=== gauge summary
+my.gauge gauge,min=0.1,max=10,sum=20.5,count=7
+=== gauge empty summary
+my.gauge gauge,min=0,max=0,sum=0,count=0
+=== counter delta
+my.count count,delta=42
+=== counter fractional delta
+my.count count,delta=0.123
+=== counter negative delta
+my.count count,delta=-3
+=== timestamp
+my.gauge gauge,1 1700000000000
+=== timestamp before 2000 is dropped
+my.gauge gauge,1
+=== null timestamp is dropped
+my.gauge gauge,1
+=== gauge NaN
+ERROR: [my.gauge] Metric value was NaN
+=== gauge infinity
+ERROR: [my.gauge] Metric value was infinite (Infinity)
+=== counter NaN
+ERROR: [my.count] Metric value was NaN
+=== counter negative infinity
+ERROR: [my.count] Metric value was infinite (-Infinity)
+=== summary negative count
+ERROR: [my.gauge] count < 0: min: 0.000000, max 0.000000, sum: 0.000000, count: -1
+=== summary zero count with values
+ERROR: [my.gauge] count == 0 => min, max, sum != 0: min: 1.000000, max 2.000000, sum: 3.000000, count: 0
+=== summary max below min
+ERROR: [my.gauge] max < min: min: 5.000000, max: 3.000000, sum: 8.000000, count: 2
+=== summary average outside min and max
+ERROR: [my.gauge] inconsistent gauge fields: min <= avg <= max doesn't hold: min: 1.000000, max: 2.000000, sum: 10.000000, count: 2, avg: 5.000000, tolerance: 0.000001
+=== summary NaN
+ERROR: [my.gauge] NaN values: min: NaN, max 1.000000, sum: 1.000000, count: 1
+=== summary infinity
+ERROR: [my.gauge] infinite values: min: 0.000000, max Infinity, sum: 1.000000, count: 1
+=== key with invalid characters
+my_metric_key gauge,1
+=== key with leading digit
+_metric gauge,1
+=== key with uppercase
+My.Metric gauge,1
+=== key with empty section
+my.metric gauge,1
+=== key truncated
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa gauge,1
+=== empty key
+ERROR: Metric key is empty
+=== null key
+ERROR: Metric key is empty
+=== key invalid after normalization
+_ gauge,1
+=== dimensions
+my.metric,dim2=value2,dim1=value1 gauge,1
+=== dimension key normalization
+my.metric,dim_key-with_stuff=value gauge,1
+=== dimension key with leading digit
+my.metric,_dim=value gauge,1
+=== dimension key truncated
+my.metric,kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk=value gauge,1
+=== empty dimension key is dropped
+my.metric gauge,1
+=== empty dimension value is dropped
+my.metric gauge,1
+=== dimension value escaping
+my.metric,dim=a\ value\,\ with\ \"quotes\"\,\ \=\ and\ \\\ backslash gauge,1
+=== dimension value with emoji
+my.metric,dim=😊 gauge,1
+=== dimension value with control characters
+my.metric,dim=line_break_tab_null gauge,1
+=== dimension value with unicode
+my.metric,dim=äöüß gauge,1
+=== dimension value truncated
+my.metric,dim=vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv gauge,1
+=== dimension value truncated before escape
+my.metric,dim=vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv gauge,1
+=== same dimension key twice
+my.metric,dim=second gauge,1
+=== too many dimensions
+ERROR: [my.metric] Too many dimensions were tried to be set, max limit of 50 surpassed
+=== prefix
+prefix.my.metric gauge,1
+=== invalid prefix
+_.my.metric gauge,1
+=== default dimensions
+my.metric,default1=value1,default2=value2,dim=value gauge,1
+=== dimension overrides default dimension
+my.metric,other=default,dim=dynamic gauge,1
+=== default dimension key normalization
+my.metric,default_dim=value gauge,1
+=== too many default dimensions
+ERROR: Too many dimensions were tried to be set, max limit of 50 surpassed
+=== default and dynamic dimensions above limit
+ERROR: [my.metric] Too many dimensions were tried to be set, max limit of 50 surpassed
+=== dynatrace metadata
+prefix.my.metric,default=value,dim=value,dt.entity.process_group_instance=PROCESS_GROUP_INSTANCE-1234 count,delta=1 1700000000000
+=== dynatrace metadata overrides dimensions
+my.metric,dt.entity.process_group_instance=PROCESS_GROUP_INSTANCE-1234 gauge,1
+=== gauge metadata
+my.gauge gauge,1
+#my.gauge gauge dt.meta.description="A description of the metric",dt.meta.unit=unit,dt.meta.displayName="My Gauge"
+=== counter metadata
+my.count count,delta=1
+#my.count count dt.meta.description="Measures something in bytes",dt.meta.unit=Byte
+=== metadata escaping
+#my.gauge gauge dt.meta.description="with \"quotes\", commas, = and \ backslash",dt.meta.displayName="display, \"name\""
+=== metadata with trailing backslash
+#my.gauge gauge dt.meta.description="C:\temp\"
+=== metadata with escaped quote
+#my.gauge gauge dt.meta.description="say \\"hi\\""
+=== metadata with invalid unit
+#my.gauge gauge dt.meta.description=valid
+=== metadata without fields
+null
+=== metadata with prefix and dimensions
+prefix.my.metric,dim=value gauge,1
+#prefix.my.metric gauge dt.meta.description="dimensions are not added"
