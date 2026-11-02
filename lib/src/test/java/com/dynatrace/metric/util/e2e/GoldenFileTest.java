@@ -15,6 +15,7 @@ package com.dynatrace.metric.util.e2e;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.dynatrace.metric.util.GoldenFileTestSupport;
 import com.dynatrace.metric.util.MetricException;
 import com.dynatrace.metric.util.MetricLineBuilder;
 import com.dynatrace.metric.util.MetricLinePreConfiguration;
@@ -24,44 +25,27 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Builds metric and metadata lines through the public API only and compares them with the expected
  * output in {@code src/test/resources/golden/metric-lines.txt}. This pins the serialized format
- * that the Dynatrace ingest endpoint receives.
+ * that the Dynatrace ingest endpoint receives. Only the source of the Dynatrace metadata is faked
+ * (see {@link GoldenFileTestSupport}), so that the result does not depend on a OneAgent.
  *
  * <p>After an intentional change of the output, regenerate the file with {@code ./gradlew :lib:test
  * --tests '*GoldenFileTest' -PupdateGolden} and review the diff.
  */
 class GoldenFileTest {
   private static final Path GOLDEN_FILE = Paths.get("src/test/resources/golden/metric-lines.txt");
-  // the OneAgent writes this file to the working directory of monitored processes
-  private static final Path INDIRECTION_FILE =
-      Paths.get("dt_metadata_e617c525669e072eebe3d0f08212e8f2.properties");
   private static final Instant TIMESTAMP = Instant.ofEpochMilli(1_700_000_000_000L);
 
   @FunctionalInterface
   private interface Case {
     String build() throws MetricException;
-  }
-
-  /** Provide Dynatrace metadata the way the OneAgent does, for cases that enable it. */
-  @BeforeEach
-  void writeDynatraceMetadata(@TempDir Path tempDir) throws IOException {
-    Path metadataFile = tempDir.resolve("dt_metadata.properties");
-    write(metadataFile, "dt.entity.process_group_instance=PROCESS_GROUP_INSTANCE-1234\n");
-    write(INDIRECTION_FILE, metadataFile.toAbsolutePath().toString());
-  }
-
-  @AfterEach
-  void deleteDynatraceMetadata() throws IOException {
-    Files.delete(INDIRECTION_FILE);
   }
 
   @Test
@@ -260,10 +244,8 @@ class GoldenFileTest {
         "dynatrace metadata",
         () ->
             metric(
-                    preConfig()
-                        .prefix("prefix")
-                        .defaultDimensions(dims("default", "value"))
-                        .dynatraceMetadataDimensions())
+                    withDynatraceMetadata(
+                        preConfig().prefix("prefix").defaultDimensions(dims("default", "value"))))
                 .dimension("dim", "value")
                 .count()
                 .delta(1)
@@ -273,9 +255,10 @@ class GoldenFileTest {
         "dynatrace metadata overrides dimensions",
         () ->
             metric(
-                    preConfig()
-                        .defaultDimensions(dims("dt.entity.process_group_instance", "default"))
-                        .dynatraceMetadataDimensions())
+                    withDynatraceMetadata(
+                        preConfig()
+                            .defaultDimensions(
+                                dims("dt.entity.process_group_instance", "default"))))
                 .dimension("dt.entity.process_group_instance", "dynamic")
                 .gauge()
                 .value(1)
@@ -355,6 +338,19 @@ class GoldenFileTest {
 
   private static MetricLinePreConfiguration.Builder preConfig() {
     return MetricLinePreConfiguration.builder();
+  }
+
+  /**
+   * Enables the Dynatrace metadata dimensions with a fixed source. Reading the metadata files
+   * instead would make the test depend on the environment: a OneAgent that monitors the test JVM
+   * serves its own metadata for them.
+   */
+  private static MetricLinePreConfiguration.Builder withDynatraceMetadata(
+      MetricLinePreConfiguration.Builder builder) {
+    return GoldenFileTestSupport.withDynatraceMetadata(
+        builder,
+        Collections.singletonMap(
+            "dt.entity.process_group_instance", "PROCESS_GROUP_INSTANCE-1234"));
   }
 
   private static String withDimension(String key, String value) throws MetricException {
