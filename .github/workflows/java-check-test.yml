@@ -48,3 +48,18 @@ jobs:
         with:
           name: test-results (Java ${{ matrix.java-version }} on ${{ matrix.os }})
           path: lib/build/reports/tests/test/
+
+  # Single stable check for branch protection, so the Java/OS matrix can
+  # change without touching the required status checks.
+  test-summary:
+    name: Test summary
+    if: always()
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          echo "build: $BUILD_RESULT"
+          test "$BUILD_RESULT" = success
