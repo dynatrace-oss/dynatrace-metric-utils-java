@@ -12,7 +12,7 @@ permissions:
 
 env:
   # Only dependencies that ship with the library are scanned; test-only ones (e.g. JUnit) are skipped.
-  CONFIGURATIONS: "^(compileClasspath|runtimeClasspath)$"
+  CONFIGURATIONS: "^runtimeClasspath$"
 
 jobs:
   build:
