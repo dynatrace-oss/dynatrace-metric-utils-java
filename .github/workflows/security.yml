@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # Only dependencies that ship with the library are scanned; test-only ones (e.g. JUnit) are skipped.
+  CONFIGURATIONS: "^(compileClasspath|runtimeClasspath)$"
+
 jobs:
   build:
     name: Check for security vulnerabilities
@@ -40,7 +44,7 @@ jobs:
           status=0
           for build_file in "${build_files[@]}"; do
             echo "::group::snyk monitor ${build_file}"
-            snyk monitor --file="${build_file}" --project-name="dynatrace-oss/dynatrace-metric-utils-java:${build_file}" || status=1
+            snyk monitor --file="${build_file}" --configuration-matching="${CONFIGURATIONS}" --project-name="dynatrace-oss/dynatrace-metric-utils-java:${build_file}" || status=1
             echo "::endgroup::"
           done
           exit "${status}"
@@ -74,7 +78,7 @@ jobs:
           status=0
           for build_file in "${build_files[@]}"; do
             echo "::group::snyk test ${build_file}"
-            snyk test --severity-threshold=low --file="${build_file}" || status=1
+            snyk test --severity-threshold=low --file="${build_file}" --configuration-matching="${CONFIGURATIONS}" || status=1
             echo "::endgroup::"
           done
           exit "${status}"
