@@ -1,0 +1,82 @@
+name: Security check
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Only dependencies that ship with the library are scanned; test-only ones (e.g. JUnit) are skipped.
+  CONFIGURATIONS: "^runtimeClasspath$"
+
+jobs:
+  build:
+    name: Check for security vulnerabilities
+    # Snyk tracks main only; a manual run on another branch would overwrite main's snapshot.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
+
+      - name: Set up JDK
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: 'corretto'
+          java-version: 21
+
+      # also validates the Gradle wrapper
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Run Snyk
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          # Every committed build.gradle is monitored, so new subprojects are picked up automatically.
+          mapfile -t build_files < <(git ls-files '*build.gradle')
+          status=0
+          for build_file in "${build_files[@]}"; do
+            echo "::group::snyk monitor ${build_file}"
+            snyk monitor --file="${build_file}" --configuration-matching="${CONFIGURATIONS}" --project-name="dynatrace-oss/dynatrace-metric-utils-java:${build_file}" || status=1
+            echo "::endgroup::"
+          done
+          exit "${status}"
+
+  test:
+    name: Test for security vulnerabilities (no upload)
+    # Manual runs on other branches only report locally via `snyk test`;
+    # `snyk monitor` (build job) is reserved for main.
+    if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
+
+      - name: Set up JDK
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: 'corretto'
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Run Snyk
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          # Findings of all severities (low and above) are reported and fail the job.
+          mapfile -t build_files < <(git ls-files '*build.gradle')
+          status=0
+          for build_file in "${build_files[@]}"; do
+            echo "::group::snyk test ${build_file}"
+            snyk test --severity-threshold=low --file="${build_file}" --configuration-matching="${CONFIGURATIONS}" || status=1
+            echo "::endgroup::"
+          done
+          exit "${status}"
