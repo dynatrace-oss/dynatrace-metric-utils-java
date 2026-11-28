@@ -31,7 +31,7 @@ dependencies {
     testImplementation(platform('org.junit:junit-bom:5.14.4'))
     testImplementation('org.junit.jupiter:junit-jupiter')
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
-    testImplementation('org.awaitility:awaitility:4.3.0')
+    testImplementation('org.awaitility:awaitility:4.4.0')
 }
 
 // Gradle runs on a recent JDK. Pass -PtestJavaVersion=<n> to run the tests on that Java version
